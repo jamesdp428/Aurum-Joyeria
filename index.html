@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="css/inicio.css">
+  <title>Aurum Joyería</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="navbar">
+  <div class="top-bar">
+    <div class="logo">
+      <img src="/img/logo.svg" alt="Logo Aurum" class="logo-img">
+    </div>
+
+    <div class="search-container hover">
+      <input type="text" class="search-input" placeholder="Buscar...">
+      <button class="search-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="icons">
+      <div class="acceso-dropdown" id="accesoDropdown">
+        <div class="acceso-toggle">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+          </svg>
+          <span class="acceso-texto">Acceso</span>
+          <span class="acceso-flecha" id="flechaAcceso">˅</span>
+        </div>
+
+        <div class="dropdown-menu" id="dropdownMenu">
+          <a href="html/login.html">Iniciar sesión</a>
+          <a href="#">Crear cuenta</a>
+        </div>
+      </div>
+
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="9" cy="21" r="1"/>
+        <circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.6 13.5a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L23 6H6"/>
+      </svg>
+    </div>
+  </div>
+
+  <nav class="menu-categorias">
+    <ul>
+      <li><a href="#anillos">Anillos</a></li>
+      <li><a href="#anillos-tejidos">Anillos Tejidos</a></li>
+      <li><a href="#pulseras-tejidas">Pulseras Tejidas</a></li>
+      <li><a href="#esclavas">Esclavas</a></li>
+      <li><a href="#cadenas">Cadenas</a></li>
+      <li><a href="#aretes">Aretes</a></li>
+      <li><a href="#tobilleras">Tobilleras</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="carrusel" id="carrusel">
+  <div class="slides">
+    <div class="slide active" style="background-image: url('img/oro18k.png');"></div>
+    <div class="slide" style="background-image: url('img/anillos.png');"></div>
+    <div class="slide" style="background-image: url('img/pulseras.png');"></div>
+  </div>
+
+  <div class="dots">
+    <span class="dot active" data-index="0"></span>
+    <span class="dot" data-index="1"></span>
+    <span class="dot" data-index="2"></span>
+  </div>
+</section>
+
+
+
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.dot');
+  const prevBtn = document.querySelector('.prev');
+  const nextBtn = document.querySelector('.next');
+
+  let currentSlide = 0;
+  const totalSlides = slides.length;
+
+  function showSlide(index) {
+    // Asegurar que el índice esté en rango
+    if (index < 0) index = totalSlides - 1;
+    if (index >= totalSlides) index = 0;
+
+    // Mover slides
+    document.querySelector('.slides').style.transform = `translateX(-${index * 100}%)`;
+
+    // Actualizar dots
+    dots.forEach(dot => dot.classList.remove('active'));
+    dots[index].classList.add('active');
+
+    // Guardar índice actual
+    currentSlide = index;
+  }
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => showSlide(parseInt(dot.dataset.index)));
+  });
+
+  // Opcional: autoplay
+  setInterval(() => {
+    showSlide(currentSlide + 1);
+  }, 6000); // cada 6 segundos
+</script>
+
+<script src="script_acceso.js"></script>
+
+</body>
+</html>
