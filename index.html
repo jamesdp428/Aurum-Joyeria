@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/inicio.css">
   <title>Aurum Joyería</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,7 +41,7 @@
 
         <div class="dropdown-menu" id="dropdownMenu">
           <a href="html/login.html">Iniciar sesión</a>
-          <a href="#">Crear cuenta</a>
+          <a href="html/crearcuenta.html">Crear cuenta</a>
         </div>
       </div>
 
@@ -52,6 +52,22 @@
       </svg>
     </div>
   </div>
+  <div class="menu-hamburguesa" id="menuToggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+
+<nav class="menu-mobile" id="menuMobile">
+  <ul>
+    <li><a href="#">Inicio</a></li>
+    <li><a href="#">Anillos</a></li>
+    <li><a href="#">Collares</a></li>
+    <li><a href="#">Pulseras</a></li>
+    <li><a href="#">Aretes</a></li>
+  </ul>
+</nav>
+
 
   <nav class="menu-categorias">
     <ul>
@@ -80,7 +96,92 @@
   </div>
 </section>
 
+<section class="colecciones-destacadas">
+  <h2>Colecciones destacadas</h2>
+  <div class="colecciones-grid">
 
+    <a href="#anillos" class="coleccion-card">
+      <img src="/img/oro2anillo.jpg" alt="Anillos">
+      <h3>Anillos</h3>
+      <span class="btn-ver-mas">Ver más</span>
+    </a>
+
+    <a href="#anillos-tejidos" class="coleccion-card">
+      <img src="/img/oro2anillo.jpg" alt="Anillos Tejidos">
+      <h3>Anillos Tejidos</h3>
+      <span class="btn-ver-mas">Ver más</span>
+    </a>
+
+    <a href="#pulseras-tejidas" class="coleccion-card">
+      <img src="/img/oro2anillo.jpg" alt="Pulseras Tejidas">
+      <h3>Pulseras Tejidas</h3>
+      <span class="btn-ver-mas">Ver más</span>
+    </a>
+
+    <a href="#esclavas" class="coleccion-card">
+      <img src="/img/esclavas.jpg" alt="Esclavas">
+      <h3>Esclavas</h3>
+      <span class="btn-ver-mas">Ver más</span>
+    </a>
+
+    <a href="#cadenas" class="coleccion-card">
+      <img src="/img/oro2anillo.jpg" alt="Cadenas">
+      <h3>Cadenas</h3>
+      <span class="btn-ver-mas">Ver más</span>
+    </a>
+
+    <a href="#aretes" class="coleccion-card">
+      <img src="/img/oro2anillo.jpg" alt="Aretes">
+      <h3>Aretes</h3>
+      <span class="btn-ver-mas">Ver más</span>
+    </a>
+
+    <a href="#tobilleras" class="coleccion-card">
+      <img src="/img/oro2anillo.jpg" alt="Tobilleras">
+      <h3>Tobilleras</h3>
+      <span class="btn-ver-mas">Ver más</span>
+    </a>
+
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-section logo-section">
+      <img src="/img/logo.svg" class="logo-img" alt="Aurum Joyería" class="footer-logo" />
+    </div>
+
+    <div class="footer-section">
+      <h4>Enlaces</h4>
+      <ul>
+        <li><a href="#">Inicio</a></li>
+        <li><a href="#">Productos</a></li>
+        <li><a href="#">Colecciones</a></li>
+        <li><a href="#">Contacto</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-section">
+      <h4>Contacto</h4>
+      <ul>
+        <li><span>📍 Medellín, Colombia</span></li>
+        <li><span>📞 +57 301 000 0000</span></li>
+        <li><span>✉️ contacto@aurumjoyeria.com</span></li>
+      </ul>
+    </div>
+
+    <div class="footer-section">
+      <h4>Síguenos</h4>
+      <div class="footer-socials">
+        <a href="https://www.instagram.com/aurum.18k_joyeria/"><img src="/img/instagram.svg" alt="Instagram"></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; 2025 Aurum Joyería. Todos los derechos reservados.</p>
+  </div>
+</footer>
 
 
 <script>
@@ -119,6 +220,11 @@
 </script>
 
 <script src="script_acceso.js"></script>
+<script src="menu.js"></script>
+
+<a href="https://wa.me/573001234567" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp">
+  <img src="/img/whatsapp-svgrepo-com.svg" alt="WhatsApp" />
+</a>
 
 </body>
 </html>

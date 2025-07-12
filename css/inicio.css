@@ -1,3 +1,4 @@
+/* Carrusel */
 .carrusel {
   position: relative;
   max-width: 1920px;
@@ -41,4 +42,166 @@
 
 .dot.active {
   background-color: #333;
+}
+
+/* Colecciones destacadas */
+.colecciones-destacadas {
+  padding: 60px 40px;
+  background-color: #000;
+  color: #fff;
+  text-align: center;
+}
+
+.colecciones-destacadas h2 {
+  font-size: 2rem;
+  margin-bottom: 40px;
+  color: #f9dc5e;
+}
+
+.colecciones-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+}
+
+.coleccion-card {
+  display: block;
+  background-color: #111;
+  border: 1px solid #333;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 280px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.coleccion-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(255, 255, 255, 0.1);
+}
+
+.coleccion-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: filter 0.4s ease, transform 0.4s ease;
+  filter: brightness(0.6) blur(1.5px);
+}
+
+.coleccion-card:hover img {
+  filter: brightness(1) blur(0);
+  transform: scale(1.03);
+}
+
+.coleccion-card h3 {
+  margin: 16px 0 8px;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.btn-ver-mas {
+  display: inline-block;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  background-color: #f9dc5e;
+  color: #000;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+
+.coleccion-card:hover .btn-ver-mas {
+  background-color: #e0c94c;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .coleccion-card {
+    width: 45%;
+  }
+}
+
+@media (max-width: 768px) {
+  .carrusel {
+    height: 60vh;
+    margin: 10px 5px;
+    border-radius: 4px;
+  }
+
+  .colecciones-destacadas {
+    padding: 40px 20px;
+  }
+
+  .coleccion-card {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .coleccion-card img {
+    height: 180px;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .footer-logo {
+    margin: 0 auto 10px;
+  }
+
+  .whatsapp-container {
+    right: 15px;
+    bottom: 15px;
+  }
+
+  .whatsapp-float {
+    width: 48px;
+    height: 48px;
+  }
+
+  .whatsapp-float img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carrusel {
+    height: 50vh;
+    margin: 8px 4px;
+    border-radius: 3px;
+  }
+
+  .colecciones-destacadas h2 {
+    font-size: 1.5rem;
+  }
+
+  .coleccion-card img {
+    height: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .carrusel {
+    height: 40vh; /* Reduce el alto */
+    margin: 10px 8px;
+  }
+
+  .coleccion-card {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .colecciones-grid {
+    gap: 16px;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
 }

@@ -10,24 +10,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
 </head>
-<body>
-    <section class="login-container">
-  <div class="login-box">
-    <h2>Iniciar Sesión</h2>
-    <form>
-      <div class="input-group">
-        <label for="email">Correo electrónico</label>
-        <input type="email" id="email" placeholder="correo@ejemplo.com" required>
-      </div>
-      <div class="input-group">
-        <label for="password">Contraseña</label>
-        <input type="password" id="password" placeholder="Contraseña" required>
-      </div>
-      <button type="submit" class="login-btn">Ingresar</button>
-      <p class="register-link">¿No tienes cuenta? <a href="#">Regístrate</a></p>
-    </form>
-  </div>
-</section>
+<body class="login-page">
+  <div class="login-container">
+    <div class="logo-wrapper">
+      <a href="../index.html"><img src="/img/logo.svg" alt="Logo Aurum" class="logo-login"></a>
+    </div>
 
+    <div class="login-card">
+      <h2>Iniciar Sesión</h2>
+      <form>
+        <input type="email" placeholder="Correo electrónico" required />
+        <input type="password" placeholder="Contraseña" required />
+        <button type="submit">Ingresar</button>
+        <p class="registrarse">¿No tienes cuenta? <a href="crearcuenta.html">Regístrate</a></p>
+      </form>
+    </div>
+  </div>
 </body>
+
+
 </html>
