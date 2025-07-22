@@ -2,19 +2,7 @@
   {
   "id": 1,
   "categoria": "anillos",
-  "nombre": "Anillo génesis microcircon",
-  "precio": 320000,
-  "imagen": "/img/productos/anillo_genesis.jpg",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 2,
-  "categoria": "anillos",
-  "nombre": "Anillo génesis microcircon",
+  "nombre": "Anillo 1",
   "precio": 320000,
   "imagen": "/img/productos/anillo1.jpg",
   "imagenes": [
@@ -24,9 +12,9 @@
 },
 
 {
-  "id": 3,
+  "id": 2,
   "categoria": "anillos",
-  "nombre": "Anillo génesis microcircon",
+  "nombre": "Anillo 2",
   "precio": 320000,
   "imagen": "/img/productos/anillo2.jpg",
   "imagenes": [
@@ -36,11 +24,155 @@
 },
 
 {
+  "id": 3,
+  "categoria": "more-products",
+  "nombre": "Dije 1",
+  "precio": 320000,
+  "imagen": "/img/productos/dije1.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
   "id": 4,
-  "categoria": "pulseras",
-  "nombre": "Pulsera tejida",
+  "categoria": "more-products",
+  "nombre": "Herraje 1",
+  "precio": 320000,
+  "imagen": "/img/productos/herraje1.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 5,
+  "categoria": "more-products",
+  "nombre": "Herraje 2",
   "precio": 320000,
   "imagen": "/img/productos/pulserat1.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 6,
+  "categoria": "Pulseras",
+  "nombre": "Pulsera 1",
+  "precio": 320000,
+  "imagen": "/img/productos/pulsera1.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 7,
+  "categoria": "Pulseras",
+  "nombre": "Pulsera 2",
+  "precio": 320000,
+  "imagen": "/img/productos/pulsera2.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 8,
+  "categoria": "Pulseras",
+  "nombre": "Pulsera 3",
+  "precio": 320000,
+  "imagen": "/img/productos/pulsera3.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 9,
+  "categoria": "Pulseras",
+  "nombre": "Pulsera 4",
+  "precio": 320000,
+  "imagen": "/img/productos/pulsera4.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 10,
+  "categoria": "Pulseras",
+  "nombre": "Pulsera 5",
+  "precio": 320000,
+  "imagen": "/img/productos/pulsera5.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 11,
+  "categoria": "Pulseras",
+  "nombre": "Pulsera 6",
+  "precio": 320000,
+  "imagen": "/img/productos/pulsera6.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 12,
+  "categoria": "Pulseras",
+  "nombre": "Pulsera 7",
+  "precio": 320000,
+  "imagen": "/img/productos/pulsera7.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 13,
+  "categoria": "Pulseras",
+  "nombre": "Pulsera 8",
+  "precio": 320000,
+  "imagen": "/img/productos/pulsera8.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 14,
+  "categoria": "Pulseras",
+  "nombre": "Pulsera 9",
+  "precio": 320000,
+  "imagen": "/img/productos/pulsera9.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 15,
+  "categoria": "Aretes",
+  "nombre": "Aretes 1",
+  "precio": 320000,
+  "imagen": "/img/productos/topos1.jpg",
   "imagenes": [
   ],
   "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",

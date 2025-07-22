@@ -12,17 +12,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;700&family=Roboto+Condensed&display=swap" rel="stylesheet">
     <script defer src="../../js/menu.js"></script>
     <script defer src="../../js/detalle_producto.js"></script>
-    <script defer src="/js/cantidad.js"></script>
 </head>
 <body>
 
-<!-- NAVBAR -->
-<header class="navbar">
-    <div class="top-bar">
-        <div class="logo">
-            <img src="../../img/logo.svg" alt="Logo Aurum" class="logo-img">
-        </div>
-        <div class="menu-bottom-row">
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="top-bar">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../img/logo.svg" alt="Logo Aurum" class="logo-img"></a>
+            </div>
+            <div class="menu-bottom-row">
             <div class="menu-hamburguesa" id="menuToggle">
                 <span></span><span></span><span></span>
             </div>
@@ -48,68 +47,135 @@
                         <span class="acceso-flecha" id="flechaAcceso">˅</span>
                     </div>
                     <div class="dropdown-menu" id="dropdownMenu">
-                        <a href="../login.html">Iniciar sesión</a>
-                        <a href="../crearcuenta.html">Crear cuenta</a>
-                    </div>
+                    <a href="../login.html">Iniciar sesión</a>
+                    <a href="../crearcuenta.html">Crear cuenta</a>
                 </div>
+            </div>
 
+            <div class="carrito-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
                     <circle cx="9" cy="21" r="1"/>
                     <circle cx="20" cy="21" r="1"/>
                     <path d="M1 1h4l2.6 13.5a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L23 6H6"/>
                 </svg>
+                <span class="carrito-contador" style="display: none;">0</span>
             </div>
         </div>
+        </div>
     </div>
+
     <nav class="menu-categorias">
         <ul>
             <li><a href="../../index.html">Inicio</a></li>
-            <li><a href="anillos.html">Anillos</a></li>
-            <li><a href="anillos_tejidos.html">Anillos tejidos</a></li>
-            <li><a href="pulseras.html">Pulseras</a></li>
-            <li><a href="cadenas.html">Cadenas</a></li>
-            <li><a href="aretes.html">Aretes</a></li>
-            <li><a href="tobilleras.html">Tobilleras</a></li>
+            <li><a href="../categorias/anillos.html">Anillos</a></li>
+            <li><a href="../categorias/pulseras.html">Pulseras</a></li>
+            <li><a href="../categorias/cadenas.html">Cadenas</a></li>
+            <li><a href="../categorias/aretes.html">Aretes</a></li>
+            <li><a href="../categorias/tobilleras.html">Tobilleras</a></li>
+            <li><a href="../categorias/more-products.html">Más productos</a></li>
         </ul>
     </nav>
 </header>
 
-<!-- DETALLE DE PRODUCTO -->
+<!-- CONTENIDO PRINCIPAL -->
 <main class="detalle-producto">
-    <div class="imagenes-producto">
-        <img id="imagenPrincipal" src="" alt="Producto" />
+    <!-- Sección de imágenes -->
+    <section class="imagenes-producto">
+        <div class="imagen-principal-container">
+            <img id="imagenPrincipal" src="" alt="" />
+        </div>
         <div class="miniaturas" id="miniaturasContainer">
-            <!-- Miniaturas insertadas con JS -->
+            <!-- Miniaturas se cargan por JS -->
         </div>
-    </div>
+    </section>
 
-    <div class="info-producto">
-        <h1 id="nombreProducto">Nombre</h1>
-        <p id="descripcionProducto" class="descripcion">Descripción</p>
-        <p id="precioProducto" class="precio">$0</p>
-        <p id="stockProducto" class="stock">Stock</p>
-
-        <label for="cantidad">Cantidad:</label>
-        <div class="cantidad-container">
-            <button class="btn-cantidad" onclick="cambiarCantidad(-1)">−</button>
-            <input type="number" id="cantidad" value="1" min="1">
-            <button class="btn-cantidad" onclick="cambiarCantidad(1)">+</button>
+    <!-- Información del producto -->
+    <section class="info-producto">
+        <h1 id="nombreProducto">Cargando...</h1>
+        
+        <!-- Rating -->
+        <div class="rating">
+            <!-- Se carga por JS si existe -->
         </div>
+
+        <div class="descripcion">
+            <p id="descripcionProducto">Cargando descripción...</p>
+        </div>
+
+        <div class="precio-container">
+            <div class="precio" id="precioProducto">$0</div>
+        </div>
+
+        <div class="stock" id="stockProducto">Verificando stock...</div>
+
+        <!-- Características del producto -->
+        <div class="caracteristicas">
+            <h4>Características</h4>
+            <ul>
+                <!-- Se carga por JS -->
+            </ul>
+        </div>
+
+        <!-- Control de cantidad -->
+        <div class="cantidad-section">
+            <h4>Cantidad</h4>
+            <div class="cantidad-control">
+                <button type="button" onclick="cambiarCantidad(-1)">−</button>
+                <input type="number" id="cantidad" value="1" min="1" max="99">
+                <button type="button" onclick="cambiarCantidad(1)">+</button>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
         <div class="acciones">
-            <button id="agregarCarrito">🛒 Agregar al carrito</button>
-            <a id="comprarWhatsApp" target="_blank">💬 Comprar</a>
+            <button id="agregarCarrito" class="btn-primary">
+                🛒 Agregar al Carrito
+            </button>
+            <a href="#" id="comprarWhatsApp" class="btn-whatsapp" target="_blank">
+                📱 Comprar por WhatsApp
+            </a>
+            <button class="btn-secondary" onclick="history.back()">
+                ← Volver atrás
+            </button>
         </div>
-    </div>
+
+        <!-- Información adicional -->
+        <div class="info-adicional">
+            <div class="info-item">
+                <div class="icon">🚚</div>
+                <h5>Envío Gratis</h5>
+                <p>En compras superiores a $150.000</p>
+            </div>
+            <div class="info-item">
+                <div class="icon">🔒</div>
+                <h5>Compra Segura</h5>
+                <p>Tus datos están protegidos</p>
+            </div>
+            <div class="info-item">
+                <div class="icon">✨</div>
+                <h5>Garantía</h5>
+                <p>6 meses de garantía incluida</p>
+            </div>
+            <div class="info-item">
+                <div class="icon">🎁</div>
+                <h5>Regalo Especial</h5>
+                <p>Empaque premium incluido</p>
+            </div>
+        </div>
+    </section>
 </main>
 
-
-<section id="recomendados">
-  <h2>También te puede interesar</h2>
-  <div class="productos-recomendados"></div>
+<!-- Sección de productos recomendados -->
+<section class="productos-recomendados" style="padding: 60px 40px; background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);">
+    <div class="container">
+        <h2 style="text-align: center; color: #f9dc5e; font-size: 2.2rem; margin-bottom: 40px; background: linear-gradient(45deg, #f9dc5e, #ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            También te puede interesar
+        </h2>
+        <div id="otros-productos" class="contenedor-productos">
+            <!-- Productos recomendados se cargan por JS -->
+        </div>
+    </div>
 </section>
-
-
-
 
 <!-- FOOTER -->
 <footer class="footer">
@@ -120,9 +186,9 @@
         <div class="footer-section">
             <h4>Enlaces</h4>
             <ul>
-                <li><a href="../../index.html">Inicio</a></li>
-                <li><a href="pulseras.html">Pulseras</a></li>
-                <li><a href="anillos.html">Anillos</a></li>
+                <li><a href="/index.html">Inicio</a></li>
+                <li><a href="../categorias/pulseras.html">Pulseras</a></li>
+                <li><a href="../categorias/anillos.html">Anillos</a></li>
             </ul>
         </div>
         <div class="footer-section">
@@ -146,11 +212,76 @@
 </footer>
 
 <!-- BOTÓN FLOTANTE WHATSAPP -->
-<a href="https://wa.me/573001234567" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp">
+<a href="https://wa.me/573217798612" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp">
     <img src="../../img/whatsapp-svgrepo-com.svg" alt="WhatsApp" />
 </a>
 
-<script src="js/recomendados.js"></script>
+<style>
+/* Estilos adicionales para el contador del carrito */
+.carrito-icon {
+    position: relative;
+    cursor: pointer;
+}
+
+.carrito-contador {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(45deg, #f9dc5e, #ffd700);
+    color: #000;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(249, 220, 94, 0.3);
+}
+
+/* Estilos para estados de error y loading */
+.error-container {
+    text-align: center;
+    color: #fff;
+    padding: 40px;
+}
+
+.retry-btn {
+    background: linear-gradient(45deg, #f9dc5e, #ffd700);
+    color: #000;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.no-productos {
+    text-align: center;
+    color: #fff;
+    padding: 60px 20px;
+    font-size: 1.2rem;
+}
+
+/* Animación para las tarjetas */
+.fade-in {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Responsive para info adicional */
+@media (max-width: 768px) {
+    .productos-recomendados {
+        padding: 40px 20px;
+    }
+    
+    .productos-recomendados h2 {
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+    }
+}
+</style>
 
 </body>
 </html>
