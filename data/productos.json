@@ -1,0 +1,50 @@
+[
+  {
+  "id": 1,
+  "categoria": "anillos",
+  "nombre": "Anillo génesis microcircon",
+  "precio": 320000,
+  "imagen": "/img/productos/anillo_genesis.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 2,
+  "categoria": "anillos",
+  "nombre": "Anillo génesis microcircon",
+  "precio": 320000,
+  "imagen": "/img/productos/anillo1.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 3,
+  "categoria": "anillos",
+  "nombre": "Anillo génesis microcircon",
+  "precio": 320000,
+  "imagen": "/img/productos/anillo2.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+},
+
+{
+  "id": 4,
+  "categoria": "pulseras",
+  "nombre": "Pulsera tejida",
+  "precio": 320000,
+  "imagen": "/img/productos/pulserat1.jpg",
+  "imagenes": [
+  ],
+  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
+  "stock": 10
+}
+
+]

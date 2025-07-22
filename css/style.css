@@ -596,3 +596,7 @@ body {
     display: block;
   }
 }
+
+.icon-wind{
+  stroke: #f9dc5e;
+}

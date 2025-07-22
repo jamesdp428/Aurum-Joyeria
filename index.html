@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/inicio.css">
-  <title>Aurum Joyería</title>
+  <link rel="icon" href="img/logo-wind.svg" class="icon-wind">
+  <title>Aurum Joyería | Inicio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
@@ -15,72 +16,69 @@
 <header class="navbar">
   <div class="top-bar">
     <div class="logo">
-      <img src="img/logo.svg" alt="Logo Aurum" class="logo-img">
+      <a href="index.html"><img src="img/logo.svg" alt="Logo Aurum" class="logo-img"></a>
     </div>
 
     <div class="menu-bottom-row"> <div class="menu-hamburguesa" id="menuToggle">
         <span></span>
         <span></span>
         <span></span>
-      </div>
+    </div>
 
-      <div class="search-container">
-        <input type="text" class="search-input" placeholder="Buscar...">
-        <button class="search-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Buscar...">
+      <button class="search-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="icons">
+      <div class="acceso-dropdown" id="accesoDropdown">
+        <div class="acceso-toggle">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
           </svg>
-        </button>
-      </div>
-
-      <div class="icons">
-        <div class="acceso-dropdown" id="accesoDropdown">
-          <div class="acceso-toggle">
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="8" r="4"/>
-              <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-            </svg>
-            <span class="acceso-texto">Acceso</span>
-            <span class="acceso-flecha" id="flechaAcceso">˅</span>
-          </div>
-
-          <div class="dropdown-menu" id="dropdownMenu">
-            <a href="html/login.html">Iniciar sesión</a>
-            <a href="html/crearcuenta.html">Crear cuenta</a>
-          </div>
+          <span class="acceso-texto">Acceso</span>
+          <span class="acceso-flecha" id="flechaAcceso">˅</span>
         </div>
 
-        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
-          <circle cx="9" cy="21" r="1"/>
-          <circle cx="20" cy="21" r="1"/>
-          <path d="M1 1h4l2.6 13.5a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L23 6H6"/>
-        </svg>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <a href="html/login.html">Iniciar sesión</a>
+          <a href="html/crearcuenta.html">Crear cuenta</a>
+        </div>
       </div>
+
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="9" cy="21" r="1"/>
+        <circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.6 13.5a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L23 6H6"/>
+      </svg>
+    </div>
     </div> </div>
 
   <nav class="menu-mobile" id="menuMobile">
     <ul>
-      <li><a href="#">Inicio</a></li>
-      <li><a href="#anillos">Anillos</a></li>
-      <li><a href="#anillos-tejidos">Anillos Tejidos</a></li>
-      <li><a href="#pulseras-tejidas">Pulseras Tejidas</a></li>
-      <li><a href="#esclavas">Esclavas</a></li>
-      <li><a href="#cadenas">Cadenas</a></li>
-      <li><a href="#aretes">Aretes</a></li>
-      <li><a href="#tobilleras">Tobilleras</a></li>
+      <li><a href="html/categorias/anillos.html">Anillos</a></li>
+      <li><a href="html/categorias/pulseras.html">Pulseras</a></li>
+      <li><a href="html/categorias/cadenas.html">Cadenas</a></li>
+      <li><a href="html/categorias/aretes.html">Aretes</a></li>
+      <li><a href="html/categorias/tobilleras.html">Tobilleras</a></li>
+      <li><a href="html/categorias/more-products.html">Más productos</a></li>
     </ul>
   </nav>
 
   <nav class="menu-categorias">
     <ul>
-      <li><a href="#anillos">Anillos</a></li>
-      <li><a href="#anillos-tejidos">Anillos Tejidos</a></li>
-      <li><a href="#pulseras-tejidas">Pulseras Tejidas</a></li>
-      <li><a href="#esclavas">Esclavas</a></li>
-      <li><a href="#cadenas">Cadenas</a></li>
-      <li><a href="#aretes">Aretes</a></li>
-      <li><a href="#tobilleras">Tobilleras</a></li>
+      <li><a href="html/categorias/anillos.html">Anillos</a></li>
+      <li><a href="html/categorias/pulseras.html">Pulseras</a></li>
+      <li><a href="html/categorias/cadenas.html">Cadenas</a></li>
+      <li><a href="html/categorias/aretes.html">Aretes</a></li>
+      <li><a href="html/categorias/tobilleras.html">Tobilleras</a></li>
+      <li><a href="html/categorias/more-products.html">Más productos</a></li>
     </ul>
   </nav>
 </header>
@@ -90,7 +88,7 @@
   <div class="slides">
     <div class="slide active" style="background-image: url('img/oro18k.png');"></div>
     <div class="slide" style="background-image: url('img/anillos.png');"></div>
-    <div class="slide" style="background-image: url('img/pulseras.png');"></div>
+    <div class="slide" style="background-image: url('img/carru_puls.png');"></div>
   </div>
 
   <div class="dots">
@@ -100,49 +98,49 @@
   </div>
 </section>
 
+<section class="productos-destacados">
+  <h2>Productos destacados</h2>
+  <div class="productos-grid">
+    <a href="/html/categorias/producto.html">
+      <img src="" alt="">
+      <h3>Tal cosa</h3>
+      <span>Ver más</span>
+    </a>
+  </div>
+</section>
+
+
 <section class="colecciones-destacadas">
   <h2>Colecciones destacadas</h2>
   <div class="colecciones-grid">
 
-    <a href="#anillos" class="coleccion-card">
+    <a href="html/categorias/anillos.html" class="coleccion-card">
       <img src="img/oro2anillo.jpg" alt="Anillos">
       <h3>Anillos</h3>
       <span class="btn-ver-mas">Ver más</span>
     </a>
 
-    <a href="#anillos-tejidos" class="coleccion-card">
-      <img src="img/oro2anillo.jpg" alt="Anillos Tejidos">
-      <h3>Anillos Tejidos</h3>
-      <span class="btn-ver-mas">Ver más</span>
-    </a>
-
-    <a href="#pulseras-tejidas" class="coleccion-card">
-      <img src="img/oro2anillo.jpg" alt="Pulseras Tejidas">
-      <h3>Pulseras Tejidas</h3>
-      <span class="btn-ver-mas">Ver más</span>
-    </a>
-
-    <a href="#esclavas" class="coleccion-card">
-      <img src="img/esclavas.jpg" alt="Esclavas">
-      <h3>Esclavas</h3>
-      <span class="btn-ver-mas">Ver más</span>
-    </a>
-
-    <a href="#cadenas" class="coleccion-card">
+    <a href="html/categorias/cadenas.html" class="coleccion-card">
       <img src="img/oro2anillo.jpg" alt="Cadenas">
       <h3>Cadenas</h3>
       <span class="btn-ver-mas">Ver más</span>
     </a>
 
-    <a href="#aretes" class="coleccion-card">
+    <a href="html/categorias/aretes.html" class="coleccion-card">
       <img src="img/oro2anillo.jpg" alt="Aretes">
       <h3>Aretes</h3>
       <span class="btn-ver-mas">Ver más</span>
     </a>
 
-    <a href="#tobilleras" class="coleccion-card">
+    <a href="html/categorias/tobilleras.html" class="coleccion-card">
       <img src="img/oro2anillo.jpg" alt="Tobilleras">
       <h3>Tobilleras</h3>
+      <span class="btn-ver-mas">Ver más</span>
+    </a>
+
+    <a href="html/categorias/more-products.html" class="coleccion-card">
+      <img src="img/oro2anillo.jpg" alt="Tobilleras">
+      <h3>Más productos</h3>
       <span class="btn-ver-mas">Ver más</span>
     </a>
 
@@ -158,10 +156,9 @@
     <div class="footer-section">
       <h4>Enlaces</h4>
       <ul>
-        <li><a href="#">Inicio</a></li>
-        <li><a href="#">Productos</a></li>
-        <li><a href="#">Colecciones</a></li>
-        <li><a href="#">Contacto</a></li>
+        <li><a href="/index.html">Inicio</a></li>
+        <li><a href="html/categorias/pulseras.html">Pulseras</a></li>
+        <li><a href="html/categorias/anillos.html">Anillo</a></li>
       </ul>
     </div>
 
@@ -169,8 +166,8 @@
       <h4>Contacto</h4>
       <ul>
         <li><span>📍 Medellín, Colombia</span></li>
-        <li><span>📞 +57 301 000 0000</span></li>
-        <li><span>✉️ contacto@aurumjoyeria.com</span></li>
+        <li><span>📞 +57 321 779 8612</span></li>
+        <li><span>✉️ aurumjoyeriak@gmail.com</span></li>
       </ul>
     </div>
 
@@ -223,10 +220,10 @@
   }, 6000); // cada 6 segundos
 </script>
 
-<script src="menu.js"></script>
+<script src="/js/menu.js"></script>
 
 
-<a href="https://wa.me/573001234567" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp">
+<a href="https://wa.me/573217798612" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp">
   <img src="img/whatsapp-svgrepo-com.svg" alt="WhatsApp" />
 </a>
 

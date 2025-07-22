@@ -1,0 +1,182 @@
+.detalle-producto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  padding: 40px 20px;
+  background-color: #0d0d0d;
+  color: #fff;
+  align-items: flex-start;
+}
+
+.imagenes-producto {
+  flex: 1;
+  min-width: 280px;
+  max-width: 450px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#imagenPrincipal {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+  height: 350px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.miniaturas {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.miniaturas img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border: 2px solid transparent;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: border-color 0.2s;
+}
+
+.miniaturas img:hover,
+.miniaturas img.active {
+  border-color: #f9dc5e;
+}
+
+.info-producto {
+  flex: 1;
+  min-width: 280px;
+}
+
+.info-producto h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #f9dc5e;
+}
+
+.descripcion {
+  margin: 10px 0;
+  font-size: 1rem;
+  color: #ccc;
+  line-height: 1.5;
+}
+
+.precio {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+
+.stock {
+  margin-bottom: 20px;
+  color: #8cff9b;
+}
+
+#cantidad {
+  width: 80px;
+  padding: 8px;
+  margin: 10px 0 20px 0;
+  border-radius: 4px;
+  border: none;
+  background: #333;
+  color: #fff;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.acciones button,
+.acciones a {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  color: #000;
+  background-color: #f9dc5e;
+  transition: transform 0.2s;
+}
+
+.acciones button:hover,
+.acciones a:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .detalle-producto {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .imagenes-producto {
+    max-width: 100%;
+  }
+}
+
+.cantidad-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 1rem 0;
+}
+
+.cantidad-control button {
+  background-color: #f9dc5e;
+  border: none;
+  color: #000;
+  font-size: 20px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cantidad-control button:hover {
+  background-color: #ffe94d;
+}
+
+.cantidad-control input[type="number"] {
+  width: 50px;
+  text-align: center;
+  font-size: 16px;
+  border: none;
+  background-color: transparent;
+  color: white;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.cantidad-control input::-webkit-outer-spin-button,
+.cantidad-control input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.cantidad-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+.btn-cantidad {
+  padding: 0.3rem 0.6rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  background-color: #e2e2e2;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+#cantidad {
+  width: 60px;
+  text-align: center;
+}
