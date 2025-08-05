@@ -5,137 +5,331 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="../../css/style.css" />
     <link rel="stylesheet" href="../../css/producto.css" />
-    <link rel="icon" href="/img/logo-wind.svg" class="icon-wind">
+    <link rel="icon" href="../../img/logo-wind.svg" class="icon-wind">
     <title>Producto | Aurum Joyería</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;700&family=Roboto+Condensed&display=swap" rel="stylesheet">
     <script defer src="../../js/menu.js"></script>
     <script defer src="../../js/detalle_producto.js"></script>
+    <script defer src="../../js/cantidad.js"></script>
+    <style>
+        /* Asegurar que el layout funcione correctamente */
+        .detalle-producto {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 60px;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
+            color: #fff;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .imagenes-producto {
+            flex: 1;
+            min-width: 400px;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #imagenPrincipal {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            border-radius: 18px;
+        }
+
+        .miniaturas img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border: 3px solid transparent;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .miniaturas img.active {
+            border-color: #f9dc5e;
+            opacity: 1;
+            box-shadow: 0 0 20px rgba(249, 220, 94, 0.3);
+        }
+
+        .info-producto {
+            flex: 1;
+            min-width: 400px;
+            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            border: 1px solid rgba(249, 220, 94, 0.1);
+            position: relative;
+        }
+
+        /* ===== WHATSAPP FLOAT ===== */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 55px;
+            height: 55px;
+            background-color: #25d366;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .whatsapp-float img {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .detalle-producto {
+                flex-direction: column;
+                gap: 30px;
+                padding: 30px 20px;
+            }
+            
+            .imagenes-producto {
+                min-width: auto;
+                max-width: 100%;
+            }
+            
+            .info-producto {
+                min-width: auto;
+            }
+            
+            #imagenPrincipal {
+                height: 400px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<!-- NAVBAR -->
-<header class="navbar">
-    <div class="top-bar">
-        <div class="logo">
-            <img src="../../img/logo.svg" alt="Logo Aurum" class="logo-img">
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="top-bar">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../img/logo.svg" alt="Logo Aurum" class="logo-img"></a>
+            </div>
+            <div class="menu-bottom-row">
+                <div class="menu-hamburguesa" id="menuToggle">
+                    <span></span><span></span><span></span>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar...">
+                    <button class="search-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="icons">
+                    <div class="acceso-dropdown" id="accesoDropdown">
+                        <div class="acceso-toggle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="8" r="4"/>
+                                <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+                            </svg>
+                            <span class="acceso-texto">Acceso</span>
+                            <span class="acceso-flecha" id="flechaAcceso">˅</span>
+                        </div>
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="../login.html">Iniciar sesión</a>
+                            <a href="../crearcuenta.html">Crear cuenta</a>
+                        </div>
+                    </div>
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="9" cy="21" r="1"/>
+                        <circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.6 13.5a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L23 6H6"/>
+                    </svg>
+                </div>
+            </div>
         </div>
-        <div class="menu-bottom-row">
-            <div class="menu-hamburguesa" id="menuToggle">
-                <span></span><span></span><span></span>
+
+        <nav class="menu-categorias">
+            <ul>
+                <li><a href="../../index.html">Inicio</a></li>
+                <li><a href="anillos.html">Anillos</a></li>
+                <li><a href="pulseras.html">Pulseras</a></li>
+                <li><a href="cadenas.html">Cadenas</a></li>
+                <li><a href="aretes.html">Aretes</a></li>
+                <li><a href="tobilleras.html">Tobilleras</a></li>
+                <li><a href="more-products.html">Más productos</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="detalle-producto">
+        <!-- Sección de imágenes -->
+        <section class="imagenes-producto">
+            <div class="imagen-principal-container">
+                <img id="imagenPrincipal" src="" alt="" />
+            </div>
+            
+            <div class="miniaturas" id="miniaturasContainer">
+                <!-- Las miniaturas se cargan aquí con JavaScript -->
+            </div>
+        </section>
+
+        <!-- Información del producto -->
+        <section class="info-producto">
+            <div class="breadcrumb">
+                <a href="../../index.html">Inicio</a> > 
+                <a href="#" id="categoriaBreadcrumb">Categoría</a> > 
+                <span id="nombreBreadcrumb">Producto</span>
             </div>
 
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="Buscar...">
-                <button class="search-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
-                        <circle cx="11" cy="11" r="8"/>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
+            <h1 id="nombreProducto">Cargando...</h1>
+            
+            <div class="rating">
+                <div class="stars">★★★★★</div>
+                <span class="rating-text">(Oro 18k - Calidad Premium)</span>
+            </div>
+
+            <div class="descripcion">
+                <p id="descripcionProducto">Cargando descripción...</p>
+            </div>
+
+            <div class="stock-container">
+                <div id="stockProducto" class="stock disponible">Cargando stock...</div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="info-adicional">
+                <div class="info-item">
+                    <div class="icon">🏅</div>
+                    <h5>Oro 18 Kilates</h5>
+                    <p>Máxima pureza y calidad garantizada</p>
+                </div>
+                <div class="info-item">
+                    <div class="icon">🛡️</div>
+                    <h5>Garantía</h5>
+                    <p>Garantía de por vida en defectos de fabricación</p>
+                </div>
+                <div class="info-item">
+                    <div class="icon">🚚</div>
+                    <h5>Envío</h5>
+                    <p>Envío gratuito a toda Colombia</p>
+                </div>
+            </div>
+
+            <!-- Control de cantidad -->
+            <div class="cantidad-section">
+                <h4>Cantidad:</h4>
+                <div class="cantidad-control">
+                    <button type="button" onclick="cambiarCantidad(-1)">-</button>
+                    <input type="number" id="cantidad" value="1" min="1" max="10">
+                    <button type="button" onclick="cambiarCantidad(1)">+</button>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="acciones">
+                <button id="agregarCarrito" class="btn-primary">
+                    Agregar al carrito
+                </button>
+                
+                <a id="comprarWhatsApp" href="#" class="btn-whatsapp" target="_blank" rel="noopener noreferrer">
+                    💬 Consultar por WhatsApp
+                </a>
+                
+                <button class="btn-secondary" onclick="history.back()">
+                    ← Volver atrás
                 </button>
             </div>
 
-            <div class="icons">
-                <div class="acceso-dropdown" id="accesoDropdown">
-                    <div class="acceso-toggle">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
-                            <circle cx="12" cy="8" r="4"/>
-                            <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-                        </svg>
-                        <span class="acceso-texto">Acceso</span>
-                        <span class="acceso-flecha" id="flechaAcceso">˅</span>
-                    </div>
-                    <div class="dropdown-menu" id="dropdownMenu">
-                        <a href="../login.html">Iniciar sesión</a>
-                        <a href="../crearcuenta.html">Crear cuenta</a>
-                    </div>
+            <!-- Características del producto -->
+            <div class="caracteristicas">
+                <h4>Características</h4>
+                <ul>
+                    <li><strong>Material:</strong> <span>Oro 18 Kilates</span></li>
+                    <li><strong>Origen:</strong> <span>Medellín, Colombia</span></li>
+                    <li><strong>Artesanía:</strong> <span>Hecho a mano</span></li>
+                    <li><strong>Categoría:</strong> <span id="categoriaProducto">-</span></li>
+                    <li><strong>Disponibilidad:</strong> <span id="disponibilidadProducto">-</span></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section logo-section">
+                <img src="../../img/logo.svg" class="logo-img" alt="Aurum Joyería" />
+            </div>
+            <div class="footer-section">
+                <h4>Enlaces</h4>
+                <ul>
+                    <li><a href="../../index.html">Inicio</a></li>
+                    <li><a href="pulseras.html">Pulseras</a></li>
+                    <li><a href="anillos.html">Anillos</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contacto</h4>
+                <ul>
+                    <li><span>📍 Medellín, Colombia</span></li>
+                    <li><span>📞 +57 321 779 8612</span></li>
+                    <li><span>✉️ aurumjoyeriak@gmail.com</span></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Síguenos</h4>
+                <div class="footer-socials">
+                    <a href="https://www.instagram.com/aurum.18k_joyeria/" target="_blank" rel="noopener noreferrer">
+                        <img src="../../img/instagram.svg" alt="Instagram">
+                    </a>
                 </div>
-
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
-                    <circle cx="9" cy="21" r="1"/>
-                    <circle cx="20" cy="21" r="1"/>
-                    <path d="M1 1h4l2.6 13.5a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L23 6H6"/>
-                </svg>
             </div>
         </div>
-    </div>
-    <nav class="menu-categorias">
-        <ul>
-            <li><a href="../../index.html">Inicio</a></li>
-            <li><a href="anillos.html">Anillos</a></li>
-            <li><a href="anillos_tejidos.html">Anillos tejidos</a></li>
-            <li><a href="pulseras.html">Pulseras</a></li>
-            <li><a href="cadenas.html">Cadenas</a></li>
-            <li><a href="aretes.html">Aretes</a></li>
-            <li><a href="tobilleras.html">Tobilleras</a></li>
-        </ul>
-    </nav>
-</header>
-
-<!-- DETALLE DE PRODUCTO -->
-<main class="detalle-producto">
-    <div class="imagenes-producto">
-        <img id="imagenPrincipal" src="" alt="Producto" />
-        <div class="miniaturas" id="miniaturasContainer">
-            <!-- Miniaturas insertadas con JS -->
+        <div class="footer-bottom">
+            <p>&copy; 2025 Aurum Joyería. Todos los derechos reservados.</p>
         </div>
-    </div>
+    </footer>
 
-    <div class="info-producto">
-        <h1 id="nombreProducto">Nombre</h1>
-        <p id="descripcionProducto" class="descripcion">Descripción</p>
-        <p id="precioProducto" class="precio">$0</p>
-        <p id="stockProducto" class="stock">Stock</p>
+    <!-- BOTÓN FLOTANTE WHATSAPP -->
+    <a href="https://wa.me/573217798612" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp" rel="noopener noreferrer">
+        <img src="../../img/whatsapp-svgrepo-com.svg" alt="WhatsApp" />
+    </a>
 
-        <label for="cantidad">Cantidad:</label>
-        <input type="number" id="cantidad" min="1" value="1" max="10" />
-
-        <div class="acciones">
-            <button id="agregarCarrito">🛒 Agregar al carrito</button>
-            <a id="comprarWhatsApp" target="_blank">💬 Comprar</a>
-        </div>
-    </div>
-</main>
-
-<!-- FOOTER -->
-<footer class="footer">
-    <div class="footer-container">
-        <div class="footer-section logo-section">
-            <img src="../../img/logo.svg" class="logo-img" alt="Aurum Joyería" />
-        </div>
-        <div class="footer-section">
-            <h4>Enlaces</h4>
-            <ul>
-                <li><a href="../../index.html">Inicio</a></li>
-                <li><a href="pulseras.html">Pulseras</a></li>
-                <li><a href="anillos.html">Anillos</a></li>
-            </ul>
-        </div>
-        <div class="footer-section">
-            <h4>Contacto</h4>
-            <ul>
-                <li><span>📍 Medellín, Colombia</span></li>
-                <li><span>📞 +57 321 779 8612</span></li>
-                <li><span>✉️ aurumjoyeriak@gmail.com</span></li>
-            </ul>
-        </div>
-        <div class="footer-section">
-            <h4>Síguenos</h4>
-            <div class="footer-socials">
-                <a href="https://www.instagram.com/aurum.18k_joyeria/"><img src="../../img/instagram.svg" alt="Instagram"></a>
-            </div>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        <p>&copy; 2025 Aurum Joyería. Todos los derechos reservados.</p>
-    </div>
-</footer>
-
-<!-- BOTÓN FLOTANTE WHATSAPP -->
-<a href="https://wa.me/573001234567" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp">
-    <img src="../../img/whatsapp-svgrepo-com.svg" alt="WhatsApp" />
-</a>
-
+    <script>
+        // Debug de carga de página
+        console.log("Página cargada, URL actual:", window.location.href);
+        console.log("Parámetros URL:", window.location.search);
+        
+        // Verificar si los elementos existen
+        document.addEventListener("DOMContentLoaded", () => {
+            console.log("Elementos encontrados:");
+            console.log("- imagenPrincipal:", !!document.getElementById("imagenPrincipal"));
+            console.log("- nombreProducto:", !!document.getElementById("nombreProducto"));
+            console.log("- miniaturasContainer:", !!document.getElementById("miniaturasContainer"));
+            console.log("- detalle-producto:", !!document.querySelector(".detalle-producto"));
+        });
+    </script>
 </body>
 </html>

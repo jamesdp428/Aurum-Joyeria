@@ -1,386 +1,322 @@
 [
   {
-  "id": 1,
-  "categoria": "anillos",
-  "nombre": "Anillo Cruz",
-  "precio":320000,
-  "imagen": "/img/productos/anillos/Anillo_cruz.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 2,
-  "categoria": "anillos",
-  "nombre": "Anillo Fe",
-  "precio": 320000,
-  "imagen": "/img/productos/anillos/anillo_fec.png",
-  "imagenes": ["/img/productos/anillos/anillo fe.png", "/img/productos/anillos/anillo_fec.png"
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 3,
-  "categoria": "anillos",
-  "nombre": "Anillo Nombre Personalizado",
-  "precio": 320000,
-  "imagen": "/img/productos/anillos/anillo_personalizado.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 4,
-  "categoria": "anillos",
-  "nombre": "Anillo Tejido Negro",
-  "precio": 320000,
-  "imagen": "/img/productos/anillos/anillo_tejido_negro.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 5,
-  "categoria": "anillos",
-  "nombre": "Anillo Tejido Rojo",
-  "precio": 320000,
-  "imagen": "/img/productos/anillos/anillo_tejido_rojo.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 6,
-  "categoria": "anillos",
-  "nombre": "Anillo Tejido 3mm",
-  "precio": 320000,
-  "imagen": "/img/productos/anillos/anillo_tejido3mm.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 7,
-  "categoria": "aretes",
-  "nombre": "Candongas",
-  "precio": 320000,
-  "imagen": "/img/productos/aretes/candongas.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 8,
-  "categoria": "aretes",
-  "nombre": "Topos Alas",
-  "precio": 320000,
-  "imagen": "/img/productos/aretes/topos_alas.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 9,
-  "categoria": "aretes",
-  "nombre": "topos_oro_rosado",
-  "precio": 320000,
-  "imagen": "/img/productos/aretes/topos_oro_rosado.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 10,
-  "categoria": "aretes",
-  "nombre": "Topos Balín",
-  "precio": 320000,
-  "imagen": "/img/productos/aretes/topos_balin.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 11,
-  "categoria": "aretes",
-  "nombre": "Topos San Benito",
-  "precio": 320000,
-  "imagen": "/img/productos/aretes/topos_sanbenito.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 12,
-  "categoria": "cadenas",
-  "nombre": "Cadena Tejido Chino",
-  "precio": 320000,
-  "imagen": "/img/productos/cadenas/cadena_tejido_chino.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 13,
-  "categoria": "cadenas",
-  "nombre": "Cadena Tejido Lazo",
-  "precio": 320000,
-  "imagen": "/img/productos/cadenas/cadena_lazo.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 14,
-  "categoria": "otros",
-  "nombre": "Balines Diamantados 3mm-7mm",
-  "precio": 320000,
-  "imagen": "/img/productos/otros/balines_diamantados.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 15,
-  "categoria": "otros",
-  "nombre": "Balines Lisos 3mm-7mm",
-  "precio": 320000,
-  "imagen": "/img/productos/otros/balines_lisos.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 16,
-  "categoria": "otros",
-  "nombre": "Dije Ancla",
-  "precio": 320000,
-  "imagen": "/img/productos/otros/dije_ancla.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 17,
-  "categoria": "otros",
-  "nombre": "Dije Bolsa de Dinero",
-  "precio": 320000,
-  "imagen": "/img/productos/otros/dije_dinero.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 18,
-  "categoria": "otros",
-  "nombre": "Herraje Rostro de Gato",
-  "precio": 320000,
-  "imagen": "/img/productos/otros/herraje_gato.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 19,
-  "categoria": "otros",
-  "nombre": "Herraje Rostro de Jesús",
-  "precio": 320000,
-  "imagen": "/img/productos/otros/herraje_jesus.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 20,
-  "categoria": "otros",
-  "nombre": "Herraje San Benito",
-  "precio": 320000,
-  "imagen": "/img/productos/otros/herraje_sanbenito.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 21,
-  "categoria": "otros",
-  "nombre": "Herraje Virgen de Guadalupe",
-  "precio": 320000,
-  "imagen": "/img/productos/otros/herraje_virgen.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 22,
-  "categoria": "pulseras",
-  "nombre": "Pulsera Combinada Lisas y Diamantadas",
-  "precio": 320000,
-  "imagen": "/img/productos/pulseras/pulsera_combinada.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 23,
-  "categoria": "pulseras",
-  "nombre": "Pulsera Diamante",
-  "precio": 320000,
-  "imagen": "/img/productos/pulseras/pulsera_diamante.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 24,
-  "categoria": "pulseras",
-  "nombre": "Pulsera Diamante 6mm",
-  "precio": 320000,
-  "imagen": "/img/productos/pulseras/pulsera_diamante6.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 25,
-  "categoria": "pulseras",
-  "nombre": "Pulsera Cilindro y Herraje Ancla",
-  "precio": 320000,
-  "imagen": "/img/productos/pulseras/pulsera_cyh.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 26,
-  "categoria": "pulseras",
-  "nombre": "Pulsera Lisa y Diamantada",
-  "precio": 320000,
-  "imagen": "/img/productos/pulseras/pulsera_lyd.png",
-  "imagenes": ["/img/productos/pulseras/pulsera_lyd2.png", "/img/productos/pulseras/pulsera_lyd.png"
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 27,
-  "categoria": "pulseras",
-  "nombre": "Pulsera Negra mm",
-  "precio": 320000,
-  "imagen": "/img/productos/pulseras/pulsera_negramm.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 28,
-  "categoria": "pulseras",
-  "nombre": "Pulsera Roja Balín Diamantado",
-  "precio": 320000,
-  "imagen": "/img/productos/pulseras/pulsera_roja_balind.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 29,
-  "categoria": "pulseras",
-  "nombre": "Pulsera Roja Lisa",
-  "precio": 320000,
-  "imagen": "/img/productos/pulseras/pulsera_roja_lisa.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 30,
-  "categoria": "pulseras",
-  "nombre": "Pulsera Roja",
-  "precio": 320000,
-  "imagen": "/img/productos/pulseras/pulsera_roja.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 31,
-  "categoria": "pulseras",
-  "nombre": "Pulsera Rostro de Cristo",
-  "precio": 320000,
-  "imagen": "/img/productos/pulseras/pulsera_cristo.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-},
-
-{
-  "id": 32,
-  "categoria": "pulseras",
-  "nombre": "Pulsera Virgen 4mm",
-  "precio": 320000,
-  "imagen": "/img/productos/pulseras/pulsera_virgen.png",
-  "imagenes": [
-  ],
-  "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico.",
-  "stock": 10
-}
-
+    "id": 1,
+    "categoria": "anillos",
+    "nombre": "Anillo Cruz",
+    "imagen": "/img/productos/anillos/Anillo_cruz.png",
+    "imagenes": [],
+    "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico de cruz.",
+    "stock": 10,
+    "destacado": true
+  },
+  {
+    "id": 2,
+    "categoria": "anillos",
+    "nombre": "Anillo Fe",
+    "imagen": "/img/productos/anillos/anillo_fec.png",
+    "imagenes": ["/img/productos/anillos/anillo fe.png", "/img/productos/anillos/anillo_fec.png"],
+    "descripcion": "Anillo elegante en oro de 18 kilates con diseño de fe.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 3,
+    "categoria": "anillos",
+    "nombre": "Anillo Nombre Personalizado",
+    "imagen": "/img/productos/anillos/anillo_personalizado.png",
+    "imagenes": [],
+    "descripcion": "Anillo personalizable en oro de 18 kilates con tu nombre.",
+    "stock": 10,
+    "destacado": true
+  },
+  {
+    "id": 4,
+    "categoria": "anillos",
+    "nombre": "Anillo Tejido Negro",
+    "imagen": "/img/productos/anillos/anillo_tejido_negro.png",
+    "imagenes": [],
+    "descripcion": "Anillo con diseño tejido en oro de 18 kilates con detalles negros.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 5,
+    "categoria": "anillos",
+    "nombre": "Anillo Tejido Rojo",
+    "imagen": "/img/productos/anillos/anillo_tejido_rojo.png",
+    "imagenes": [],
+    "descripcion": "Anillo con diseño tejido en oro de 18 kilates con detalles rojos.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 6,
+    "categoria": "anillos",
+    "nombre": "Anillo Tejido 3mm",
+    "imagen": "/img/productos/anillos/anillo_tejido3mm.png",
+    "imagenes": [],
+    "descripcion": "Anillo tejido delgado de 3mm en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 7,
+    "categoria": "aretes",
+    "nombre": "Candongas",
+    "imagen": "/img/productos/aretes/candongas.png",
+    "imagenes": [],
+    "descripcion": "Candongas clásicas en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": true
+  },
+  {
+    "id": 8,
+    "categoria": "aretes",
+    "nombre": "Topos Alas",
+    "imagen": "/img/productos/aretes/topos_alas.png",
+    "imagenes": [],
+    "descripcion": "Topos con diseño de alas en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 9,
+    "categoria": "aretes",
+    "nombre": "Topos Oro Rosado",
+    "imagen": "/img/productos/aretes/topos_oro_rosado.png",
+    "imagenes": [],
+    "descripcion": "Topos elegantes en oro rosado de 18 kilates.",
+    "stock": 10,
+    "destacado": true
+  },
+  {
+    "id": 10,
+    "categoria": "aretes",
+    "nombre": "Topos Balín",
+    "imagen": "/img/productos/aretes/topos_balin.png",
+    "imagenes": [],
+    "descripcion": "Topos tipo balín en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 11,
+    "categoria": "aretes",
+    "nombre": "Topos San Benito",
+    "imagen": "/img/productos/aretes/topos_sanbenito.png",
+    "imagenes": [],
+    "descripcion": "Topos con diseño de San Benito en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 12,
+    "categoria": "cadenas",
+    "nombre": "Cadena Tejido Chino",
+    "imagen": "/img/productos/cadenas/cadena_tejido_chino.png",
+    "imagenes": [],
+    "descripcion": "Cadena con tejido chino en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 13,
+    "categoria": "cadenas",
+    "nombre": "Cadena Tejido Lazo",
+    "imagen": "/img/productos/cadenas/cadena_lazo.png",
+    "imagenes": [],
+    "descripcion": "Cadena con tejido tipo lazo en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": true
+  },
+  {
+    "id": 14,
+    "categoria": "otros",
+    "nombre": "Balines Diamantados 3mm-7mm",
+    "imagen": "/img/productos/otros/balines_diamantados.png",
+    "imagenes": [],
+    "descripcion": "Balines diamantados de diferentes tamaños en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 15,
+    "categoria": "otros",
+    "nombre": "Balines Lisos 3mm-7mm",
+    "imagen": "/img/productos/otros/balines_lisos.png",
+    "imagenes": [],
+    "descripcion": "Balines lisos de diferentes tamaños en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 16,
+    "categoria": "otros",
+    "nombre": "Dije Ancla",
+    "imagen": "/img/productos/otros/dije_ancla.png",
+    "imagenes": [],
+    "descripcion": "Dije con diseño de ancla en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 17,
+    "categoria": "otros",
+    "nombre": "Dije Bolsa de Dinero",
+    "imagen": "/img/productos/otros/dije_dinero.png",
+    "imagenes": [],
+    "descripcion": "Dije con diseño de bolsa de dinero en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 18,
+    "categoria": "otros",
+    "nombre": "Herraje Rostro de Gato",
+    "imagen": "/img/productos/otros/herraje_gato.png",
+    "imagenes": [],
+    "descripcion": "Herraje con rostro de gato en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 19,
+    "categoria": "otros",
+    "nombre": "Herraje Rostro de Jesús",
+    "imagen": "/img/productos/otros/herraje_jesus.png",
+    "imagenes": [],
+    "descripcion": "Herraje con rostro de Jesús en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 20,
+    "categoria": "otros",
+    "nombre": "Herraje San Benito",
+    "imagen": "/img/productos/otros/herraje_sanbenito.png",
+    "imagenes": [],
+    "descripcion": "Herraje de San Benito en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 21,
+    "categoria": "otros",
+    "nombre": "Herraje Virgen de Guadalupe",
+    "imagen": "/img/productos/otros/herraje_virgen.png",
+    "imagenes": [],
+    "descripcion": "Herraje de la Virgen de Guadalupe en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 22,
+    "categoria": "pulseras",
+    "nombre": "Pulsera Combinada Lisas y Diamantadas",
+    "imagen": "/img/productos/pulseras/pulsera_combinada.png",
+    "imagenes": [],
+    "descripcion": "Pulsera que combina esferas lisas y diamantadas en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": true
+  },
+  {
+    "id": 23,
+    "categoria": "pulseras",
+    "nombre": "Pulsera Diamante",
+    "imagen": "/img/productos/pulseras/pulsera_diamante.png",
+    "imagenes": [],
+    "descripcion": "Pulsera completamente diamantada en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 24,
+    "categoria": "pulseras",
+    "nombre": "Pulsera Diamante 6mm",
+    "imagen": "/img/productos/pulseras/pulsera_diamante6.png",
+    "imagenes": [],
+    "descripcion": "Pulsera diamantada de 6mm en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 25,
+    "categoria": "pulseras",
+    "nombre": "Pulsera Cilindro y Herraje Ancla",
+    "imagen": "/img/productos/pulseras/pulsera_cyh.png",
+    "imagenes": [],
+    "descripcion": "Pulsera con cilindros y herraje de ancla en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 26,
+    "categoria": "pulseras",
+    "nombre": "Pulsera Lisa y Diamantada",
+    "imagen": "/img/productos/pulseras/pulsera_lyd.png",
+    "imagenes": ["/img/productos/pulseras/pulsera_lyd2.png", "/img/productos/pulseras/pulsera_lyd.png"],
+    "descripcion": "Pulsera que alterna esferas lisas y diamantadas en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": true
+  },
+  {
+    "id": 27,
+    "categoria": "pulseras",
+    "nombre": "Pulsera Negra mm",
+    "imagen": "/img/productos/pulseras/pulsera_negramm.png",
+    "imagenes": [],
+    "descripcion": "Pulsera con detalles negros en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 28,
+    "categoria": "pulseras",
+    "nombre": "Pulsera Roja Balín Diamantado",
+    "imagen": "/img/productos/pulseras/pulsera_roja_balind.png",
+    "imagenes": [],
+    "descripcion": "Pulsera con detalles rojos y balines diamantados en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 29,
+    "categoria": "pulseras",
+    "nombre": "Pulsera Roja Lisa",
+    "imagen": "/img/productos/pulseras/pulsera_roja_lisa.png",
+    "imagenes": [],
+    "descripcion": "Pulsera lisa con detalles rojos en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 30,
+    "categoria": "pulseras",
+    "nombre": "Pulsera Roja",
+    "imagen": "/img/productos/pulseras/pulsera_roja.png",
+    "imagenes": [],
+    "descripcion": "Pulsera con acabados rojos en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 31,
+    "categoria": "pulseras",
+    "nombre": "Pulsera Rostro de Cristo",
+    "imagen": "/img/productos/pulseras/pulsera_cristo.png",
+    "imagenes": [],
+    "descripcion": "Pulsera con herraje del rostro de Cristo en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  },
+  {
+    "id": 32,
+    "categoria": "pulseras",
+    "nombre": "Pulsera Virgen 4mm",
+    "imagen": "/img/productos/pulseras/pulsera_virgen.png",
+    "imagenes": [],
+    "descripcion": "Pulsera de 4mm con herraje de la Virgen en oro de 18 kilates.",
+    "stock": 10,
+    "destacado": false
+  }
 ]

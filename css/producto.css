@@ -520,3 +520,88 @@
     justify-content: center;
   }
 }
+
+.breadcrumb {
+  margin-bottom: 20px;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.breadcrumb a {
+  color: #f9dc5e;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+  }
+
+.breadcrumb span {
+  color: #fff;
+  }
+
+.stock-container {
+  margin: 20px 0;
+  }
+
+.destacado-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(45deg, #ff4757, #ff3838);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
+  z-index: 2;
+}
+
+/* Estados de carga y error */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  color: #f9dc5e;
+  font-size: 1.2rem;
+}
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  color: #ff6b6b;
+  text-align: center;
+  padding: 40px;
+}
+
+.error-state button {
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: #f9dc5e;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.error-state button:hover {
+  background: #ffd700;
+  transform: translateY(-2px);
+}
+
+/* Responsive ajustes para producto */
+@media (max-width: 768px) {
+  .breadcrumb {
+    font-size: 0.8rem;
+    margin-bottom: 15px;
+  }
+}
