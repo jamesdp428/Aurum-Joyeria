@@ -11,12 +11,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Intentar diferentes rutas posibles para el archivo JSON
     let productos;
     const posiblesRutas = [
-      "./productos.json",           // En la carpeta raíz
-      "../productos.json",          // Un nivel arriba
-      "../../productos.json",       // Dos niveles arriba
-      "./data/productos.json",      // En carpeta data local
-      "../data/productos.json",     // En carpeta data un nivel arriba
-      "../../data/productos.json"   // Ruta original
+      "../../data/productos.json", // Desde html/categorias/ a data/ en la raíz
+      "../data/productos.json",    // Un nivel arriba hacia data/
+      "./data/productos.json",     // En carpeta data local
+      "../../productos.json",      // Fallback: JSON en la raíz
+      "../productos.json",         // Fallback: un nivel arriba
+      "./productos.json"           // Fallback: carpeta local
     ];
 
     let respuesta;
@@ -139,14 +139,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         return `
           <div class="producto-card" data-stock="${stockClass}">
             ${destacadoBadge}
-            <img src="${producto.imagen}" 
+            <img src="../../${producto.imagen.replace('./', '')}" 
                   alt="${producto.nombre}" 
                   loading="lazy"
-                  onerror="this.src='./img/placeholder.jpg'; this.onerror=null;" />
+                  onerror="this.src='../../img/placeholder.jpg'; this.onerror=null;" />
             <h3>${producto.nombre}</h3>
             <p class="descripcion">${producto.descripcion}</p>
             <p class="stock ${stockClass}">${stockText}</p>
-            <a href="./producto.html?id=${producto.id}" class="ver-mas">Ver más</a>
+            <a href="../producto.html?id=${producto.id}" class="ver-mas">Ver más</a>
           </div>
         `;
       }).join("");
