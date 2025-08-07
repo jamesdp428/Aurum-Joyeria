@@ -8,26 +8,77 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    const respuesta = await fetch("../../data/productos.json");
-    
-    if (!respuesta.ok) {
-      throw new Error(`Error HTTP: ${respuesta.status}`);
+    // Intentar diferentes rutas posibles para el archivo JSON
+    let productos;
+    const posiblesRutas = [
+      "./productos.json",           // En la carpeta raíz
+      "../productos.json",          // Un nivel arriba
+      "../../productos.json",       // Dos niveles arriba
+      "./data/productos.json",      // En carpeta data local
+      "../data/productos.json",     // En carpeta data un nivel arriba
+      "../../data/productos.json"   // Ruta original
+    ];
+
+    let respuesta;
+    let rutaExitosa = null;
+
+    for (const ruta of posiblesRutas) {
+      try {
+        console.log(`Intentando cargar desde: ${ruta}`);
+        respuesta = await fetch(ruta);
+        if (respuesta.ok) {
+          rutaExitosa = ruta;
+          break;
+        }
+      } catch (error) {
+        console.log(`Error con ruta ${ruta}:`, error.message);
+        continue;
+      }
     }
-    
-    const productos = await respuesta.json();
+
+    if (!rutaExitosa || !respuesta.ok) {
+      throw new Error(`No se pudo cargar productos.json desde ninguna ruta. Último estado: ${respuesta?.status || 'Sin respuesta'}`);
+    }
+
+    console.log(`Productos cargados exitosamente desde: ${rutaExitosa}`);
+    productos = await respuesta.json();
+
+    if (!Array.isArray(productos) || productos.length === 0) {
+      throw new Error("El archivo productos.json está vacío o no contiene un array válido");
+    }
 
     // Obtener categoría actual desde el data attribute del body
     const categoriaActual = document.body.dataset.categoria;
     
     if (!categoriaActual) {
-      throw new Error("No se pudo determinar la categoría actual");
+      console.error("No se encontró data-categoria en el body");
+      // Intentar obtener de la URL como fallback
+      const urlParams = new URLSearchParams(window.location.search);
+      const categoriaUrl = urlParams.get('categoria');
+      if (categoriaUrl) {
+        console.log(`Usando categoría de URL: ${categoriaUrl}`);
+        document.body.dataset.categoria = categoriaUrl;
+      } else {
+        throw new Error("No se pudo determinar la categoría actual. Asegúrate de que el body tenga data-categoria.");
+      }
     }
 
+    const categoria = document.body.dataset.categoria || categoriaUrl;
+    console.log(`Filtrando productos por categoría: ${categoria}`);
+
     // Filtrar productos por categoría
-    let productosFiltrados = productos.filter(p => p.categoria === categoriaActual);
+    let productosFiltrados = productos.filter(p => p.categoria === categoria);
     
+    console.log(`Productos encontrados en categoría '${categoria}': ${productosFiltrados.length}`);
+    console.log("Categorías disponibles:", [...new Set(productos.map(p => p.categoria))]);
+
     if (productosFiltrados.length === 0) {
-      contenedor.innerHTML = '<div class="error">No se encontraron productos en esta categoría.</div>';
+      contenedor.innerHTML = `
+        <div class="error">
+          <p>No se encontraron productos en la categoría "${categoria}".</p>
+          <p>Categorías disponibles: ${[...new Set(productos.map(p => p.categoria))].join(', ')}</p>
+        </div>
+      `;
       return;
     }
 
@@ -91,7 +142,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <img src="${producto.imagen}" 
                   alt="${producto.nombre}" 
                   loading="lazy"
-                  onerror="this.src='../../img/placeholder.jpg'; this.onerror=null;" />
+                  onerror="this.src='./img/placeholder.jpg'; this.onerror=null;" />
             <h3>${producto.nombre}</h3>
             <p class="descripcion">${producto.descripcion}</p>
             <p class="stock ${stockClass}">${stockText}</p>
@@ -114,15 +165,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
   } catch (error) {
-    console.error("Error al cargar productos:", error);
+    console.error("Error detallado al cargar productos:", error);
     if (contenedor) {
       contenedor.innerHTML = `
         <div class="error">
-          <p>Error al cargar los productos</p>
-          <p>Por favor, recarga la página</p>
+          <h3>Error al cargar los productos</h3>
+          <p><strong>Error:</strong> ${error.message}</p>
+          <p><strong>Posibles soluciones:</strong></p>
+          <ul>
+            <li>Verifica que el archivo productos.json esté en la ubicación correcta</li>
+            <li>Asegúrate de que el body tenga el atributo data-categoria</li>
+            <li>Comprueba que las imágenes estén en la carpeta img/productos/</li>
+          </ul>
           <button onclick="window.location.reload()" class="ver-mas" style="margin-top: 15px;">
             Recargar página
           </button>
+          <br><br>
+          <details style="margin-top: 10px;">
+            <summary>Información de depuración</summary>
+            <p><strong>URL actual:</strong> ${window.location.href}</p>
+            <p><strong>Categoría esperada:</strong> ${document.body.dataset.categoria || 'No definida'}</p>
+            <p><strong>Error completo:</strong> ${error.stack}</p>
+          </details>
         </div>
       `;
     }
@@ -138,4 +202,13 @@ function filtrarProductosPorTexto(productos, texto) {
     producto.nombre.toLowerCase().includes(textoBusqueda) ||
     producto.descripcion.toLowerCase().includes(textoBusqueda)
   );
+}
+
+// Función de utilidad para debug
+function debugProductos() {
+  console.log("=== DEBUG INFORMACIÓN ===");
+  console.log("URL actual:", window.location.href);
+  console.log("data-categoria del body:", document.body.dataset.categoria);
+  console.log("Contenedor encontrado:", !!document.querySelector(".contenedor-productos"));
+  console.log("Filtro encontrado:", !!document.getElementById("filtro"));
 }
