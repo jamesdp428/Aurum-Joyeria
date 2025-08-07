@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/carrito.css" />
+    <link rel="icon" href="../img/logo-wind.svg" class="icon-wind">
+    <title>Carrito de Compras | Aurum Joyería</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;700&family=Roboto+Condensed&display=swap" rel="stylesheet">
+    <script defer src="../js/menu.js"></script>
+    <script defer src="../js/carrito.js"></script>
+    <script defer src="../js/carrito-global.js"></script>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="top-bar">
+            <div class="logo">
+                <a href="../index.html"><img src="../img/logo.svg" alt="Logo Aurum" class="logo-img"></a>
+            </div>
+            <div class="menu-bottom-row">
+                <div class="menu-hamburguesa" id="menuToggle">
+                    <span></span><span></span><span></span>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar...">
+                    <button class="search-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="icons">
+                    <div class="acceso-dropdown" id="accesoDropdown">
+                        <div class="acceso-toggle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="8" r="4"/>
+                                <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+                            </svg>
+                            <span class="acceso-texto">Acceso</span>
+                            <span class="acceso-flecha" id="flechaAcceso">˅</span>
+                        </div>
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="login.html">Iniciar sesión</a>
+                            <a href="crearcuenta.html">Crear cuenta</a>
+                        </div>
+                    </div>
+
+                    <div class="carrito-icon" onclick="window.location.href='carrito.html'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.6 13.5a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L23 6H6"/>
+                        </svg>
+                        <span class="carrito-contador" id="carritoContador">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="menu-categorias">
+            <ul>
+                <li><a href="../index.html">Inicio</a></li>
+                <li><a href="categorias/anillos.html">Anillos</a></li>
+                <li><a href="categorias/pulseras.html">Pulseras</a></li>
+                <li><a href="categorias/cadenas.html">Cadenas</a></li>
+                <li><a href="categorias/aretes.html">Aretes</a></li>
+                <li><a href="categorias/tobilleras.html">Tobilleras</a></li>
+                <li><a href="categorias/more-products.html">Más productos</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL DEL CARRITO -->
+    <main class="carrito-main">
+        <div class="breadcrumb">
+            <a href="../index.html">Inicio</a> > 
+            <span>Carrito de Compras</span>
+        </div>
+
+        <h1 class="carrito-titulo">🛒 Tu Carrito de Compras</h1>
+
+        <div class="carrito-container">
+            <!-- Productos del carrito -->
+            <section class="carrito-productos">
+                <div id="carritoVacio" class="carrito-vacio">
+                    <div class="vacio-icon">🛒</div>
+                    <h3>Tu carrito está vacío</h3>
+                    <p>¡Explora nuestra joyería y encuentra piezas únicas!</p>
+                    <a href="../index.html" class="btn-explorar">Explorar productos</a>
+                </div>
+
+                <div id="carritoConProductos" class="carrito-con-productos" style="display: none;">
+                    <div class="carrito-header">
+                        <h3>Productos seleccionados</h3>
+                        <button id="vaciarCarrito" class="btn-vaciar">🗑️ Vaciar carrito</button>
+                    </div>
+                    
+                    <div id="listaProductos" class="lista-productos">
+                        <!-- Los productos se cargan aquí dinámicamente -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Resumen del pedido -->
+            <aside class="carrito-resumen" id="carritoResumen" style="display: none;">
+                <div class="resumen-card">
+                    <h3>📋 Resumen del Pedido</h3>
+                    
+                    <div class="resumen-detalles">
+                        <div class="detalle-linea">
+                            <span>Productos (<span id="totalProductos">0</span>):</span>
+                            <span id="subtotal">$0</span>
+                        </div>
+                        <div class="detalle-linea">
+                            <span>Envío:</span>
+                            <span class="envio-gratis">GRATIS</span>
+                        </div>
+                        <div class="detalle-linea total">
+                            <span><strong>Total:</strong></span>
+                            <span id="totalFinal"><strong>$0</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="acciones-resumen">
+                        <button id="procederCompra" class="btn-proceder">
+                            💬 Proceder por WhatsApp
+                        </button>
+                        <button id="continuarComprando" class="btn-continuar">
+                            ← Continuar comprando
+                        </button>
+                    </div>
+
+                    <div class="garantias">
+                        <div class="garantia-item">
+                            <span class="garantia-icon">🏅</span>
+                            <span>Oro 18k garantizado</span>
+                        </div>
+                        <div class="garantia-item">
+                            <span class="garantia-icon">🚚</span>
+                            <span>Envío gratis a toda Colombia</span>
+                        </div>
+                        <div class="garantia-item">
+                            <span class="garantia-icon">🛡️</span>
+                            <span>Garantía de por vida</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section logo-section">
+                <img src="../img/logo.svg" class="logo-img" alt="Aurum Joyería" />
+            </div>
+            <div class="footer-section">
+                <h4>Enlaces</h4>
+                <ul>
+                    <li><a href="../index.html">Inicio</a></li>
+                    <li><a href="categorias/pulseras.html">Pulseras</a></li>
+                    <li><a href="categorias/anillos.html">Anillos</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contacto</h4>
+                <ul>
+                    <li><span>📍 Medellín, Colombia</span></li>
+                    <li><span>📞 +57 321 779 8612</span></li>
+                    <li><span>✉️ aurumjoyeriak@gmail.com</span></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Síguenos</h4>
+                <div class="footer-socials">
+                    <a href="https://www.instagram.com/aurum.18k_joyeria/" target="_blank" rel="noopener noreferrer">
+                        <img src="../img/instagram.svg" alt="Instagram">
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Aurum Joyería. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- BOTÓN FLOTANTE WHATSAPP -->
+    <a href="https://wa.me/573217798612" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp" rel="noopener noreferrer">
+        <img src="../img/whatsapp-svgrepo-com.svg" alt="WhatsApp" />
+    </a>
+
+</body>
+</html>

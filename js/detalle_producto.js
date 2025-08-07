@@ -1,4 +1,9 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  // Actualizar contador del carrito al cargar la página
+  if (window.actualizarContadorCarrito) {
+    window.actualizarContadorCarrito();
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   const idProducto = parseInt(urlParams.get("id"));
 
@@ -245,28 +250,87 @@ function configurarBotones(producto) {
     cantidadInput.addEventListener("change", actualizarWhatsApp);
   }
 
-  // Configurar botón de carrito
+  // Configurar botón de carrito - INTEGRACIÓN CON CARRITO
   if (btnCarrito && cantidadInput) {
     // Remover event listeners previos
     btnCarrito.removeEventListener("click", btnCarrito._clickHandler);
     
-    btnCarrito._clickHandler = (e) => {
+    btnCarrito._clickHandler = async (e) => {
       e.preventDefault();
       const cantidad = parseInt(cantidadInput.value) || 1;
       
       if (producto.stock === 0) {
-        alert("Lo sentimos, este producto está agotado.");
+        mostrarNotificacion("Lo sentimos, este producto está agotado.", "error");
         return;
       }
 
       if (cantidad > producto.stock) {
-        alert(`Solo hay ${producto.stock} unidades disponibles.`);
+        mostrarNotificacion(`Solo hay ${producto.stock} unidades disponibles.`, "error");
         cantidadInput.value = producto.stock;
         return;
       }
 
-      // Simular agregar al carrito
-      mostrarNotificacion(`"${producto.nombre}" x${cantidad} agregado al carrito!`);
+      // NUEVA FUNCIONALIDAD: Integración con carrito
+      try {
+        // Simular agregar al carrito usando localStorage
+        let carrito = [];
+        try {
+          const carritoGuardado = localStorage.getItem('aurum_carrito');
+          if (carritoGuardado) {
+            carrito = JSON.parse(carritoGuardado);
+          }
+        } catch (error) {
+          console.error('Error al cargar carrito:', error);
+        }
+
+        // Buscar si el producto ya existe en el carrito
+        const productoExistente = carrito.find(p => p.id === producto.id);
+        
+        if (productoExistente) {
+          const nuevaCantidad = productoExistente.cantidad + cantidad;
+          
+          if (nuevaCantidad > producto.stock) {
+            mostrarNotificacion(`Solo puedes agregar ${producto.stock - productoExistente.cantidad} unidades más`, "error");
+            return;
+          }
+          
+          productoExistente.cantidad = nuevaCantidad;
+        } else {
+          carrito.push({
+            id: producto.id,
+            nombre: producto.nombre,
+            descripcion: producto.descripcion,
+            imagen: producto.imagen,
+            precio: producto.precio || 0,
+            stock: producto.stock,
+            categoria: producto.categoria,
+            cantidad: cantidad
+          });
+        }
+
+        // Guardar en localStorage
+        localStorage.setItem('aurum_carrito', JSON.stringify(carrito));
+        
+        // Actualizar contador en navbar
+        if (window.actualizarContadorCarrito) {
+          window.actualizarContadorCarrito();
+        }
+
+        // Mostrar notificación de éxito
+        mostrarNotificacion(`"${producto.nombre}" x${cantidad} agregado al carrito! 🛒`, "success");
+        
+        // Opcional: Mostrar botón para ir al carrito
+        setTimeout(() => {
+          const irCarrito = confirm("¿Quieres ver tu carrito ahora?");
+          if (irCarrito) {
+            window.location.href = "../carrito.html";
+          }
+        }, 1000);
+
+      } catch (error) {
+        console.error('Error al agregar al carrito:', error);
+        mostrarNotificacion("Error al agregar el producto al carrito", "error");
+      }
     };
     
     btnCarrito.addEventListener("click", btnCarrito._clickHandler);
@@ -308,7 +372,7 @@ function configurarControlesCantidad(producto) {
         this.value = 1;
       } else if (valor > producto.stock) {
         this.value = producto.stock;
-        mostrarNotificacion(`Máximo ${producto.stock} unidades disponibles`);
+        mostrarNotificacion(`Máximo ${producto.stock} unidades disponibles`, "error");
       }
     }
   });
@@ -342,14 +406,21 @@ function obtenerClaseStock(stock) {
   return "disponible";
 }
 
-function mostrarNotificacion(mensaje) {
+function mostrarNotificacion(mensaje, tipo = "success") {
+  // Remover notificación existente
+  const notificacionExistente = document.querySelector('.notificacion-detalle');
+  if (notificacionExistente) {
+    notificacionExistente.remove();
+  }
+
   // Crear notificación temporal
   const notificacion = document.createElement('div');
+  notificacion.className = 'notificacion-detalle';
   notificacion.style.cssText = `
     position: fixed;
     top: 20px;
     right: 20px;
-    background: linear-gradient(45deg, #4caf50, #45a049);
+    background: linear-gradient(45deg, ${tipo === 'success' ? '#4caf50, #45a049' : '#ff4757, #ff3838'});
     color: white;
     padding: 15px 20px;
     border-radius: 8px;
@@ -358,6 +429,7 @@ function mostrarNotificacion(mensaje) {
     font-weight: bold;
     transform: translateX(100%);
     transition: transform 0.3s ease;
+    max-width: 300px;
   `;
   
   notificacion.textContent = mensaje;
@@ -368,11 +440,15 @@ function mostrarNotificacion(mensaje) {
     notificacion.style.transform = 'translateX(0)';
   }, 100);
 
-  // Remover después de 3 segundos
+  // Remover después de 4 segundos
   setTimeout(() => {
     notificacion.style.transform = 'translateX(100%)';
-    setTimeout(() => notificacion.remove(), 300);
-  }, 3000);
+    setTimeout(() => {
+      if (notificacion.parentNode) {
+        notificacion.remove();
+      }
+    }, 300);
+  }, 4000);
 }
 
 // FUNCIÓN GLOBAL CORREGIDA - Esta es la clave
@@ -389,7 +465,7 @@ window.cambiarCantidad = function(cambio) {
     nuevoValor = 1;
   } else if (nuevoValor > maxStock) {
     nuevoValor = maxStock;
-    mostrarNotificacion(`Máximo ${maxStock} unidades disponibles`);
+    mostrarNotificacion(`Máximo ${maxStock} unidades disponibles`, "error");
   }
 
   // Actualizar valor
