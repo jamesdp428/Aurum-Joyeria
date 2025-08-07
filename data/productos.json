@@ -3,7 +3,7 @@
     "id": 1,
     "categoria": "anillos",
     "nombre": "Anillo Cruz",
-    "imagen": "../img/productos/anillos/anillo_cruz.png",
+    "imagen": "img/productos/anillos/anillo_cruz.png",
     "imagenes": [],
     "descripcion": "Anillo elegante en oro de 18 kilates con diseño clásico de cruz.",
     "stock": 10,
