@@ -168,6 +168,7 @@ function cargarInformacionProducto(producto) {
   }
 }
 
+// FUNCIÓN CORREGIDA PARA IMÁGENES
 function configurarImagenes(producto) {
   const imagenPrincipal = document.getElementById("imagenPrincipal");
   const miniaturasContainer = document.getElementById("miniaturasContainer");
@@ -177,8 +178,13 @@ function configurarImagenes(producto) {
     return;
   }
 
+  // CORRECCIÓN: Ajustar ruta de la imagen principal
+  // Si la imagen viene como "./img/productos/anillo1.jpg", convertir a "../../img/productos/anillo1.jpg"
+  const rutaImagen = ajustarRutaImagen(producto.imagen);
+  console.log("Ruta de imagen ajustada:", rutaImagen);
+
   // Configurar imagen principal
-  imagenPrincipal.src = producto.imagen;
+  imagenPrincipal.src = rutaImagen;
   imagenPrincipal.alt = producto.nombre;
   imagenPrincipal.onerror = function() {
     console.warn("Error cargando imagen principal, usando placeholder");
@@ -195,7 +201,8 @@ function configurarImagenes(producto) {
 
   imagenes.forEach((img, index) => {
     const miniatura = document.createElement("img");
-    miniatura.src = img;
+    const rutaMiniatura = ajustarRutaImagen(img);
+    miniatura.src = rutaMiniatura;
     miniatura.alt = `${producto.nombre} - Vista ${index + 1}`;
     miniatura.loading = "lazy";
     
@@ -204,7 +211,7 @@ function configurarImagenes(producto) {
     }
     
     miniatura.addEventListener("click", () => {
-      imagenPrincipal.src = img;
+      imagenPrincipal.src = rutaMiniatura;
       // Actualizar miniaturas activas usando clases CSS
       document.querySelectorAll(".miniaturas img").forEach(i => i.classList.remove("active"));
       miniatura.classList.add("active");
@@ -218,6 +225,28 @@ function configurarImagenes(producto) {
 
     miniaturasContainer.appendChild(miniatura);
   });
+}
+
+// NUEVA FUNCIÓN: Ajustar rutas de imágenes
+function ajustarRutaImagen(rutaOriginal) {
+  if (!rutaOriginal) {
+    return '../../img/placeholder.jpg';
+  }
+
+  // Si ya tiene la ruta completa, usar como está
+  if (rutaOriginal.startsWith('http') || rutaOriginal.startsWith('//')) {
+    return rutaOriginal;
+  }
+
+  // Si empieza con './', remover el './'
+  let rutaLimpia = rutaOriginal.replace(/^\.\//, '');
+
+  // Si no empieza con '../../', agregarle
+  if (!rutaLimpia.startsWith('../../')) {
+    rutaLimpia = '../../' + rutaLimpia;
+  }
+
+  return rutaLimpia;
 }
 
 function configurarBotones(producto) {
@@ -300,7 +329,7 @@ function configurarBotones(producto) {
             id: producto.id,
             nombre: producto.nombre,
             descripcion: producto.descripcion,
-            imagen: producto.imagen,
+            imagen: ajustarRutaImagen(producto.imagen), // USAR RUTA AJUSTADA
             precio: producto.precio || 0,
             stock: producto.stock,
             categoria: producto.categoria,
