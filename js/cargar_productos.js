@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <h3>${producto.nombre}</h3>
             <p class="descripcion">${producto.descripcion}</p>
             <p class="stock ${stockClass}">${stockText}</p>
-            <a href="../../html/producto.html?id=${producto.id}" class="ver-mas">Ver más</a>
+            <a href="../html/producto.html?id=${producto.id}" class="ver-mas">Ver más</a>
           </div>
         `;
       }).join("");
