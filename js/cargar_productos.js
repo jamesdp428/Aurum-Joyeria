@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return `
           <div class="producto-card" data-stock="${stockClass}">
             ${destacadoBadge}
-            <img src="../../${producto.imagen.replace('./', '')}" 
+            <img src="../../img/productos/${producto.categoria}/${producto.imagen.replace(/^.*[\\\/]/, '')}" 
                   alt="${producto.nombre}" 
                   loading="lazy"
                   onerror="this.src='../../img/placeholder.jpg'; this.onerror=null;" />

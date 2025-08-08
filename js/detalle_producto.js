@@ -168,7 +168,7 @@ function cargarInformacionProducto(producto) {
   }
 }
 
-// FUNCIÓN CORREGIDA PARA IMÁGENES
+// FUNCIÓN CORREGIDA PARA IMÁGENES CON CATEGORÍAS
 function configurarImagenes(producto) {
   const imagenPrincipal = document.getElementById("imagenPrincipal");
   const miniaturasContainer = document.getElementById("miniaturasContainer");
@@ -178,18 +178,35 @@ function configurarImagenes(producto) {
     return;
   }
 
-  // CORRECCIÓN: Ajustar ruta de la imagen principal
-  // Si la imagen viene como "./img/productos/anillo1.jpg", convertir a "../../img/productos/anillo1.jpg"
-  const rutaImagen = ajustarRutaImagen(producto.imagen);
-  console.log("Ruta de imagen ajustada:", rutaImagen);
+  // CORRECCIÓN: Ajustar ruta de la imagen principal con categoría
+  const rutaImagen = ajustarRutaImagen(producto.imagen, producto.categoria);
+  console.log("Producto:", producto.nombre);
+  console.log("Categoría:", producto.categoria);
+  console.log("Imagen original:", producto.imagen);
+  console.log("Ruta final:", rutaImagen);
 
   // Configurar imagen principal
   imagenPrincipal.src = rutaImagen;
   imagenPrincipal.alt = producto.nombre;
   imagenPrincipal.onerror = function() {
-    console.warn("Error cargando imagen principal, usando placeholder");
-    this.src = '../../img/placeholder.jpg';
-    this.onerror = null;
+    console.warn("Error cargando imagen principal:", rutaImagen);
+    // Intentar rutas alternativas
+    const rutasAlternativas = [
+      `../../img/productos/${producto.categoria}/${producto.imagen}`,
+      `../../img/${producto.categoria}/${producto.imagen}`,
+      `../../img/productos/${producto.imagen}`,
+      '../../img/placeholder.jpg'
+    ];
+    
+    let intentoActual = parseInt(this.dataset.intento || '0');
+    if (intentoActual < rutasAlternativas.length - 1) {
+      this.dataset.intento = (intentoActual + 1).toString();
+      this.src = rutasAlternativas[intentoActual + 1];
+      console.log(`Intentando ruta alternativa ${intentoActual + 1}:`, rutasAlternativas[intentoActual + 1]);
+    } else {
+      console.error("No se pudo cargar ninguna imagen, usando placeholder final");
+      this.onerror = null;
+    }
   };
 
   // Configurar miniaturas - usar las clases CSS existentes
@@ -201,7 +218,7 @@ function configurarImagenes(producto) {
 
   imagenes.forEach((img, index) => {
     const miniatura = document.createElement("img");
-    const rutaMiniatura = ajustarRutaImagen(img);
+    const rutaMiniatura = ajustarRutaImagen(img, producto.categoria);
     miniatura.src = rutaMiniatura;
     miniatura.alt = `${producto.nombre} - Vista ${index + 1}`;
     miniatura.loading = "lazy";
@@ -212,23 +229,37 @@ function configurarImagenes(producto) {
     
     miniatura.addEventListener("click", () => {
       imagenPrincipal.src = rutaMiniatura;
+      imagenPrincipal.dataset.intento = '0'; // Reset intentos para imagen principal
       // Actualizar miniaturas activas usando clases CSS
       document.querySelectorAll(".miniaturas img").forEach(i => i.classList.remove("active"));
       miniatura.classList.add("active");
     });
 
     miniatura.onerror = function() {
-      console.warn("Error cargando miniatura, usando placeholder");
-      this.src = '../../img/placeholder.jpg';
-      this.onerror = null;
+      console.warn("Error cargando miniatura:", rutaMiniatura);
+      // Mismo sistema de rutas alternativas para miniaturas
+      const rutasAlternativas = [
+        `../../img/productos/${producto.categoria}/${img}`,
+        `../../img/${producto.categoria}/${img}`,
+        `../../img/productos/${img}`,
+        '../../img/placeholder.jpg'
+      ];
+      
+      let intentoActual = parseInt(this.dataset.intento || '0');
+      if (intentoActual < rutasAlternativas.length - 1) {
+        this.dataset.intento = (intentoActual + 1).toString();
+        this.src = rutasAlternativas[intentoActual + 1];
+      } else {
+        this.onerror = null;
+      }
     };
 
     miniaturasContainer.appendChild(miniatura);
   });
 }
 
-// NUEVA FUNCIÓN: Ajustar rutas de imágenes
-function ajustarRutaImagen(rutaOriginal) {
+// NUEVA FUNCIÓN: Ajustar rutas de imágenes para estructura por categorías
+function ajustarRutaImagen(rutaOriginal, categoria = null) {
   if (!rutaOriginal) {
     return '../../img/placeholder.jpg';
   }
@@ -238,15 +269,36 @@ function ajustarRutaImagen(rutaOriginal) {
     return rutaOriginal;
   }
 
+  // Si ya es una ruta relativa correcta que empieza con ../../
+  if (rutaOriginal.startsWith('../../')) {
+    return rutaOriginal;
+  }
+
   // Si empieza con './', remover el './'
   let rutaLimpia = rutaOriginal.replace(/^\.\//, '');
 
-  // Si no empieza con '../../', agregarle
-  if (!rutaLimpia.startsWith('../../')) {
-    rutaLimpia = '../../' + rutaLimpia;
+  // Diferentes formatos posibles en tu JSON:
+  // Formato 1: "anillo1.png" o "img/productos/anillos/anillo1.png"
+  // Formato 2: "productos/anillos/anillo1.png"
+  // Formato 3: "img/anillos/anillo1.png"
+
+  let rutaFinal;
+
+  if (rutaLimpia.includes('/')) {
+    // Ya tiene estructura de carpetas, solo agregar ../../ al inicio
+    rutaFinal = '../../' + rutaLimpia;
+  } else {
+    // Solo nombre de archivo, construir ruta completa con categoría
+    if (categoria) {
+      rutaFinal = `../../img/productos/${categoria}/${rutaLimpia}`;
+    } else {
+      // Fallback: intentar estructura común
+      rutaFinal = `../../img/productos/${rutaLimpia}`;
+    }
   }
 
-  return rutaLimpia;
+  console.log(`Ruta ajustada: "${rutaOriginal}" → "${rutaFinal}"`);
+  return rutaFinal;
 }
 
 function configurarBotones(producto) {
@@ -329,7 +381,7 @@ function configurarBotones(producto) {
             id: producto.id,
             nombre: producto.nombre,
             descripcion: producto.descripcion,
-            imagen: ajustarRutaImagen(producto.imagen), // USAR RUTA AJUSTADA
+            imagen: ajustarRutaImagen(producto.imagen, producto.categoria), // USAR RUTA AJUSTADA CON CATEGORÍA
             precio: producto.precio || 0,
             stock: producto.stock,
             categoria: producto.categoria,
