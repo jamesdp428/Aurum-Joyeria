@@ -189,23 +189,27 @@ function configurarImagenes(producto) {
   imagenPrincipal.src = rutaImagen;
   imagenPrincipal.alt = producto.nombre;
   imagenPrincipal.onerror = function() {
-    console.warn("Error cargando imagen principal:", rutaImagen);
-    // Intentar rutas alternativas
+    console.warn("❌ Error cargando imagen principal:", this.src);
+    // Intentar rutas alternativas paso a paso
+    const nombreArchivo = producto.imagen.split('/').pop().replace(/^\.\//, '');
     const rutasAlternativas = [
-      `../../img/productos/${producto.categoria}/${producto.imagen}`,
-      `../../img/${producto.categoria}/${producto.imagen}`,
-      `../../img/productos/${producto.imagen}`,
+      `../../img/productos/${producto.categoria}/${nombreArchivo}`,
+      `../../img/${producto.categoria}/${nombreArchivo}`,
+      `../../img/productos/${nombreArchivo}`,
+      `../../img/${nombreArchivo}`,
       '../../img/placeholder.jpg'
     ];
     
     let intentoActual = parseInt(this.dataset.intento || '0');
-    if (intentoActual < rutasAlternativas.length - 1) {
+    if (intentoActual < rutasAlternativas.length) {
+      const siguienteRuta = rutasAlternativas[intentoActual];
+      console.log(`🔄 Probando ruta alternativa ${intentoActual + 1}: ${siguienteRuta}`);
       this.dataset.intento = (intentoActual + 1).toString();
-      this.src = rutasAlternativas[intentoActual + 1];
-      console.log(`Intentando ruta alternativa ${intentoActual + 1}:`, rutasAlternativas[intentoActual + 1]);
-    } else {
-      console.error("No se pudo cargar ninguna imagen, usando placeholder final");
-      this.onerror = null;
+      this.src = siguienteRuta;
+      
+      if (intentoActual === rutasAlternativas.length - 1) {
+        this.onerror = null; // Última oportunidad
+      }
     }
   };
 
@@ -236,21 +240,27 @@ function configurarImagenes(producto) {
     });
 
     miniatura.onerror = function() {
-      console.warn("Error cargando miniatura:", rutaMiniatura);
-      // Mismo sistema de rutas alternativas para miniaturas
+      console.warn("❌ Error cargando miniatura:", this.src);
+      // Sistema mejorado de rutas alternativas para miniaturas
+      const nombreArchivo = img.split('/').pop().replace(/^\.\//, '');
       const rutasAlternativas = [
-        `../../img/productos/${producto.categoria}/${img}`,
-        `../../img/${producto.categoria}/${img}`,
-        `../../img/productos/${img}`,
+        `../../img/productos/${producto.categoria}/${nombreArchivo}`,
+        `../../img/${producto.categoria}/${nombreArchivo}`,
+        `../../img/productos/${nombreArchivo}`,
+        `../../img/${nombreArchivo}`,
         '../../img/placeholder.jpg'
       ];
       
       let intentoActual = parseInt(this.dataset.intento || '0');
-      if (intentoActual < rutasAlternativas.length - 1) {
+      if (intentoActual < rutasAlternativas.length) {
+        const siguienteRuta = rutasAlternativas[intentoActual];
+        console.log(`🔄 Miniatura - Probando ruta ${intentoActual + 1}: ${siguienteRuta}`);
         this.dataset.intento = (intentoActual + 1).toString();
-        this.src = rutasAlternativas[intentoActual + 1];
-      } else {
-        this.onerror = null;
+        this.src = siguienteRuta;
+        
+        if (intentoActual === rutasAlternativas.length - 1) {
+          this.onerror = null; // Última oportunidad
+        }
       }
     };
 
@@ -274,30 +284,26 @@ function ajustarRutaImagen(rutaOriginal, categoria = null) {
     return rutaOriginal;
   }
 
-  // Si empieza con './', remover el './'
-  let rutaLimpia = rutaOriginal.replace(/^\.\//, '');
+  // Limpiar la ruta original
+  let nombreArchivo = rutaOriginal;
+  
+  // Si contiene barras, extraer solo el nombre del archivo
+  if (nombreArchivo.includes('/')) {
+    nombreArchivo = nombreArchivo.split('/').pop();
+  }
+  
+  // Remover prefijo './' si existe
+  nombreArchivo = nombreArchivo.replace(/^\.\//, '');
 
-  // Diferentes formatos posibles en tu JSON:
-  // Formato 1: "anillo1.png" o "img/productos/anillos/anillo1.png"
-  // Formato 2: "productos/anillos/anillo1.png"
-  // Formato 3: "img/anillos/anillo1.png"
-
+  // Construir la ruta correcta desde html/categorias/ hacia img/productos/categoria/
   let rutaFinal;
-
-  if (rutaLimpia.includes('/')) {
-    // Ya tiene estructura de carpetas, solo agregar ../../ al inicio
-    rutaFinal = '../../' + rutaLimpia;
+  if (categoria) {
+    rutaFinal = `../../img/productos/${categoria}/${nombreArchivo}`;
   } else {
-    // Solo nombre de archivo, construir ruta completa con categoría
-    if (categoria) {
-      rutaFinal = `../../img/productos/${categoria}/${rutaLimpia}`;
-    } else {
-      // Fallback: intentar estructura común
-      rutaFinal = `../../img/productos/${rutaLimpia}`;
-    }
+    rutaFinal = `../../img/productos/${nombreArchivo}`;
   }
 
-  console.log(`Ruta ajustada: "${rutaOriginal}" → "${rutaFinal}"`);
+  console.log(`🔍 Ajustando ruta: "${rutaOriginal}" → "${rutaFinal}"`);
   return rutaFinal;
 }
 
