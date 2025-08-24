@@ -32,34 +32,77 @@ class CarritoCompras {
     }
   }
 
-  // ===== FUNCIÓN PARA CORREGIR RUTAS DE IMÁGENES =====
+  // ===== FUNCIÓN MEJORADA PARA CORREGIR RUTAS DE IMÁGENES =====
   corregirRutaImagen(imagenPath) {
-    if (!imagenPath) return '../img/placeholder.jpg';
+    // Si no hay imagen o es vacía, usar placeholder
+    if (!imagenPath) {
+      return this.getPlaceholderImage();
+    }
     
-    // Si la imagen ya es una ruta absoluta o relativa correcta, no la modifiques
-    if (imagenPath.startsWith('http') || imagenPath.startsWith('data:')) {
+    // Si la imagen ya es una URL completa, data URI o blob, no la modifiques
+    if (imagenPath.startsWith('http') || 
+        imagenPath.startsWith('data:') || 
+        imagenPath.startsWith('blob:') ||
+        imagenPath.startsWith('//')) {
       return imagenPath;
     }
     
-    // Detectar la página actual para ajustar la ruta
+    // Obtener información sobre la ubicación actual
+    const currentPath = window.location.pathname;
+    const isCarritoPage = currentPath.includes('carrito.html') || currentPath.endsWith('carrito.html');
+    
+    console.log('Debug - Ruta actual:', currentPath);
+    console.log('Debug - Imagen original:', imagenPath);
+    console.log('Debug - Es página carrito:', isCarritoPage);
+    
+    let rutaCorregida = imagenPath;
+    
+    if (isCarritoPage) {
+      // Estamos en /html/carrito.html, necesitamos subir un nivel para llegar a /img/
+      if (imagenPath.startsWith('img/')) {
+        // Cambiar img/ por ../img/
+        rutaCorregida = imagenPath.replace('img/', '../img/');
+      } else if (imagenPath.startsWith('./img/')) {
+        // Cambiar ./img/ por ../img/
+        rutaCorregida = imagenPath.replace('./img/', '../img/');
+      } else if (!imagenPath.startsWith('../img/') && !imagenPath.startsWith('/')) {
+        // Si no empieza con ../img/ ni es absoluta, asumimos que es relativa desde root
+        rutaCorregida = `../img/${imagenPath}`;
+      }
+    }
+    
+    console.log('Debug - Ruta corregida:', rutaCorregida);
+    return rutaCorregida;
+  }
+
+  // ===== FUNCIÓN PARA OBTENER PLACEHOLDER =====
+  getPlaceholderImage() {
     const currentPath = window.location.pathname;
     
-    // Si estamos en la página del carrito (html/carrito.html)
-    if (currentPath.includes('/html/carrito.html') || currentPath.endsWith('carrito.html')) {
-      // Si la imagen no empieza con ../, agregarla
-      if (!imagenPath.startsWith('../')) {
-        // Si empieza con img/, reemplazarla con ../img/
-        if (imagenPath.startsWith('img/')) {
-          return imagenPath.replace('img/', '../img/');
-        }
-        // Si no, agregar ../
-        return `../${imagenPath}`;
-      }
-      return imagenPath;
+    if (currentPath.includes('carrito.html')) {
+      return '../img/placeholder.jpg';
+    } else if (currentPath.includes('/html/')) {
+      return '../img/placeholder.jpg';
+    } else {
+      return 'img/placeholder.jpg';
     }
+  }
+
+  // ===== FUNCIÓN PARA CREAR SVG PLACEHOLDER =====
+  createSVGPlaceholder(width = 120, height = 100, text = 'Sin imagen') {
+    const svg = `
+      <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#2a2a2a" stroke="#f9dc5e" stroke-width="2" rx="8"/>
+        <text x="50%" y="40%" text-anchor="middle" fill="#f9dc5e" font-family="Arial, sans-serif" font-size="24">
+          🖼️
+        </text>
+        <text x="50%" y="70%" text-anchor="middle" fill="#ccc" font-family="Arial, sans-serif" font-size="10">
+          ${text}
+        </text>
+      </svg>
+    `;
     
-    // Para otras páginas, mantener la ruta original
-    return imagenPath;
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
   }
 
   // ===== OPERACIONES DEL CARRITO =====
@@ -175,18 +218,61 @@ class CarritoCompras {
       }
 
       this.actualizarResumen();
+      
+      // Aplicar lazy loading y manejo de errores después del render
+      setTimeout(() => this.setupImageHandling(), 100);
     }
   }
 
+  // ===== SETUP MEJORADO PARA MANEJO DE IMÁGENES =====
+  setupImageHandling() {
+    const imagenes = document.querySelectorAll('.producto-imagen');
+    
+    imagenes.forEach((img, index) => {
+      // Aplicar corrección de ruta
+      const originalSrc = img.src;
+      const correctedSrc = this.corregirRutaImagen(img.dataset.originalSrc || originalSrc);
+      
+      console.log(`Imagen ${index + 1}:`);
+      console.log('- Original:', originalSrc);
+      console.log('- Corregida:', correctedSrc);
+      
+      // Precargar imagen para verificar si existe
+      this.loadImageWithFallback(img, correctedSrc);
+    });
+  }
+
+  // ===== CARGA DE IMAGEN CON FALLBACK =====
+  loadImageWithFallback(imgElement, src) {
+    const tempImg = new Image();
+    
+    tempImg.onload = () => {
+      console.log('✅ Imagen cargada correctamente:', src);
+      imgElement.src = src;
+      imgElement.classList.add('loaded');
+    };
+    
+    tempImg.onerror = () => {
+      console.warn('❌ Error al cargar imagen:', src);
+      console.log('🔄 Intentando con placeholder SVG...');
+      imgElement.src = this.createSVGPlaceholder();
+      imgElement.classList.add('error');
+    };
+    
+    // Iniciar carga
+    tempImg.src = src;
+  }
+
   renderizarProducto(producto) {
-    const imagenCorregida = this.corregirRutaImagen(producto.imagen);
+    // No corregir la ruta aquí, se hará en setupImageHandling
+    const imagenOriginal = producto.imagen || '';
     
     return `
       <div class="producto-carrito" data-id="${producto.id}">
-        <img src="${imagenCorregida}" 
+        <img src="${this.createSVGPlaceholder(120, 100, 'Cargando...')}" 
+             data-original-src="${imagenOriginal}"
              alt="${producto.nombre}" 
-             class="producto-imagen"
-             onerror="this.src='../img/placeholder.jpg'; this.onerror=null;" />
+             class="producto-imagen loading" />
         
         <div class="producto-info">
           <h4 class="producto-nombre">${producto.nombre}</h4>
@@ -357,6 +443,8 @@ window.agregarAlCarrito = function(idProducto, cantidad = 1) {
     productosPath = '../data/productos.json';
   }
 
+  console.log('Cargando productos desde:', productosPath);
+
   fetch(productosPath)
     .then(response => {
       if (!response.ok) {
@@ -367,8 +455,10 @@ window.agregarAlCarrito = function(idProducto, cantidad = 1) {
     .then(productos => {
       const producto = productos.find(p => p.id === parseInt(idProducto));
       if (producto && window.carrito) {
+        console.log('Producto encontrado:', producto);
         return window.carrito.agregarProducto(producto, cantidad);
       }
+      console.error('Producto no encontrado con ID:', idProducto);
       return false;
     })
     .catch(error => {
@@ -392,7 +482,7 @@ window.obtenerTotalCarrito = function() {
   }
 };
 
-// Función para actualizar contador en navbar (para usar en todas las páginas)
+// Función para actualizar contador en navbar
 window.actualizarContadorCarrito = function() {
   const total = window.obtenerTotalCarrito();
   const contadores = document.querySelectorAll('#carritoContador, .carrito-contador');
@@ -407,7 +497,7 @@ window.actualizarContadorCarrito = function() {
   });
 };
 
-// Función para mostrar notificaciones globales mejorada
+// Función para mostrar notificaciones globales
 window.mostrarNotificacionGlobal = function(mensaje, tipo = 'success') {
   // Remover notificación existente
   const notificacionExistente = document.querySelector('.notificacion-global');
@@ -418,7 +508,6 @@ window.mostrarNotificacionGlobal = function(mensaje, tipo = 'success') {
   const notificacion = document.createElement('div');
   notificacion.className = 'notificacion-global';
   
-  // Estilos responsivos mejorados
   const esMovil = window.innerWidth <= 768;
   notificacion.style.cssText = `
     position: fixed;
@@ -461,40 +550,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // Crear instancia global del carrito
   window.carrito = new CarritoCompras();
   
-  // Debug info
+  // Debug info detallado
   if (window.location.pathname.includes('carrito.html')) {
-    console.log('Página de carrito cargada con', window.carrito.productos.length, 'productos');
+    console.log('🛒 Página de carrito cargada');
+    console.log('📦 Productos en carrito:', window.carrito.productos.length);
+    console.log('🖼️ Verificando rutas de imágenes...');
     
-    // Verificar que todas las imágenes se carguen correctamente
-    setTimeout(() => {
-      const imagenes = document.querySelectorAll('.producto-imagen');
-      imagenes.forEach((img, index) => {
-        if (img.complete && img.naturalHeight === 0) {
-          console.warn(`Imagen ${index + 1} no se cargó correctamente:`, img.src);
-        }
+    window.carrito.productos.forEach((producto, index) => {
+      console.log(`Producto ${index + 1}:`, {
+        nombre: producto.nombre,
+        imagenOriginal: producto.imagen,
+        imagenCorregida: window.carrito.corregirRutaImagen(producto.imagen)
       });
-    }, 1000);
+    });
   }
   
   // Actualizar contador en navbar
   window.actualizarContadorCarrito();
-  
-  // Manejar cambios de tamaño de ventana para notificaciones responsivas
-  let resizeTimeout;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      // Reposicionar notificaciones si existen
-      const notificacionExistente = document.querySelector('.notificacion-global');
-      if (notificacionExistente) {
-        const esMovil = window.innerWidth <= 768;
-        notificacionExistente.style.cssText = notificacionExistente.style.cssText.replace(
-          /top: \d+px; (left: \d+px; )?right: \d+px; max-width: [\w\d]*;?/,
-          esMovil ? 'top: 10px; left: 10px; right: 10px; max-width: none;' : 'top: 20px; right: 20px; max-width: 300px;'
-        );
-      }
-    }, 250);
-  });
 });
 
 // ===== EXPORTAR FUNCIONES PARA USO EXTERNO =====
