@@ -1,34 +1,11 @@
-// ===== CARRITO DE COMPRAS - VERSIÓN GITHUB PAGES =====
+// ===== CARRITO DE COMPRAS - VERSIÓN ESPECÍFICA PARA AURUM JOYERÍA =====
 
 class CarritoCompras {
   constructor() {
     this.productos = this.cargarCarrito();
-    this.baseUrl = this.detectarBaseUrl();
-    console.log('🌐 Base URL detectada:', this.baseUrl);
+    this.baseUrl = 'https://jamesdp428.github.io/Aurum-Joyeria'; // URL fija para tu proyecto
+    console.log('🌐 Base URL configurada:', this.baseUrl);
     this.init();
-  }
-
-  // ===== DETECCIÓN DE BASE URL PARA GITHUB PAGES =====
-  detectarBaseUrl() {
-    const hostname = window.location.hostname;
-    const pathname = window.location.pathname;
-    
-    console.log('Debug - Hostname:', hostname);
-    console.log('Debug - Pathname:', pathname);
-    
-    // Si estamos en GitHub Pages
-    if (hostname.includes('github.io')) {
-      // Extraer el nombre del repositorio
-      const pathParts = pathname.split('/').filter(part => part !== '');
-      if (pathParts.length > 0) {
-        const repoName = pathParts[0];
-        return `https://${hostname}/${repoName}`;
-      }
-    }
-    
-    // Si estamos en localhost o dominio personalizado
-    const origin = window.location.origin;
-    return origin;
   }
 
   init() {
@@ -57,11 +34,10 @@ class CarritoCompras {
     }
   }
 
-  // ===== FUNCIÓN ESPECÍFICA PARA RUTAS EN GITHUB PAGES =====
+  // ===== FUNCIÓN ESPECÍFICA PARA TU ESTRUCTURA =====
   corregirRutaImagen(imagenPath) {
-    // Si no hay imagen, usar placeholder
     if (!imagenPath) {
-      return this.getPlaceholderUrl();
+      return this.createSVGPlaceholder(120, 100, 'Sin imagen');
     }
     
     // Si ya es una URL completa, no modificar
@@ -71,92 +47,88 @@ class CarritoCompras {
       return imagenPath;
     }
     
-    const currentPath = window.location.pathname;
-    const isCarritoPage = currentPath.includes('carrito.html');
+    console.log('🖼️ Imagen original:', imagenPath);
     
-    console.log('🖼️ Procesando imagen:', imagenPath);
-    console.log('📍 Estamos en carrito:', isCarritoPage);
+    // Limpiar la ruta de imagen
+    let rutaLimpia = imagenPath;
     
-    // Construir URL absoluta basada en la base URL
-    let rutaFinal;
-    
-    if (isCarritoPage) {
-      // Desde carrito.html (/html/carrito.html), subir al root y entrar a img/
-      if (imagenPath.startsWith('img/')) {
-        rutaFinal = `${this.baseUrl}/${imagenPath}`;
-      } else if (imagenPath.startsWith('../img/')) {
-        rutaFinal = `${this.baseUrl}/${imagenPath.substring(3)}`;
-      } else if (imagenPath.startsWith('./img/')) {
-        rutaFinal = `${this.baseUrl}/${imagenPath.substring(2)}`;
-      } else {
-        // Asumir que es una ruta relativa desde root
-        rutaFinal = `${this.baseUrl}/img/${imagenPath}`;
-      }
-    } else {
-      // Desde otras páginas
-      if (imagenPath.startsWith('img/')) {
-        rutaFinal = `${this.baseUrl}/${imagenPath}`;
-      } else {
-        rutaFinal = `${this.baseUrl}/img/${imagenPath}`;
-      }
+    // Remover ./ al inicio si existe
+    if (rutaLimpia.startsWith('./')) {
+      rutaLimpia = rutaLimpia.substring(2);
     }
     
-    console.log('✅ URL final de imagen:', rutaFinal);
-    return rutaFinal;
+    // Remover / al inicio si existe
+    if (rutaLimpia.startsWith('/')) {
+      rutaLimpia = rutaLimpia.substring(1);
+    }
+    
+    // Construir URL absoluta
+    const urlFinal = `${this.baseUrl}/${rutaLimpia}`;
+    
+    console.log('✅ URL final construida:', urlFinal);
+    return urlFinal;
   }
 
-  // ===== PLACEHOLDER URL =====
-  getPlaceholderUrl() {
-    return `${this.baseUrl}/img/placeholder.jpg`;
-  }
-
-  // ===== SVG PLACEHOLDER MEJORADO =====
+  // ===== SVG PLACEHOLDER SIN EMOJIS (para evitar error btoa) =====
   createSVGPlaceholder(width = 120, height = 100, text = 'Sin imagen') {
-    const svg = `
-      <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#2a2a2a;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#bg)" stroke="#f9dc5e" stroke-width="1" rx="8"/>
-        <text x="50%" y="40%" text-anchor="middle" fill="#f9dc5e" font-family="Arial, sans-serif" font-size="20">
-          🖼️
-        </text>
-        <text x="50%" y="65%" text-anchor="middle" fill="#ccc" font-family="Arial, sans-serif" font-size="8">
-          ${text}
-        </text>
-      </svg>
-    `;
+    const svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg${Date.now()}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#2a2a2a;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#bg${Date.now()})" stroke="#f9dc5e" stroke-width="1" rx="8"/>
+      <circle cx="${width/2}" cy="${height/2 - 10}" r="15" fill="#f9dc5e" opacity="0.7"/>
+      <rect x="${width/2 - 8}" y="${height/2 - 5}" width="16" height="2" fill="#f9dc5e" opacity="0.7"/>
+      <rect x="${width/2 - 1}" y="${height/2 - 12}" width="2" height="16" fill="#f9dc5e" opacity="0.7"/>
+      <text x="50%" y="${height - 15}" text-anchor="middle" fill="#ccc" font-family="Arial, sans-serif" font-size="10">${text}</text>
+    </svg>`;
     
-    return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
+    try {
+      return `data:image/svg+xml;base64,${btoa(svg)}`;
+    } catch (error) {
+      console.error('Error creando SVG:', error);
+      // Fallback simple sin btoa
+      return `data:image/svg+xml;charset=utf8,${encodeURIComponent(svg)}`;
+    }
   }
 
-  // ===== VERIFICACIÓN DE IMAGEN CON MÚLTIPLES INTENTOS =====
+  // ===== VERIFICACIÓN DE IMAGEN MEJORADA =====
   async verificarImagen(url) {
-    const intentos = [
-      url,
-      url.replace(/\.(jpg|jpeg|png|gif)$/i, '.jpg'),
-      url.replace(/\.(jpg|jpeg|png|gif)$/i, '.jpeg'),
-      url.replace(/\.(jpg|jpeg|png|gif)$/i, '.png'),
-      url.replace(/\.(jpg|jpeg|png|gif)$/i, '.webp')
-    ];
-
-    for (let intento of intentos) {
-      try {
-        const response = await fetch(intento, { method: 'HEAD' });
-        if (response.ok) {
-          console.log('✅ Imagen encontrada:', intento);
-          return intento;
-        }
-      } catch (error) {
-        console.log('❌ Fallo al verificar:', intento);
-      }
-    }
+    console.log('🔍 Verificando imagen:', url);
     
-    console.log('🚫 Ninguna variante de imagen encontrada para:', url);
-    return null;
+    try {
+      // Usar fetch para verificar si la imagen existe
+      const response = await fetch(url, { 
+        method: 'HEAD',
+        mode: 'no-cors' // Para evitar problemas de CORS en GitHub Pages
+      });
+      
+      // En modo no-cors, response.ok siempre es false, pero no debería dar error si existe
+      console.log('📡 Respuesta de verificación recibida para:', url);
+      return url; // Asumir que existe si no hay error
+      
+    } catch (error) {
+      console.log('❌ Error en verificación:', error);
+      
+      // Intentar con diferentes extensiones como fallback
+      const extensiones = ['.png', '.jpg', '.jpeg', '.webp'];
+      const baseUrl = url.replace(/\.(png|jpg|jpeg|webp)$/i, '');
+      
+      for (let ext of extensiones) {
+        const urlIntento = baseUrl + ext;
+        try {
+          await fetch(urlIntento, { method: 'HEAD', mode: 'no-cors' });
+          console.log('✅ Encontrada variante:', urlIntento);
+          return urlIntento;
+        } catch (e) {
+          console.log(`❌ Variante ${ext} no encontrada`);
+        }
+      }
+      
+      return null;
+    }
   }
 
   // ===== OPERACIONES DEL CARRITO =====
@@ -271,37 +243,32 @@ class CarritoCompras {
     }
   }
 
-  // ===== SETUP DE IMÁGENES MEJORADO =====
+  // ===== SETUP DE IMÁGENES =====
   async setupImagenes() {
-    const imagenes = document.querySelectorAll('.producto-imagen');
+    const imagenes = document.querySelectorAll('.producto-imagen[data-original-src]');
     
-    console.log(`🖼️ Configurando ${imagenes.length} imágenes...`);
+    console.log(`🖼️ Configurando ${imagenes.length} imágenes en el carrito...`);
     
     for (let img of imagenes) {
       const imagenOriginal = img.dataset.originalSrc;
-      console.log(`🔍 Procesando: ${imagenOriginal}`);
       
       if (imagenOriginal) {
         const urlCorregida = this.corregirRutaImagen(imagenOriginal);
-        console.log(`📍 URL corregida: ${urlCorregida}`);
         
-        // Verificar si la imagen existe
-        const urlVerificada = await this.verificarImagen(urlCorregida);
-        
-        if (urlVerificada) {
-          this.cargarImagen(img, urlVerificada);
-        } else {
-          console.log('❌ Imagen no encontrada, usando placeholder');
-          img.src = this.createSVGPlaceholder(120, 100, 'No disponible');
-          img.classList.add('error');
-        }
+        // Intentar cargar la imagen directamente (más simple que verificar)
+        this.cargarImagenDirecta(img, urlCorregida);
       }
     }
   }
 
-  // ===== CARGA DE IMAGEN =====
-  cargarImagen(imgElement, url) {
+  // ===== CARGA DIRECTA DE IMAGEN =====
+  cargarImagenDirecta(imgElement, url) {
+    console.log('🚀 Cargando imagen:', url);
+    
     const tempImg = new Image();
+    
+    // Configurar crossOrigin para GitHub Pages
+    tempImg.crossOrigin = 'anonymous';
     
     tempImg.onload = () => {
       console.log('✅ Imagen cargada exitosamente:', url);
@@ -312,31 +279,38 @@ class CarritoCompras {
     
     tempImg.onerror = () => {
       console.log('❌ Error al cargar imagen:', url);
-      imgElement.src = this.createSVGPlaceholder(120, 100, 'Error al cargar');
+      console.log('🔄 Usando placeholder...');
+      
+      const placeholder = this.createSVGPlaceholder(120, 100, 'No disponible');
+      imgElement.src = placeholder;
       imgElement.classList.remove('loading');
       imgElement.classList.add('error');
     };
     
-    // Timeout de seguridad
+    // Timeout de seguridad (5 segundos)
     setTimeout(() => {
-      if (!imgElement.classList.contains('loaded')) {
+      if (imgElement.classList.contains('loading')) {
         console.log('⏰ Timeout en carga de imagen:', url);
-        imgElement.src = this.createSVGPlaceholder(120, 100, 'Timeout');
+        const placeholder = this.createSVGPlaceholder(120, 100, 'Timeout');
+        imgElement.src = placeholder;
         imgElement.classList.remove('loading');
-        imgElement.classList.add('error');
+        imgElement.classList.add('timeout');
       }
-    }, 10000); // 10 segundos
+    }, 5000);
     
     tempImg.src = url;
   }
 
   renderizarProducto(producto) {
+    const placeholderSVG = this.createSVGPlaceholder(120, 100, 'Cargando...');
+    
     return `
       <div class="producto-carrito" data-id="${producto.id}">
-        <img src="${this.createSVGPlaceholder(120, 100, 'Cargando...')}" 
+        <img src="${placeholderSVG}" 
              data-original-src="${producto.imagen || ''}"
              alt="${producto.nombre}" 
-             class="producto-imagen loading" />
+             class="producto-imagen loading" 
+             style="min-width: 120px; min-height: 100px; object-fit: cover;" />
         
         <div class="producto-info">
           <h4 class="producto-nombre">${producto.nombre}</h4>
@@ -475,7 +449,11 @@ class CarritoCompras {
     setTimeout(() => notificacion.style.transform = 'translateX(0)', 100);
     setTimeout(() => {
       notificacion.style.transform = 'translateX(100%)';
-      setTimeout(() => notificacion.parentNode?.remove(), 300);
+      setTimeout(() => {
+        if (notificacion.parentNode) {
+          notificacion.remove();
+        }
+      }, 300);
     }, 3000);
   }
 }
@@ -483,17 +461,8 @@ class CarritoCompras {
 // ===== FUNCIONES GLOBALES =====
 
 window.agregarAlCarrito = function(idProducto, cantidad = 1) {
-  const baseUrl = window.carrito?.baseUrl || window.location.origin;
-  const currentPath = window.location.pathname;
-  
-  let productosPath;
-  if (currentPath.includes('/html/categorias/')) {
-    productosPath = `${baseUrl}/data/productos.json`;
-  } else if (currentPath.includes('/html/')) {
-    productosPath = `${baseUrl}/data/productos.json`;
-  } else {
-    productosPath = `${baseUrl}/data/productos.json`;
-  }
+  const baseUrl = 'https://jamesdp428.github.io/Aurum-Joyeria';
+  const productosPath = `${baseUrl}/data/productos.json`;
 
   console.log('📦 Cargando productos desde:', productosPath);
 
@@ -544,13 +513,64 @@ window.actualizarContadorCarrito = function() {
   });
 };
 
+window.mostrarNotificacionGlobal = function(mensaje, tipo = 'success') {
+  const notificacionExistente = document.querySelector('.notificacion-global');
+  if (notificacionExistente) {
+    notificacionExistente.remove();
+  }
+
+  const notificacion = document.createElement('div');
+  notificacion.className = 'notificacion-global';
+  
+  const esMovil = window.innerWidth <= 768;
+  notificacion.style.cssText = `
+    position: fixed;
+    ${esMovil ? 'top: 10px; left: 10px; right: 10px; max-width: none;' : 'top: 20px; right: 20px; max-width: 300px;'}
+    background: linear-gradient(45deg, ${tipo === 'success' ? '#4caf50, #45a049' : '#ff4757, #ff3838'});
+    color: white;
+    padding: ${esMovil ? '12px 15px' : '15px 20px'};
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 10000;
+    font-weight: bold;
+    transform: ${esMovil ? 'translateY(-100%)' : 'translateX(100%)'};
+    transition: transform 0.3s ease;
+    font-family: 'Roboto Condensed', sans-serif;
+    text-align: ${esMovil ? 'center' : 'left'};
+    font-size: ${esMovil ? '0.9rem' : '1rem'};
+  `;
+  
+  notificacion.textContent = mensaje;
+  document.body.appendChild(notificacion);
+
+  setTimeout(() => {
+    notificacion.style.transform = esMovil ? 'translateY(0)' : 'translateX(0)';
+  }, 100);
+
+  setTimeout(() => {
+    notificacion.style.transform = esMovil ? 'translateY(-100%)' : 'translateX(100%)';
+    setTimeout(() => {
+      if (notificacion.parentNode) {
+        notificacion.remove();
+      }
+    }, 300);
+  }, 3000);
+};
+
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', () => {
   window.carrito = new CarritoCompras();
   
-  console.log('🚀 Carrito inicializado');
+  console.log('🚀 Carrito Aurum inicializado');
   console.log('🌐 Base URL:', window.carrito.baseUrl);
-  console.log('📦 Productos:', window.carrito.productos.length);
+  console.log('📦 Productos en carrito:', window.carrito.productos.length);
+  
+  if (window.carrito.productos.length > 0) {
+    console.log('🖼️ Imágenes a cargar:');
+    window.carrito.productos.forEach((p, i) => {
+      console.log(`${i+1}. ${p.nombre}: ${p.imagen}`);
+    });
+  }
   
   window.actualizarContadorCarrito();
 });
