@@ -52,19 +52,29 @@ class CarritoCompras {
     // Limpiar la ruta de imagen
     let rutaLimpia = imagenPath;
     
-    // Remover ./ al inicio si existe
-    if (rutaLimpia.startsWith('./')) {
-      rutaLimpia = rutaLimpia.substring(2);
+    // Remover diferentes tipos de prefijos relativos
+    if (rutaLimpia.startsWith('../../')) {
+      rutaLimpia = rutaLimpia.substring(6); // Remover "../../"
+    } else if (rutaLimpia.startsWith('../')) {
+      rutaLimpia = rutaLimpia.substring(3); // Remover "../"
+    } else if (rutaLimpia.startsWith('./')) {
+      rutaLimpia = rutaLimpia.substring(2); // Remover "./"
+    } else if (rutaLimpia.startsWith('/')) {
+      rutaLimpia = rutaLimpia.substring(1); // Remover "/"
     }
     
-    // Remover / al inicio si existe
-    if (rutaLimpia.startsWith('/')) {
-      rutaLimpia = rutaLimpia.substring(1);
+    // Si la ruta limpia no empieza con 'img/', agregarla
+    if (!rutaLimpia.startsWith('img/')) {
+      // Si parece ser una ruta de imagen pero sin el prefijo img/
+      if (rutaLimpia.includes('productos/') || rutaLimpia.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+        rutaLimpia = `img/${rutaLimpia}`;
+      }
     }
     
     // Construir URL absoluta
     const urlFinal = `${this.baseUrl}/${rutaLimpia}`;
     
+    console.log('🧹 Ruta limpiada:', rutaLimpia);
     console.log('✅ URL final construida:', urlFinal);
     return urlFinal;
   }
@@ -573,6 +583,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   window.actualizarContadorCarrito();
+  
+  // Función de utilidad para limpiar carrito en desarrollo
+  window.limpiarCarritoCompleto = function() {
+    localStorage.removeItem('aurum_carrito');
+    location.reload();
+  };
+  
+  console.log('💡 Tip: Si las imágenes no cargan, ejecuta limpiarCarritoCompleto() para resetear');
 });
 
 window.CarritoCompras = CarritoCompras;
