@@ -1,4 +1,4 @@
-// ===== CARRITO DE COMPRAS FUNCIONAL =====
+// ===== CARRITO DE COMPRAS FUNCIONAL CORREGIDO =====
 
 class CarritoCompras {
   constructor() {
@@ -32,6 +32,36 @@ class CarritoCompras {
     }
   }
 
+  // ===== FUNCIÓN PARA CORREGIR RUTAS DE IMÁGENES =====
+  corregirRutaImagen(imagenPath) {
+    if (!imagenPath) return '../img/placeholder.jpg';
+    
+    // Si la imagen ya es una ruta absoluta o relativa correcta, no la modifiques
+    if (imagenPath.startsWith('http') || imagenPath.startsWith('data:')) {
+      return imagenPath;
+    }
+    
+    // Detectar la página actual para ajustar la ruta
+    const currentPath = window.location.pathname;
+    
+    // Si estamos en la página del carrito (html/carrito.html)
+    if (currentPath.includes('/html/carrito.html') || currentPath.endsWith('carrito.html')) {
+      // Si la imagen no empieza con ../, agregarla
+      if (!imagenPath.startsWith('../')) {
+        // Si empieza con img/, reemplazarla con ../img/
+        if (imagenPath.startsWith('img/')) {
+          return imagenPath.replace('img/', '../img/');
+        }
+        // Si no, agregar ../
+        return `../${imagenPath}`;
+      }
+      return imagenPath;
+    }
+    
+    // Para otras páginas, mantener la ruta original
+    return imagenPath;
+  }
+
   // ===== OPERACIONES DEL CARRITO =====
   agregarProducto(producto, cantidad = 1) {
     const productoExistente = this.productos.find(p => p.id === producto.id);
@@ -57,7 +87,7 @@ class CarritoCompras {
         nombre: producto.nombre,
         descripcion: producto.descripcion,
         imagen: producto.imagen,
-        precio: producto.precio || 0, // Precio se maneja por WhatsApp
+        precio: producto.precio || 0,
         stock: producto.stock,
         categoria: producto.categoria,
         cantidad: cantidad
@@ -119,11 +149,10 @@ class CarritoCompras {
   }
 
   obtenerSubtotal() {
-    // Como los precios se manejan por WhatsApp, retornamos 0
-    return 0;
+    return 0; // Los precios se manejan por WhatsApp
   }
 
-  // ===== RENDERIZADO =====
+  // ===== RENDERIZADO CORREGIDO =====
   renderizarCarrito() {
     const carritoVacio = document.getElementById('carritoVacio');
     const carritoConProductos = document.getElementById('carritoConProductos');
@@ -150,29 +179,33 @@ class CarritoCompras {
   }
 
   renderizarProducto(producto) {
+    const imagenCorregida = this.corregirRutaImagen(producto.imagen);
+    
     return `
       <div class="producto-carrito" data-id="${producto.id}">
-        <img src="${producto.imagen}" 
+        <img src="${imagenCorregida}" 
              alt="${producto.nombre}" 
              class="producto-imagen"
              onerror="this.src='../img/placeholder.jpg'; this.onerror=null;" />
         
         <div class="producto-info">
           <h4 class="producto-nombre">${producto.nombre}</h4>
-          <p class="producto-descripcion">${producto.descripcion}</p>
+          <p class="producto-descripcion">${producto.descripcion || 'Descripción no disponible'}</p>
           <p class="producto-precio">Consultar precio por WhatsApp</p>
         </div>
 
         <div class="producto-controles">
           <div class="cantidad-control-carrito">
-            <button onclick="carrito.actualizarCantidad(${producto.id}, ${producto.cantidad - 1})">-</button>
+            <button type="button" onclick="carrito.actualizarCantidad(${producto.id}, ${producto.cantidad - 1})" 
+                    ${producto.cantidad <= 1 ? 'disabled' : ''}>-</button>
             <input type="number" 
                    value="${producto.cantidad}" 
                    min="1" 
                    max="${producto.stock}"
-                   onchange="carrito.actualizarCantidad(${producto.id}, parseInt(this.value))"
+                   onchange="carrito.actualizarCantidad(${producto.id}, parseInt(this.value) || 1)"
                    onblur="if(!this.value || this.value < 1) this.value = 1">
-            <button onclick="carrito.actualizarCantidad(${producto.id}, ${producto.cantidad + 1})">+</button>
+            <button type="button" onclick="carrito.actualizarCantidad(${producto.id}, ${producto.cantidad + 1})"
+                    ${producto.cantidad >= producto.stock ? 'disabled' : ''}>+</button>
           </div>
           <button class="btn-eliminar" onclick="carrito.eliminarProducto(${producto.id})">
             🗑️ Eliminar
@@ -273,18 +306,34 @@ class CarritoCompras {
 
     const notificacion = document.createElement('div');
     notificacion.className = `notificacion ${tipo}`;
+    notificacion.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(45deg, ${tipo === 'success' ? '#4caf50, #45a049' : '#ff4757, #ff3838'});
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      z-index: 10000;
+      font-weight: bold;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      max-width: 300px;
+      font-family: 'Roboto Condensed', sans-serif;
+    `;
+    
     notificacion.textContent = mensaje;
-
     document.body.appendChild(notificacion);
 
     // Mostrar con animación
     setTimeout(() => {
-      notificacion.classList.add('show');
+      notificacion.style.transform = 'translateX(0)';
     }, 100);
 
     // Remover después de 3 segundos
     setTimeout(() => {
-      notificacion.classList.remove('show');
+      notificacion.style.transform = 'translateX(100%)';
       setTimeout(() => {
         if (notificacion.parentNode) {
           notificacion.remove();
@@ -294,13 +343,27 @@ class CarritoCompras {
   }
 }
 
-// ===== FUNCIONES GLOBALES PARA USAR DESDE OTRAS PÁGINAS =====
+// ===== FUNCIONES GLOBALES CORREGIDAS =====
 
 // Función para agregar productos desde otras páginas
 window.agregarAlCarrito = function(idProducto, cantidad = 1) {
-  // Esta función se llamará desde detalle_producto.js
-  fetch('../../data/productos.json')
-    .then(response => response.json())
+  // Detectar ruta correcta para productos.json
+  const currentPath = window.location.pathname;
+  let productosPath = 'data/productos.json';
+  
+  if (currentPath.includes('/html/categorias/')) {
+    productosPath = '../../data/productos.json';
+  } else if (currentPath.includes('/html/')) {
+    productosPath = '../data/productos.json';
+  }
+
+  fetch(productosPath)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(productos => {
       const producto = productos.find(p => p.id === parseInt(idProducto));
       if (producto && window.carrito) {
@@ -310,6 +373,7 @@ window.agregarAlCarrito = function(idProducto, cantidad = 1) {
     })
     .catch(error => {
       console.error('Error al agregar al carrito:', error);
+      mostrarNotificacionGlobal('Error al agregar producto al carrito', 'error');
       return false;
     });
 };
@@ -343,18 +407,94 @@ window.actualizarContadorCarrito = function() {
   });
 };
 
-// ===== INICIALIZACIÓN =====
+// Función para mostrar notificaciones globales mejorada
+window.mostrarNotificacionGlobal = function(mensaje, tipo = 'success') {
+  // Remover notificación existente
+  const notificacionExistente = document.querySelector('.notificacion-global');
+  if (notificacionExistente) {
+    notificacionExistente.remove();
+  }
+
+  const notificacion = document.createElement('div');
+  notificacion.className = 'notificacion-global';
+  
+  // Estilos responsivos mejorados
+  const esMovil = window.innerWidth <= 768;
+  notificacion.style.cssText = `
+    position: fixed;
+    ${esMovil ? 'top: 10px; left: 10px; right: 10px; max-width: none;' : 'top: 20px; right: 20px; max-width: 300px;'}
+    background: linear-gradient(45deg, ${tipo === 'success' ? '#4caf50, #45a049' : '#ff4757, #ff3838'});
+    color: white;
+    padding: ${esMovil ? '12px 15px' : '15px 20px'};
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 10000;
+    font-weight: bold;
+    transform: ${esMovil ? 'translateY(-100%)' : 'translateX(100%)'};
+    transition: transform 0.3s ease;
+    font-family: 'Roboto Condensed', sans-serif;
+    text-align: ${esMovil ? 'center' : 'left'};
+    font-size: ${esMovil ? '0.9rem' : '1rem'};
+  `;
+  
+  notificacion.textContent = mensaje;
+  document.body.appendChild(notificacion);
+
+  // Animación de entrada
+  setTimeout(() => {
+    notificacion.style.transform = esMovil ? 'translateY(0)' : 'translateX(0)';
+  }, 100);
+
+  // Remover después de 3 segundos
+  setTimeout(() => {
+    notificacion.style.transform = esMovil ? 'translateY(-100%)' : 'translateX(100%)';
+    setTimeout(() => {
+      if (notificacion.parentNode) {
+        notificacion.remove();
+      }
+    }, 300);
+  }, 3000);
+};
+
+// ===== INICIALIZACIÓN MEJORADA =====
 document.addEventListener('DOMContentLoaded', () => {
   // Crear instancia global del carrito
   window.carrito = new CarritoCompras();
   
-  // Si estamos en la página del carrito, hacer foco en ella
+  // Debug info
   if (window.location.pathname.includes('carrito.html')) {
     console.log('Página de carrito cargada con', window.carrito.productos.length, 'productos');
+    
+    // Verificar que todas las imágenes se carguen correctamente
+    setTimeout(() => {
+      const imagenes = document.querySelectorAll('.producto-imagen');
+      imagenes.forEach((img, index) => {
+        if (img.complete && img.naturalHeight === 0) {
+          console.warn(`Imagen ${index + 1} no se cargó correctamente:`, img.src);
+        }
+      });
+    }, 1000);
   }
   
-  // Actualizar contador en navbar para todas las páginas
+  // Actualizar contador en navbar
   window.actualizarContadorCarrito();
+  
+  // Manejar cambios de tamaño de ventana para notificaciones responsivas
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      // Reposicionar notificaciones si existen
+      const notificacionExistente = document.querySelector('.notificacion-global');
+      if (notificacionExistente) {
+        const esMovil = window.innerWidth <= 768;
+        notificacionExistente.style.cssText = notificacionExistente.style.cssText.replace(
+          /top: \d+px; (left: \d+px; )?right: \d+px; max-width: [\w\d]*;?/,
+          esMovil ? 'top: 10px; left: 10px; right: 10px; max-width: none;' : 'top: 20px; right: 20px; max-width: 300px;'
+        );
+      }
+    }, 250);
+  });
 });
 
 // ===== EXPORTAR FUNCIONES PARA USO EXTERNO =====
