@@ -21,8 +21,9 @@ app = FastAPI(
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
+# En producción, permitir orígenes específicos
+# En producción, permitir todos los orígenes
 if ENVIRONMENT == "production":
-    # En producción, permitir todos los orígenes temporalmente
     origins = ["*"]
 else:
     origins = [
@@ -34,29 +35,16 @@ else:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if ENVIRONMENT == "production" else origins,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # ========== INCLUIR ROUTERS ==========
 
 app.include_router(auth_router.router, tags=["Autenticación"])
 app.include_router(productos_router.router, tags=["Productos"])
 app.include_router(carrusel_router.router, tags=["Carrusel"])
-
-# ========== MONTAR ARCHIVOS ESTÁTICOS ==========
-
-# Obtener ruta base del proyecto
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Montar carpetas estáticas (HTML, CSS, JS, imágenes)
-try:
-    app.mount("/static", StaticFiles(directory=str(BASE_DIR)), name="static")
-    print(f"✅ Archivos estáticos montados desde: {BASE_DIR}")
-except Exception as e:
-    print(f"⚠️ Error montando archivos estáticos: {e}")
 
 # ========== ENDPOINTS DE INFORMACIÓN ==========
 
@@ -84,15 +72,5 @@ async def health_check():
         "version": "1.0.0"
     }
 
-# ========== PUNTO DE ENTRADA ==========
-
-if __name__ == "__main__":
-    import uvicorn
-    
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,  # Solo en desarrollo
-        log_level="info"
-    )
+# IMPORTANTE: Exportar app para Vercel
+# No usar uvicorn.run() aquí - Vercel maneja esto automáticamente

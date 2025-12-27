@@ -1,8 +1,26 @@
 // ========== CONFIGURACIÓN DE LA API ==========
-// Detectar automáticamente si estamos en local o en producción
-const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'http://127.0.0.1:8000/api'
-  : window.location.origin + '/api';
+// Detectar automáticamente si estamos en local, Vercel, o producción
+
+function getApiBaseUrl() {
+  const hostname = window.location.hostname;
+  
+  // Desarrollo local
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://127.0.0.1:8000/api';
+  }
+  
+  // Producción en Vercel
+  if (hostname.includes('vercel.app') || hostname.includes('tu-dominio.com')) {
+    return window.location.origin + '/api';
+  }
+  
+  // Por defecto, usar el mismo origen
+  return window.location.origin + '/api';
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
+console.log('🔗 API Base URL:', API_BASE_URL);
 
 // ========== UTILIDADES DE TOKEN ==========
 
@@ -87,7 +105,7 @@ async function fetchAPI(endpoint, options = {}) {
   }
 }
 
-// ========== API DE AUTENTICACIÓN ==========
+// ... resto del código sin cambios (authAPI, productosAPI, carruselAPI)
 
 const authAPI = {
   async register(email, nombre, password) {
@@ -114,7 +132,6 @@ const authAPI = {
     return await fetchAPI('/auth/me');
   },
   
-  // NUEVO: Actualizar perfil
   async updateProfile(data) {
     const params = new URLSearchParams();
     if (data.nombre) params.append('nombre', data.nombre);
@@ -123,7 +140,6 @@ const authAPI = {
       method: 'PUT'
     });
     
-    // Actualizar localStorage
     const user = getCurrentUser();
     if (data.nombre) user.nombre = data.nombre;
     localStorage.setItem('user', JSON.stringify(user));
@@ -131,7 +147,6 @@ const authAPI = {
     return response;
   },
   
-  // NUEVO: Cambiar contraseña
   async changePassword(currentPassword, newPassword) {
     return await fetchAPI('/auth/change-password', {
       method: 'POST',
@@ -142,7 +157,6 @@ const authAPI = {
     });
   },
   
-  // NUEVO: Solicitar cambio de email
   async requestEmailChange(newEmail) {
     return await fetchAPI('/auth/request-email-change', {
       method: 'POST',
@@ -150,14 +164,12 @@ const authAPI = {
     });
   },
   
-  // NUEVO: Confirmar cambio de email
   async confirmEmailChange(code) {
     const response = await fetchAPI('/auth/confirm-email-change', {
       method: 'POST',
       body: JSON.stringify({ code })
     });
     
-    // Actualizar email en localStorage si es exitoso
     const user = getCurrentUser();
     const profile = await this.getProfile();
     user.email = profile.email;
@@ -167,14 +179,12 @@ const authAPI = {
     return response;
   },
   
-  // NUEVO: Reenviar código de verificación
   async resendVerification() {
     return await fetchAPI('/auth/resend-verification', {
       method: 'POST'
     });
   },
   
-  // NUEVO: Verificar email con código manual
   async verifyEmailWithCode(code) {
     return await fetchAPI('/auth/verify-email-code', {
       method: 'POST',
@@ -182,15 +192,12 @@ const authAPI = {
     });
   },
   
-  // NUEVO: Eliminar cuenta
   async deleteAccount() {
     return await fetchAPI('/auth/delete-account', {
       method: 'DELETE'
     });
   }
 };
-
-// ========== API DE PRODUCTOS ==========
 
 const productosAPI = {
   async getAll(filters = {}) {
@@ -271,8 +278,6 @@ const productosAPI = {
     return await fetchAPI('/productos/categorias/list');
   }
 };
-
-// ========== API DE CARRUSEL ==========
 
 const carruselAPI = {
   async getAll(activoFilter = true) {
