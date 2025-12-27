@@ -1,12 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pathlib import Path
 import os
-import sys
-
-# Añadir el directorio backend al path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Importar routers
 from routers import auth_router, productos_router, carrusel_router
@@ -17,17 +12,22 @@ app = FastAPI(
     title="Aurum Joyería API",
     description="Backend completo para la joyería con sistema de autenticación y gestión de productos",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    docs_url="/api/docs",
+    redoc_url="/api/redoc"
 )
 
 # ========== CONFIGURACIÓN DE CORS ==========
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
-# CORS configurado para Vercel
+# CORS CRÍTICO para Vercel
 if ENVIRONMENT == "production":
-    origins = ["*"]  # Permitir todos los orígenes en producción
+    # Permitir tu dominio de Vercel específico
+    origins = [
+        "https://*.vercel.app",
+        "https://vercel.app",
+        "*"  # Temporal para debugging - CAMBIAR después
+    ]
 else:
     origins = [
         "http://localhost:8000",
@@ -42,6 +42,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # ========== INCLUIR ROUTERS ==========
@@ -63,7 +64,17 @@ async def root():
         "redoc": "/api/redoc"
     }
 
-@app.get("/health")
+@app.get("/api")
+async def api_root():
+    """Endpoint /api con información de la API"""
+    return {
+        "message": "Aurum Joyería API",
+        "version": "1.0.0",
+        "environment": ENVIRONMENT,
+        "status": "online"
+    }
+
+@app.get("/api/health")
 async def health_check():
     """Health check para monitoreo"""
     return {
@@ -83,6 +94,3 @@ async def global_exception_handler(request, exc):
             "environment": ENVIRONMENT
         }
     )
-
-# IMPORTANTE: Exportar app para Vercel
-# No usar uvicorn.run() aquí

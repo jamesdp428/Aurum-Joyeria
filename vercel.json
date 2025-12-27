@@ -2,22 +2,29 @@
   "version": 2,
   "builds": [
     {
-      "src": "backend/index.py",
+      "src": "api/index.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend/index.py"
+      "dest": "api/index.py"
     },
     {
-      "src": "/(.*\\.(html|css|js|jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot|webp))",
+      "src": "/(.*\\.(css|js|jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot|webp))",
       "dest": "/$1"
     },
     {
+      "src": "/html/(.*)",
+      "dest": "/html/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/$1"
     }
-  ]
+  ],
+  "env": {
+    "ENVIRONMENT": "production"
+  }
 }
