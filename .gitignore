@@ -1,31 +1,43 @@
 # Python
 __pycache__/
 *.py[cod]
-*.pyc
+*$py.class
+*.so
+.Python
 venv/
-backend/venv/
-ENV/
 env/
+ENV/
+backend/venv/
+backend/__pycache__/
+*.egg-info/
 
-# Environment variables - NO SUBIR CREDENCIALES
+# Vercel
+.vercel
+.vercel/
+
+# Variables de entorno
 .env
-backend/.env
-*.env
+.env.local
+.env.production
 
 # IDEs
 .vscode/
 .idea/
 *.swp
+*.swo
+
+# Base de datos local
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-
-# Alembic - no subir versiones locales
-backend/alembic/versions/*.pyc
-
-# Vercel
-.vercel
+# Alembic
+alembic/versions/__pycache__/

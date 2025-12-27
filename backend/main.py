@@ -1,8 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from pathlib import Path
 import os
+import sys
+
+# Añadir el directorio backend al path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Importar routers
 from routers import auth_router, productos_router, carrusel_router
@@ -13,18 +17,17 @@ app = FastAPI(
     title="Aurum Joyería API",
     description="Backend completo para la joyería con sistema de autenticación y gestión de productos",
     version="1.0.0",
-    docs_url="/api/docs",
-    redoc_url="/api/redoc"
+    docs_url="/docs",
+    redoc_url="/redoc"
 )
 
 # ========== CONFIGURACIÓN DE CORS ==========
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
-# En producción, permitir orígenes específicos
-# En producción, permitir todos los orígenes
+# CORS configurado para Vercel
 if ENVIRONMENT == "production":
-    origins = ["*"]
+    origins = ["*"]  # Permitir todos los orígenes en producción
 else:
     origins = [
         "http://localhost:8000",
@@ -40,6 +43,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # ========== INCLUIR ROUTERS ==========
 
 app.include_router(auth_router.router, tags=["Autenticación"])
@@ -54,13 +58,9 @@ async def root():
     return {
         "message": "Bienvenido a Aurum Joyería API",
         "version": "1.0.0",
+        "environment": ENVIRONMENT,
         "docs": "/api/docs",
-        "redoc": "/api/redoc",
-        "endpoints": {
-            "auth": "/api/auth",
-            "productos": "/api/productos",
-            "carrusel": "/api/carrusel"
-        }
+        "redoc": "/api/redoc"
     }
 
 @app.get("/health")
@@ -72,5 +72,17 @@ async def health_check():
         "version": "1.0.0"
     }
 
+# Manejador de errores global
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": str(exc),
+            "type": type(exc).__name__,
+            "environment": ENVIRONMENT
+        }
+    )
+
 # IMPORTANTE: Exportar app para Vercel
-# No usar uvicorn.run() aquí - Vercel maneja esto automáticamente
+# No usar uvicorn.run() aquí

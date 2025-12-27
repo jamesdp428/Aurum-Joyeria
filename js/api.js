@@ -1,26 +1,31 @@
 // ========== CONFIGURACIÓN DE LA API ==========
-// Detectar automáticamente si estamos en local, Vercel, o producción
+// Detectar automáticamente si estamos en local o Vercel
 
 function getApiBaseUrl() {
   const hostname = window.location.hostname;
   
+  console.log('🌍 Hostname detectado:', hostname);
+  
   // Desarrollo local
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    console.log('✅ Modo: DESARROLLO LOCAL');
     return 'http://127.0.0.1:8000/api';
   }
   
-  // Producción en Vercel
-  if (hostname.includes('vercel.app') || hostname.includes('tu-dominio.com')) {
+  // Producción en Vercel (cualquier dominio .vercel.app)
+  if (hostname.includes('vercel.app')) {
+    console.log('✅ Modo: PRODUCCIÓN VERCEL');
     return window.location.origin + '/api';
   }
   
-  // Por defecto, usar el mismo origen
+  // Dominio personalizado
+  console.log('✅ Modo: DOMINIO PERSONALIZADO');
   return window.location.origin + '/api';
 }
 
 const API_BASE_URL = getApiBaseUrl();
 
-console.log('🔗 API Base URL:', API_BASE_URL);
+console.log('🔗 API Base URL configurada:', API_BASE_URL);
 
 // ========== UTILIDADES DE TOKEN ==========
 
@@ -65,6 +70,8 @@ async function fetchAPI(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = getToken();
   
+  console.log(`📡 ${options.method || 'GET'} ${url}`);
+  
   const config = {
     ...options,
     headers: {
@@ -83,6 +90,8 @@ async function fetchAPI(endpoint, options = {}) {
   try {
     const response = await fetch(url, config);
     
+    console.log(`📥 Response: ${response.status} ${response.statusText}`);
+    
     if (response.status === 204) {
       return null;
     }
@@ -100,12 +109,12 @@ async function fetchAPI(endpoint, options = {}) {
     
     return data;
   } catch (error) {
-    console.error('Error en fetchAPI:', error);
+    console.error('❌ Error en fetchAPI:', error);
     throw error;
   }
 }
 
-// ... resto del código sin cambios (authAPI, productosAPI, carruselAPI)
+// ========== API DE AUTENTICACIÓN ==========
 
 const authAPI = {
   async register(email, nombre, password) {
@@ -199,6 +208,8 @@ const authAPI = {
   }
 };
 
+// ========== API DE PRODUCTOS ==========
+
 const productosAPI = {
   async getAll(filters = {}) {
     const params = new URLSearchParams();
@@ -278,6 +289,8 @@ const productosAPI = {
     return await fetchAPI('/productos/categorias/list');
   }
 };
+
+// ========== API DE CARRUSEL ==========
 
 const carruselAPI = {
   async getAll(activoFilter = true) {
