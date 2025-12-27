@@ -1,8 +1,8 @@
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
+*.pyc
+*.pyo
+*.pyd
 .Python
 venv/
 env/
@@ -10,17 +10,6 @@ ENV/
 backend/venv/
 backend/__pycache__/
 *.egg-info/
-
-# Variables de entorno
-.env
-.env.local
-.env.production
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
 
 # Base de datos local
 *.db
@@ -34,3 +23,12 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Alembic
+alembic/versions/__pycache__/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
