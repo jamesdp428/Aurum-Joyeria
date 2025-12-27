@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil | Aurum Joyería</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/crearcuenta.css">
+    <link rel="icon" href="../img/logo-wind.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="top-bar">
+      <div class="logo">
+        <a href="../index.html"><img src="../img/logo.svg" alt="Logo Aurum" class="logo-img"></a>
+      </div>
+      <h1 style="color: #f9dc5e; margin: 0;">Mi Perfil</h1>
+      <button id="logoutBtn" class="btn-logout" style="background: linear-gradient(45deg, #ff4757, #ff3838); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cerrar Sesión</button>
+    </div>
+  </header>
+
+  <div class="registro-contenedor" style="margin-top: 40px;">
+    <!-- Información del Perfil -->
+    <div class="registro-formulario" style="margin-bottom: 30px;">
+      <h2>Información del Perfil</h2>
+      
+      <div id="profileMessage" class="message-box" style="display: none;"></div>
+      
+      <div style="padding: 20px; background: #1a1a1a; border-radius: 12px; margin-bottom: 20px;">
+        <div style="margin-bottom: 15px;">
+          <label style="color: #f9dc5e; font-weight: 600;">Nombre:</label>
+          <p id="perfilNombre" style="color: white; margin: 5px 0;">Cargando...</p>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label style="color: #f9dc5e; font-weight: 600;">Email:</label>
+          <p id="perfilEmail" style="color: white; margin: 5px 0;">Cargando...</p>
+          <p id="perfilVerificado" style="margin: 5px 0; font-size: 14px;"></p>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label style="color: #f9dc5e; font-weight: 600;">Rol:</label>
+          <p id="perfilRol" style="color: white; margin: 5px 0;">Cargando...</p>
+        </div>
+        <div>
+          <label style="color: #f9dc5e; font-weight: 600;">Miembro desde:</label>
+          <p id="perfilFecha" style="color: white; margin: 5px 0;">Cargando...</p>
+        </div>
+      </div>
+      
+      <!-- Sección de verificación de email -->
+      <div id="seccionVerificacion" style="display: none; margin-bottom: 20px; padding: 20px; background: rgba(255, 152, 0, 0.1); border: 2px solid #ff9800; border-radius: 12px;">
+        <h3 style="color: #ff9800; margin-top: 0;">⚠️ Verifica tu email</h3>
+        <p style="color: #ccc; margin-bottom: 15px;">Ingresa el código que enviamos a tu correo:</p>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <input 
+            type="text" 
+            id="codigoVerificacionPerfil" 
+            placeholder="Pega aquí el código de verificación"
+            style="flex: 1; padding: 12px; background: #2a2a2a; border: 1px solid #ff9800; border-radius: 8px; color: white; font-size: 14px;"
+          >
+          <button 
+            id="btnVerificarCodigo"
+            style="padding: 12px 20px; background: linear-gradient(45deg, #f9dc5e, #ffd700); color: #000; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; white-space: nowrap;"
+          >
+            Verificar
+          </button>
+        </div>
+        
+        <button 
+          id="btnReenviarCodigoPerfil"
+          style="width: 100%; padding: 10px; background: transparent; color: #ff9800; border: 1px solid #ff9800; border-radius: 8px; cursor: pointer; font-size: 14px;"
+        >
+          Reenviar código
+        </button>
+      </div>
+      
+      <div style="display: flex; gap: 10px;">
+        <button id="btnEditarPerfil" class="btn-primary" style="flex: 1; background: linear-gradient(45deg, #f9dc5e, #ffd700); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+          Editar Información
+        </button>
+        <button id="btnEliminarCuenta" style="flex: 1; background: linear-gradient(45deg, #ff4757, #ff3838); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+          Eliminar Cuenta
+        </button>
+      </div>
+    </div>
+
+    <!-- Formulario de Edición -->
+    <form class="registro-formulario" id="formEditarPerfil" style="display: none;">
+      <h2>Editar Perfil</h2>
+      
+      <div id="editMessage" class="message-box" style="display: none;"></div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="color: white; display: block; margin-bottom: 8px;">Nombre</label>
+        <input type="text" id="editNombre" placeholder="Nombre completo" required style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: white;">
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="color: white; display: block; margin-bottom: 8px;">Email</label>
+        <input type="email" id="editEmail" placeholder="Correo electrónico" required style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: white;">
+        <small style="color: #aaa; display: block; margin-top: 5px;">⚠️ Al cambiar tu email recibirás un código de verificación</small>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="color: white; display: block; margin-bottom: 8px;">
+          <input type="checkbox" id="cambiarPassword" style="margin-right: 8px;">
+          Cambiar contraseña
+        </label>
+      </div>
+
+      <div id="passwordFields" style="display: none;">
+        <div class="password-container" style="margin-bottom: 16px;">
+          <input type="password" id="editPasswordActual" placeholder="Contraseña actual" style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: white;">
+        </div>
+
+        <div class="password-container" style="margin-bottom: 16px;">
+          <input type="password" id="editPasswordNueva" placeholder="Nueva contraseña (mínimo 6 caracteres)" minlength="6" style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: white;">
+        </div>
+
+        <div class="password-container" style="margin-bottom: 16px;">
+          <input type="password" id="editPasswordConfirm" placeholder="Confirmar nueva contraseña" style="width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: white;">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button type="button" id="btnCancelar" style="flex: 1; padding: 12px; background: #333; color: white; border: 1px solid #555; border-radius: 8px; cursor: pointer;">
+          Cancelar
+        </button>
+        <button type="submit" id="btnGuardar" style="flex: 1; padding: 12px; background: linear-gradient(45deg, #f9dc5e, #ffd700); color: #000; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
+          Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/perfil.js"></script>
+</body>
+</html>

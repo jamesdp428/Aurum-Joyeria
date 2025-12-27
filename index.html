@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <script defer src="js/api.js"></script>
   <script defer src="js/cargar_destacados.js"></script>
   <script defer src="js/carrito.js"></script>
   <script defer src="js/menu.js"></script>
@@ -43,14 +44,23 @@
       </div>
 
       <div class="icons">
-        <a href="html/carrito.html">
-          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
-              <circle cx="9" cy="21" r="1"/>
-              <circle cx="20" cy="21" r="1"/>
-              <path d="M1 1h4l2.6 13.5a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L23 6H6"/>
-          </svg>
-        </a>
-      </div>
+  <!-- Ícono de usuario/login -->
+  <a href="html/login.html" id="userIcon">
+    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+  </a>
+  
+  <!-- Ícono de carrito -->
+  <a href="html/carrito.html">
+    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="9" cy="21" r="1"/>
+      <circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.6 13.5a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L23 6H6"/>
+    </svg>
+  </a>
+</div>
     </div> 
   </div>
 
@@ -78,17 +88,14 @@
 </header>
 
 <!-- CARRUSEL -->
+<!-- Reemplaza la sección del carrusel en index.html -->
 <section class="carrusel" id="carrusel">
   <div class="slides">
-    <div class="slide active" style="background-image: url('img/oro18k.png');"></div>
-    <div class="slide" style="background-image: url('img/anillos.png');"></div>
-    <div class="slide" style="background-image: url('img/carru_puls.png');"></div>
+    <!-- Las imágenes se cargarán dinámicamente -->
   </div>
 
   <div class="dots">
-    <span class="dot active" data-index="0"></span>
-    <span class="dot" data-index="1"></span>
-    <span class="dot" data-index="2"></span>
+    <!-- Los dots se generarán dinámicamente -->
   </div>
 </section>
 
@@ -193,25 +200,88 @@
 
 <!-- SCRIPTS -->
 <script>
-  // Carrusel functionality
+document.addEventListener('DOMContentLoaded', async () => {
+  await cargarCarruselDinamico();
+});
+
+async function cargarCarruselDinamico() {
+  const slidesContainer = document.querySelector('.slides');
+  const dotsContainer = document.querySelector('.dots');
+  
+  try {
+    // Obtener imágenes activas del carrusel ordenadas
+    const items = await carruselAPI.getAll(true);
+    
+    if (items.length === 0) {
+      // Si no hay imágenes, usar las predeterminadas
+      usarCarruselPredeterminado();
+      return;
+    }
+    
+    // Limpiar contenedores
+    slidesContainer.innerHTML = '';
+    dotsContainer.innerHTML = '';
+    
+    // Crear slides dinámicos
+    items.forEach((item, index) => {
+      // Crear slide
+      const slide = document.createElement('div');
+      slide.className = `slide ${index === 0 ? 'active' : ''}`;
+      slide.style.backgroundImage = `url('${item.imagen_url}')`;
+      slidesContainer.appendChild(slide);
+      
+      // Crear dot
+      const dot = document.createElement('span');
+      dot.className = `dot ${index === 0 ? 'active' : ''}`;
+      dot.dataset.index = index;
+      dotsContainer.appendChild(dot);
+    });
+    
+    // Inicializar funcionalidad del carrusel
+    inicializarCarrusel();
+    
+  } catch (error) {
+    console.error('Error cargando carrusel:', error);
+    usarCarruselPredeterminado();
+  }
+}
+
+function usarCarruselPredeterminado() {
+  const slidesContainer = document.querySelector('.slides');
+  const dotsContainer = document.querySelector('.dots');
+  
+  slidesContainer.innerHTML = `
+    <div class="slide active" style="background-image: url('img/oro18k.png');"></div>
+    <div class="slide" style="background-image: url('img/anillos.png');"></div>
+    <div class="slide" style="background-image: url('img/carru_puls.png');"></div>
+  `;
+  
+  dotsContainer.innerHTML = `
+    <span class="dot active" data-index="0"></span>
+    <span class="dot" data-index="1"></span>
+    <span class="dot" data-index="2"></span>
+  `;
+  
+  inicializarCarrusel();
+}
+
+function inicializarCarrusel() {
   const slides = document.querySelectorAll('.slide');
   const dots = document.querySelectorAll('.dot');
   let currentSlide = 0;
   const totalSlides = slides.length;
+  
+  if (totalSlides === 0) return;
 
   function showSlide(index) {
-    // Asegurar que el índice esté en rango
     if (index < 0) index = totalSlides - 1;
     if (index >= totalSlides) index = 0;
 
-    // Mover slides
     document.querySelector('.slides').style.transform = `translateX(-${index * 100}%)`;
 
-    // Actualizar dots
     dots.forEach(dot => dot.classList.remove('active'));
     if (dots[index]) dots[index].classList.add('active');
 
-    // Guardar índice actual
     currentSlide = index;
   }
 
@@ -220,21 +290,16 @@
     dot.addEventListener('click', () => showSlide(parseInt(dot.dataset.index)));
   });
 
-  // Autoplay del carrusel
+  // Autoplay
   let autoplayInterval = setInterval(() => {
     showSlide(currentSlide + 1);
   }, 6000);
 
-  // Pausar autoplay cuando el usuario interactúa
-  document.querySelector('.carrusel').addEventListener('mouseenter', () => {
-    clearInterval(autoplayInterval);
-  });
-
-  // Reanudar autoplay cuando el mouse sale
-  document.querySelector('.carrusel').addEventListener('mouseleave', () => {
-    autoplayInterval = setInterval(() => {
-      showSlide(currentSlide + 1);
-    }, 6000);
+  // Pausar/reanudar autoplay
+  const carruselElement = document.querySelector('.carrusel');
+  carruselElement.addEventListener('mouseenter', () => clearInterval(autoplayInterval));
+  carruselElement.addEventListener('mouseleave', () => {
+    autoplayInterval = setInterval(() => showSlide(currentSlide + 1), 6000);
   });
 
   // Navegación con teclado
@@ -245,6 +310,36 @@
     } else if (e.key === 'ArrowRight') {
       clearInterval(autoplayInterval);
       showSlide(currentSlide + 1);
+    }
+  });
+}
+</script>
+
+<script src="js/verification-banner.js"></script>
+<script src="js/admin-panel-button.js"></script>
+
+<script>
+  // Actualizar ícono de usuario según estado de login
+  document.addEventListener('DOMContentLoaded', () => {
+    const userIcon = document.getElementById('userIcon');
+    if (!userIcon) return;
+    
+    const user = getCurrentUser ? getCurrentUser() : null;
+    
+    if (user) {
+      // Usuario logueado - SIEMPRE ir al perfil
+      userIcon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      `;
+      userIcon.title = `Mi perfil (${user.nombre})`;
+      userIcon.href = 'html/perfil.html';
+    } else {
+      // Usuario NO logueado
+      userIcon.title = 'Iniciar sesión';
+      userIcon.href = 'html/login.html';
     }
   });
 </script>

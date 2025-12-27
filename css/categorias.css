@@ -523,3 +523,23 @@
     box-sizing: border-box;
   }
 }
+
+/* ===== AGREGAR ESTOS ESTILOS A categorias.css ===== */
+
+/* Estilos para el precio en las tarjetas de producto */
+.producto-card .precio {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #f9dc5e;
+  margin: 10px 0 15px 0;
+  padding: 10px;
+  background: linear-gradient(145deg, rgba(249, 220, 94, 0.1), rgba(249, 220, 94, 0.05));
+  border-radius: 8px;
+  border: 1px solid rgba(249, 220, 94, 0.2);
+}
+
+.producto-card .precio.consultar {
+  font-style: italic;
+  font-size: 1.1rem;
+  color: #aaa;
+}

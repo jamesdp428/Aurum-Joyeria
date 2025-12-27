@@ -3,6 +3,17 @@ body {
   font-family: "Roboto Condensed";
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 /* ===== NAVBAR ===== */
@@ -23,6 +34,7 @@ body {
   padding: 16px 24px;
   flex-wrap: wrap;
   gap: 20px;
+  position: relative;
 }
 
 .logo {
@@ -108,7 +120,6 @@ body {
   display: block;
 }
 
-/* Estilos personalizados para el scrollbar */
 .search-results::-webkit-scrollbar {
   width: 8px;
 }
@@ -127,7 +138,6 @@ body {
   background: #ffffff;
 }
 
-/* Para Firefox */
 .search-results {
   scrollbar-width: thin;
   scrollbar-color: #f9dc5e #1a1a1a;
@@ -413,15 +423,19 @@ body {
 @media screen and (max-width: 768px) {
   .top-bar {
     flex-direction: column;
-    align-items: center;
-    padding: 12px 16px 8px;
+    align-items: stretch;
+    padding: 12px 16px;
     gap: 12px;
+    position: relative;
   }
 
   .logo {
+    position: relative;
+    left: auto;
     order: 1;
     width: 100%;
     text-align: center;
+    margin-bottom: 8px;
   }
 
   .logo-img {
@@ -432,18 +446,16 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%; 
-    order: 2; 
-    padding: 0 16px;
-    box-sizing: border-box;
+    width: 100%;
+    order: 2;
+    gap: 12px;
   }
 
   .menu-hamburguesa {
-    display: flex; 
+    display: flex;
     width: 24px;
     gap: 4px;
     flex-shrink: 0;
-    margin-right: 16px;
   }
 
   .menu-hamburguesa span {
@@ -453,8 +465,7 @@ body {
   .search-container {
     flex: 1;
     max-width: none;
-    margin: 0;
-    min-width: 120px;
+    min-width: 0;
   }
 
   .search-input {
@@ -469,9 +480,10 @@ body {
   }
 
   .icons {
+    position: relative;
+    right: auto;
     gap: 16px;
     flex-shrink: 0;
-    margin-left: 16px; 
   }
 
   .icons svg {
@@ -509,18 +521,16 @@ body {
   }
 
   .menu-bottom-row {
-    padding: 0 12px;
+    gap: 10px;
   }
 
   .menu-hamburguesa {
     width: 22px;
     gap: 3px;
-    margin-right: 12px;
   }
 
   .icons {
     gap: 14px;
-    margin-left: 12px;
   }
 
   .icons svg {
@@ -530,6 +540,7 @@ body {
 
   .search-input {
     padding: 8px 36px 8px 14px;
+    font-size: 14px;
   }
 
   .search-btn svg {
@@ -567,15 +578,11 @@ body {
 
   .menu-bottom-row {
     display: contents;
-    width: auto;
-    order: unset;
-    padding: 0; 
   }
 
   .logo {
     position: absolute;
     left: 24px;
-    order: unset;
     width: auto;
     text-align: left;
   }
@@ -589,8 +596,6 @@ body {
   .icons {
     position: absolute;
     right: 24px;
-    order: unset;
-    margin-left: 0;
     justify-content: flex-end;
   }
 

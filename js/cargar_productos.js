@@ -8,75 +8,41 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    // Intentar diferentes rutas posibles para el archivo JSON
-    let productos;
-    const posiblesRutas = [
-      "../../data/productos.json", // Desde html/categorias/ a data/ en la raíz
-      "../data/productos.json",    // Un nivel arriba hacia data/
-      "./data/productos.json",     // En carpeta data local
-      "../../productos.json",      // Fallback: JSON en la raíz
-      "../productos.json",         // Fallback: un nivel arriba
-      "./productos.json"           // Fallback: carpeta local
-    ];
-
-    let respuesta;
-    let rutaExitosa = null;
-
-    for (const ruta of posiblesRutas) {
-      try {
-        console.log(`Intentando cargar desde: ${ruta}`);
-        respuesta = await fetch(ruta);
-        if (respuesta.ok) {
-          rutaExitosa = ruta;
-          break;
-        }
-      } catch (error) {
-        console.log(`Error con ruta ${ruta}:`, error.message);
-        continue;
-      }
-    }
-
-    if (!rutaExitosa || !respuesta.ok) {
-      throw new Error(`No se pudo cargar productos.json desde ninguna ruta. Último estado: ${respuesta?.status || 'Sin respuesta'}`);
-    }
-
-    console.log(`Productos cargados exitosamente desde: ${rutaExitosa}`);
-    productos = await respuesta.json();
-
-    if (!Array.isArray(productos) || productos.length === 0) {
-      throw new Error("El archivo productos.json está vacío o no contiene un array válido");
-    }
-
     // Obtener categoría actual desde el data attribute del body
     const categoriaActual = document.body.dataset.categoria;
     
     if (!categoriaActual) {
-      console.error("No se encontró data-categoria en el body");
-      // Intentar obtener de la URL como fallback
-      const urlParams = new URLSearchParams(window.location.search);
-      const categoriaUrl = urlParams.get('categoria');
-      if (categoriaUrl) {
-        console.log(`Usando categoría de URL: ${categoriaUrl}`);
-        document.body.dataset.categoria = categoriaUrl;
-      } else {
-        throw new Error("No se pudo determinar la categoría actual. Asegúrate de que el body tenga data-categoria.");
-      }
+      throw new Error("No se pudo determinar la categoría actual. Asegúrate de que el body tenga data-categoria.");
     }
 
-    const categoria = document.body.dataset.categoria || categoriaUrl;
-    console.log(`Filtrando productos por categoría: ${categoria}`);
+    console.log(`Cargando productos de la categoría: ${categoriaActual}`);
 
-    // Filtrar productos por categoría
-    let productosFiltrados = productos.filter(p => p.categoria === categoria);
+    // Obtener productos de la API
+    let productosFiltrados;
     
-    console.log(`Productos encontrados en categoría '${categoria}': ${productosFiltrados.length}`);
-    console.log("Categorías disponibles:", [...new Set(productos.map(p => p.categoria))]);
+    // Verificar si productosAPI está disponible
+    if (typeof productosAPI === 'undefined') {
+      throw new Error('La API de productos no está disponible. Asegúrate de cargar api.js antes de este script.');
+    }
+
+    // Si la categoría es "otros" o "more-products", traer productos de varias categorías
+    if (categoriaActual === 'otros' || categoriaActual === 'more-products') {
+      // Traer todos los productos y filtrar las categorías principales
+      const todosProductos = await productosAPI.getAll({ activo: true });
+      const categoriasExcluidas = ['anillos', 'aretes', 'pulseras', 'cadenas', 'tobilleras'];
+      productosFiltrados = todosProductos.filter(p => !categoriasExcluidas.includes(p.categoria));
+    } else {
+      // Traer productos de la categoría específica
+      productosFiltrados = await productosAPI.getByCategoria(categoriaActual);
+    }
+    
+    console.log(`Productos encontrados en categoría '${categoriaActual}': ${productosFiltrados.length}`);
 
     if (productosFiltrados.length === 0) {
       contenedor.innerHTML = `
         <div class="error">
-          <p>No se encontraron productos en la categoría "${categoria}".</p>
-          <p>Categorías disponibles: ${[...new Set(productos.map(p => p.categoria))].join(', ')}</p>
+          <p>No se encontraron productos en la categoría "${categoriaActual}".</p>
+          <p>Intenta navegar a otra categoría o contacta al administrador.</p>
         </div>
       `;
       return;
@@ -109,8 +75,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             productosOrdenados.sort((a, b) => b.stock - a.stock);
             break;
           default:
-            // Orden por defecto (por ID)
-            productosOrdenados.sort((a, b) => a.id - b.id);
+            // Orden por defecto (por fecha de creación, más recientes primero)
+            productosOrdenados.sort((a, b) => {
+              const dateA = new Date(a.created_at);
+              const dateB = new Date(b.created_at);
+              return dateB - dateA;
+            });
         }
 
         mostrarProductos(productosOrdenados);
@@ -136,15 +106,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         const destacadoBadge = producto.destacado ? 
                               '<div class="destacado-badge">⭐ Destacado</div>' : '';
 
+        // Formatear precio
+        let precioHTML = '';
+        if (producto.precio && producto.precio > 0) {
+          precioHTML = `<p class="precio">$${Number(producto.precio).toLocaleString('es-CO')}</p>`;
+        } else {
+          precioHTML = '<p class="precio consultar">Consultar precio</p>';
+        }
+
         return `
           <div class="producto-card" data-stock="${stockClass}">
             ${destacadoBadge}
-            <img src="../../img/productos/${producto.categoria}/${producto.imagen.replace(/^.*[\\\/]/, '')}" 
+            <img src="${producto.imagen_url || '../../img/placeholder.jpg'}" 
                   alt="${producto.nombre}" 
                   loading="lazy"
                   onerror="this.src='../../img/placeholder.jpg'; this.onerror=null;" />
             <h3>${producto.nombre}</h3>
-            <p class="descripcion">${producto.descripcion}</p>
+            <p class="descripcion">${producto.descripcion || 'Sin descripción'}</p>
+            ${precioHTML}
             <p class="stock ${stockClass}">${stockText}</p>
             <a href="producto.html?id=${producto.id}" class="ver-mas">Ver más</a>
           </div>
@@ -173,9 +152,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           <p><strong>Error:</strong> ${error.message}</p>
           <p><strong>Posibles soluciones:</strong></p>
           <ul>
-            <li>Verifica que el archivo productos.json esté en la ubicación correcta</li>
-            <li>Asegúrate de que el body tenga el atributo data-categoria</li>
-            <li>Comprueba que las imágenes estén en la carpeta img/productos/</li>
+            <li>Verifica que el servidor backend esté corriendo</li>
+            <li>Asegúrate de que api.js esté cargado correctamente</li>
+            <li>Comprueba que el body tenga el atributo data-categoria</li>
           </ul>
           <button onclick="window.location.reload()" class="ver-mas" style="margin-top: 15px;">
             Recargar página
@@ -185,6 +164,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <summary>Información de depuración</summary>
             <p><strong>URL actual:</strong> ${window.location.href}</p>
             <p><strong>Categoría esperada:</strong> ${document.body.dataset.categoria || 'No definida'}</p>
+            <p><strong>Backend URL:</strong> http://127.0.0.1:8000/api</p>
             <p><strong>Error completo:</strong> ${error.stack}</p>
           </details>
         </div>
@@ -200,15 +180,6 @@ function filtrarProductosPorTexto(productos, texto) {
   const textoBusqueda = texto.toLowerCase();
   return productos.filter(producto => 
     producto.nombre.toLowerCase().includes(textoBusqueda) ||
-    producto.descripcion.toLowerCase().includes(textoBusqueda)
+    (producto.descripcion && producto.descripcion.toLowerCase().includes(textoBusqueda))
   );
-}
-
-// Función de utilidad para debug
-function debugProductos() {
-  console.log("=== DEBUG INFORMACIÓN ===");
-  console.log("URL actual:", window.location.href);
-  console.log("data-categoria del body:", document.body.dataset.categoria);
-  console.log("Contenedor encontrado:", !!document.querySelector(".contenedor-productos"));
-  console.log("Filtro encontrado:", !!document.getElementById("filtro"));
 }

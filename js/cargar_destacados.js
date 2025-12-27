@@ -1,83 +1,161 @@
-document.addEventListener("DOMContentLoaded", async () => {
-  const productosGrid = document.querySelector(".productos-grid");
-
-  // Solo ejecutar si estamos en la página de inicio y existe el contenedor
-  if (!productosGrid) return;
-
-  // Mostrar estado de carga
-  productosGrid.innerHTML = '<div class="loading">Cargando productos destacados...</div>';
-
+// Cargar productos destacados desde la API - CON DEBUG
+document.addEventListener('DOMContentLoaded', async () => {
+  const productosGrid = document.querySelector('.productos-grid');
+  
+  console.log('🔍 cargar_destacados.js iniciado');
+  console.log('🔍 productosGrid encontrado:', !!productosGrid);
+  
+  if (!productosGrid) {
+    console.warn('⚠️ No se encontró .productos-grid - no estamos en la página de inicio');
+    return;
+  }
+  
   try {
-    const respuesta = await fetch("data/productos.json");
-    
-    if (!respuesta.ok) {
-      throw new Error(`Error HTTP: ${respuesta.status}`);
+    // Verificar que la API esté disponible
+    if (typeof productosAPI === 'undefined') {
+      throw new Error('productosAPI no está definida. Asegúrate de que api.js se carga primero.');
     }
     
-    const productos = await respuesta.json();
-
-    // Filtrar solo productos destacados
-    const productosDestacados = productos.filter(producto => producto.destacado === true);
-
-    if (productosDestacados.length === 0) {
-      productosGrid.innerHTML = '<div class="error">No hay productos destacados disponibles.</div>';
+    console.log('✅ productosAPI está disponible');
+    
+    // Mostrar loading
+    productosGrid.innerHTML = '<div class="loading">Cargando productos...</div>';
+    
+    // Obtener productos destacados de la API
+    console.log('📡 Llamando a la API para productos destacados...');
+    const productos = await productosAPI.getAll({ destacado: true, activo: true });
+    
+    console.log('📦 Productos recibidos:', productos.length);
+    console.log('📦 Datos:', productos);
+    
+    // Limpiar loading
+    productosGrid.innerHTML = '';
+    
+    // Si no hay productos
+    if (!productos || productos.length === 0) {
+      console.warn('⚠️ No hay productos destacados');
+      productosGrid.innerHTML = `
+        <div class="error">
+          No hay productos destacados disponibles en este momento.
+        </div>
+      `;
       return;
     }
-
-    // Limitar a máximo 6 productos destacados
-    const productosAMostrar = productosDestacados.slice(0, 6);
-
-    // Generar HTML para productos destacados
-    productosGrid.innerHTML = productosAMostrar.map(producto => {
-      const stockClass = producto.stock > 10 ? 'disponible' : 
-                        producto.stock > 0 ? 'bajo-stock' : 'agotado';
-
-      return `
-        <a href="html/categorias/producto.html?id=${producto.id}" class="producto-destacado">
-          <div class="destacado-badge">⭐ Destacado</div>
-          <img src="${producto.imagen}" 
-               alt="${producto.nombre}" 
-               loading="lazy"
-               onerror="this.src='img/placeholder.jpg'; this.onerror=null;" />
-          <h3>${producto.nombre}</h3>
-          <p>${producto.descripcion}</p>
-          <span class="ver-mas">Ver detalles</span>
-        </a>
-      `;
-    }).join("");
-
-    // Agregar animación de entrada
-    const cards = productosGrid.querySelectorAll('.producto-destacado');
-    cards.forEach((card, index) => {
-      card.style.opacity = '0';
-      card.style.transform = 'translateY(30px)';
-      setTimeout(() => {
-        card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-        card.style.opacity = '1';
-        card.style.transform = 'translateY(0)';
-      }, index * 150);
+    
+    // Renderizar productos
+    productos.forEach((producto, index) => {
+      console.log(`🎨 Renderizando producto ${index + 1}:`, producto.nombre);
+      console.log(`   Imagen URL:`, producto.imagen_url);
+      
+      const productoCard = crearProductoCard(producto);
+      productosGrid.appendChild(productoCard);
     });
-
+    
+    console.log('✅ Todos los productos renderizados');
+    
   } catch (error) {
-    console.error("Error al cargar productos destacados:", error);
+    console.error('❌ Error al cargar productos:', error);
+    console.error('❌ Stack:', error.stack);
+    
     productosGrid.innerHTML = `
       <div class="error">
-        <p>Error al cargar los productos destacados</p>
-        <p>Por favor, recarga la página</p>
-        <button onclick="window.location.reload()" class="btn-ver-mas" style="margin-top: 15px;">
-          Recargar página
-        </button>
+        Error al cargar los productos. Por favor intenta de nuevo más tarde.
+        <br><small>Error: ${error.message}</small>
       </div>
     `;
   }
 });
 
-// Función opcional para rotar productos destacados cada cierto tiempo
-function rotarProductosDestacados() {
-  // Esta función podría implementarse para mostrar diferentes productos destacados
-  // cada vez que se carga la página o después de cierto tiempo
-  console.log("Función de rotación de productos destacados disponible");
+/**
+ * Crea una tarjeta de producto
+ */
+function crearProductoCard(producto) {
+  console.log(`🏗️ Creando card para: ${producto.nombre}`);
+  
+  const card = document.createElement('a');
+  card.href = `html/categorias/producto.html?id=${producto.id}`;
+  card.className = 'producto-destacado';
+  
+  // Badge de destacado
+  const badge = document.createElement('div');
+  badge.className = 'destacado-badge';
+  badge.textContent = 'Destacado';
+  card.appendChild(badge);
+  
+  // Imagen con placeholder online
+  const img = document.createElement('img');
+  img.alt = producto.nombre;
+  img.loading = 'lazy';
+  
+  // Debug: verificar imagen
+  console.log(`  🖼️ Procesando imagen para ${producto.nombre}:`);
+  console.log(`     URL original: "${producto.imagen_url}"`);
+  console.log(`     ¿Tiene URL?: ${!!producto.imagen_url}`);
+  console.log(`     ¿URL válida?: ${producto.imagen_url && producto.imagen_url.trim() !== ''}`);
+  
+  // Validar si tiene imagen
+  if (producto.imagen_url && producto.imagen_url.trim() !== '') {
+    console.log(`  ✅ Asignando URL de imagen: ${producto.imagen_url}`);
+    img.src = producto.imagen_url;
+    
+    // Si falla la carga, usar placeholder online
+    img.onerror = function() {
+      console.warn(`  ⚠️ Error cargando imagen para: ${producto.nombre}`);
+      console.warn(`     URL que falló: ${this.src}`);
+      this.src = 'https://via.placeholder.com/250x250/1a1a1a/f9dc5e?text=Sin+Imagen';
+      this.onerror = null; // Evitar loop infinito
+      console.log(`  🔄 Cambiado a placeholder`);
+    };
+    
+    img.onload = function() {
+      console.log(`  ✅ Imagen cargada exitosamente: ${producto.nombre}`);
+    };
+  } else {
+    // No tiene imagen, usar placeholder directamente
+    console.log(`  ℹ️ Sin imagen, usando placeholder para: ${producto.nombre}`);
+    img.src = 'https://via.placeholder.com/250x250/1a1a1a/f9dc5e?text=Sin+Imagen';
+  }
+  
+  card.appendChild(img);
+  
+  // Título
+  const titulo = document.createElement('h3');
+  titulo.textContent = producto.nombre;
+  card.appendChild(titulo);
+  
+  // Descripción
+  const descripcion = document.createElement('p');
+  descripcion.textContent = producto.descripcion || 'Sin descripción';
+  card.appendChild(descripcion);
+  
+  // Precio o "Consultar"
+  const precio = document.createElement('div');
+  precio.className = 'producto-precio';
+  if (producto.precio && producto.precio > 0) {
+    precio.textContent = `$${Number(producto.precio).toLocaleString('es-CO')}`;
+  } else {
+    precio.textContent = 'Consultar precio';
+    precio.style.fontStyle = 'italic';
+  }
+  card.appendChild(precio);
+  
+  // Botón
+  const boton = document.createElement('span');
+  boton.className = 'ver-mas';
+  boton.textContent = 'Ver más';
+  card.appendChild(boton);
+  
+  console.log(`  ✅ Card creada para: ${producto.nombre}`);
+  
+  return card;
 }
 
-// Llamar la función de rotación si se desea
-// setInterval(rotarProductosDestacados, 30000); // Cada 30 segundos
+/**
+ * Función auxiliar para formatear precios
+ */
+function formatearPrecio(precio) {
+  if (!precio || precio <= 0) {
+    return 'Consultar';
+  }
+  return `$${Number(precio).toLocaleString('es-CO')}`;
+}

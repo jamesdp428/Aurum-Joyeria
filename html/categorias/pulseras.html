@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;700&family=Roboto+Condensed&display=swap" rel="stylesheet">
+    <script defer src="../../js/api.js"></script>
     <script defer src="../../js/menu.js"></script>
     <script defer src="../../js/cargar_productos.js"></script>
     <script defer src="../../js/carrito_global.js"></script>
@@ -43,15 +44,24 @@
                     <div class="search-results" id="searchResults"></div>
                 </div>
 
-                <div class="icons">
-                    <a href="../carrito.html">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
-                            <circle cx="9" cy="21" r="1"/>
-                            <circle cx="20" cy="21" r="1"/>
-                            <path d="M1 1h4l2.6 13.5a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L23 6H6"/>
-                        </svg>
-                    </a>
-                </div>
+<div class="icons">
+  <!-- Ícono de usuario/login -->
+  <a href="html/login.html" id="userIcon">
+    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+  </a>
+  
+  <!-- Ícono de carrito -->
+  <a href="html/carrito.html">
+    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="9" cy="21" r="1"/>
+      <circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.6 13.5a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L23 6H6"/>
+    </svg>
+  </a>
+</div>
             </div> 
         </div>
 
@@ -133,6 +143,30 @@
 <a href="https://wa.me/573001234567" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp">
     <img src="../../img/whatsapp-svgrepo-com.svg" alt="WhatsApp" />
 </a>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const userIcon = document.getElementById('userIcon');
+    if (!userIcon) return;
+    
+    const user = getCurrentUser ? getCurrentUser() : null;
+    
+    if (user) {
+      userIcon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      `;
+      userIcon.title = `Mi perfil (${user.nombre})`;
+      userIcon.href = '../perfil.html';
+    } else {
+      userIcon.title = 'Iniciar sesión';
+      userIcon.href = '../login.html';
+    }
+  });
+</script>
+<script src="../../js/admin-panel-button.js"></script>
 
 </body>
 </html>
