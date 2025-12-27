@@ -5,7 +5,8 @@
       "src": "backend/index.py",
       "use": "@vercel/python",
       "config": {
-        "maxLambdaSize": "15mb"
+        "maxLambdaSize": "50mb",
+        "runtime": "python3.9"
       }
     }
   ],
@@ -30,8 +31,5 @@
       "src": "/",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "ENVIRONMENT": "production"
-  }
+  ]
 }
