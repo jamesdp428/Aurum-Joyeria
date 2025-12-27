@@ -7,14 +7,18 @@ load_dotenv()
 resend.api_key = os.getenv("RESEND_API_KEY")
 FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@resend.dev")
 
+# Obtener URLs base del entorno
+BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://127.0.0.1:5500")
+
 def send_verification_email(to_email: str, nombre: str, code: str):
     """Envía email de verificación de cuenta"""
     
     # URL para verificación automática con el link
-    verification_link = f"http://127.0.0.1:8000/api/auth/verify-email?code={code}"
+    verification_link = f"{BASE_URL}/api/auth/verify-email?code={code}"
     
     # URL del perfil donde pueden pegar el código manualmente
-    profile_url = "http://127.0.0.1:5500/html/perfil.html"
+    profile_url = f"{FRONTEND_URL}/html/perfil.html"
     
     html_content = f"""
     <!DOCTYPE html>

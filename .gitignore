@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+venv/
+backend/venv/
+ENV/
+env/
+
+# Environment variables - NO SUBIR CREDENCIALES
+.env
+backend/.env
+*.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Alembic - no subir versiones locales
+backend/alembic/versions/*.pyc

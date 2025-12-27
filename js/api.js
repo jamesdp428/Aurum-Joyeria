@@ -1,5 +1,8 @@
 // ========== CONFIGURACIÓN DE LA API ==========
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+// Detectar automáticamente si estamos en local o en producción
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://127.0.0.1:8000/api'
+  : window.location.origin + '/api';
 
 // ========== UTILIDADES DE TOKEN ==========
 

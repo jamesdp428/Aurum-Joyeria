@@ -19,26 +19,22 @@ app = FastAPI(
 
 # ========== CONFIGURACIÓN DE CORS ==========
 
-# En desarrollo permite todos los orígenes
-# En producción, especifica tu dominio
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 if ENVIRONMENT == "production":
-    origins = [
-        "https://tu-dominio.com",  # Cambiar por tu dominio real
-        "https://www.tu-dominio.com"
-    ]
+    # En producción, permitir todos los orígenes temporalmente
+    origins = ["*"]
 else:
     origins = [
         "http://localhost:8000",
         "http://127.0.0.1:8000",
-        "http://localhost:5500",  # Live Server
+        "http://localhost:5500",
         "http://127.0.0.1:5500"
     ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"] if ENVIRONMENT == "production" else origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
