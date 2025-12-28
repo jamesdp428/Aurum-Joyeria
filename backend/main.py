@@ -20,13 +20,12 @@ app = FastAPI(
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
-# CORS CRÍTICO para Vercel
+# CORS configuración para Render
 if ENVIRONMENT == "production":
-    # Permitir tu dominio de Vercel específico
     origins = [
+        "https://*.onrender.com",
         "https://*.vercel.app",
-        "https://vercel.app",
-        "*"  # Temporal para debugging - CAMBIAR después
+        "*"  # Permitir todo temporalmente
     ]
 else:
     origins = [
@@ -47,9 +46,9 @@ app.add_middleware(
 
 # ========== INCLUIR ROUTERS ==========
 
-app.include_router(auth_router.router, tags=["Autenticación"])
-app.include_router(productos_router.router, tags=["Productos"])
-app.include_router(carrusel_router.router, tags=["Carrusel"])
+app.include_router(auth_router.router, prefix="/api", tags=["Autenticación"])
+app.include_router(productos_router.router, prefix="/api", tags=["Productos"])
+app.include_router(carrusel_router.router, prefix="/api", tags=["Carrusel"])
 
 # ========== ENDPOINTS DE INFORMACIÓN ==========
 

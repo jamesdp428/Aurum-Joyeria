@@ -1,10 +1,10 @@
 // ========== CONFIGURACIÓN DE LA API ==========
-// Detectar automáticamente si estamos en local o Vercel
+// URL del backend en Render
 
 function getApiBaseUrl() {
   const hostname = window.location.hostname;
   
-  console.log('🌍 Hostname detectado:', hostname);
+  console.log('🌐 Hostname detectado:', hostname);
   
   // Desarrollo local
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
@@ -12,15 +12,9 @@ function getApiBaseUrl() {
     return 'http://127.0.0.1:8000/api';
   }
   
-  // Producción en Vercel (cualquier dominio .vercel.app)
-  if (hostname.includes('vercel.app')) {
-    console.log('✅ Modo: PRODUCCIÓN VERCEL');
-    return window.location.origin + '/api';
-  }
-  
-  // Dominio personalizado
-  console.log('✅ Modo: DOMINIO PERSONALIZADO');
-  return window.location.origin + '/api';
+  // Producción - Backend en Render
+  console.log('✅ Modo: PRODUCCIÓN');
+  return 'https://aurum-api.onrender.com/api';  // ⚠️ CAMBIA ESTO después de desplegar
 }
 
 const API_BASE_URL = getApiBaseUrl();
@@ -52,7 +46,6 @@ function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   
-  // Detectar ubicación actual para redirigir correctamente
   const path = window.location.pathname;
   
   if (path.includes('/html/admin/')) {
@@ -115,6 +108,7 @@ async function fetchAPI(endpoint, options = {}) {
 }
 
 // ========== API DE AUTENTICACIÓN ==========
+// (El resto del código es IGUAL, solo cambié getApiBaseUrl())
 
 const authAPI = {
   async register(email, nombre, password) {
