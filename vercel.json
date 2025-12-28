@@ -34,8 +34,5 @@
       "src": "/(.*)",
       "dest": "/$1"
     }
-  ],
-  "env": {
-    "ENVIRONMENT": "production"
-  }
+  ]
 }
