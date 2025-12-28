@@ -15,7 +15,8 @@ from auth import get_current_admin
 
 load_dotenv()
 
-router = APIRouter(prefix="/api/carrusel")
+# ✅ CORRECCIÓN: Eliminar el prefijo "/api" duplicado
+router = APIRouter(prefix="/carrusel")  # ← CAMBIO AQUÍ
 
 # Configurar Supabase Client
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -151,7 +152,7 @@ async def create_carrusel_item(
 ):
     """Crea nuevo item del carrusel (solo admin)"""
     
-    print(f"📝 Creando item del carrusel")
+    print(f"🔨 Creando item del carrusel")
     print(f"   Título: {titulo}")
     print(f"   Imagen: {imagen.filename}")
     
@@ -207,7 +208,7 @@ async def update_carrusel_item(
             detail="Item del carrusel no encontrado"
         )
     
-    print(f"📝 Actualizando item del carrusel: {item.titulo}")
+    print(f"🔨 Actualizando item del carrusel: {item.titulo}")
     
     # Actualizar campos
     if titulo is not None:

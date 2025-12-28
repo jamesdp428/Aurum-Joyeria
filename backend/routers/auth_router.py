@@ -19,7 +19,8 @@ from auth import (
 )
 from email_service import send_verification_email, send_email_change_verification
 
-router = APIRouter(prefix="/api/auth")
+# ✅ CORRECCIÓN: Eliminar el prefijo "/api" duplicado
+router = APIRouter(prefix="/auth")  # ← CAMBIO AQUÍ
 
 # ========== FUNCIÓN AUXILIAR PARA TIMEZONE ==========
 

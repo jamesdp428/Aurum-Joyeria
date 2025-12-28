@@ -15,7 +15,8 @@ from auth import get_current_admin
 
 load_dotenv()
 
-router = APIRouter(prefix="/api/productos")
+# ✅ CORRECCIÓN: Eliminar el prefijo "/api" duplicado
+router = APIRouter(prefix="/productos")  # ← CAMBIO AQUÍ
 
 # Configurar Supabase Client
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -180,7 +181,7 @@ async def create_producto(
 ):
     """Crea un nuevo producto (solo admin)"""
     
-    print(f"📝 Creando producto: {nombre}")
+    print(f"🔨 Creando producto: {nombre}")
     print(f"   Categoría: {categoria}")
     print(f"   Imagen recibida: {imagen.filename if imagen else 'Sin imagen'}")
     
@@ -247,7 +248,7 @@ async def update_producto(
             detail="Producto no encontrado"
         )
     
-    print(f"📝 Actualizando producto: {producto.nombre}")
+    print(f"🔨 Actualizando producto: {producto.nombre}")
     
     # Actualizar campos si se proporcionan
     if nombre is not None:
