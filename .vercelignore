@@ -1,34 +1,45 @@
 # Python
-__pycache__/
+__pycache__
 *.pyc
 *.pyo
 *.pyd
 .Python
-venv/
-env/
-ENV/
-backend/venv/
-backend/__pycache__/
-*.egg-info/
+venv
+env
+ENV
 
 # Base de datos local
 *.db
 *.sqlite
 *.sqlite3
 
-# Logs
-*.log
-logs/
+# Variables de entorno local
+.env.local
+
+# Alembic (no necesario en producción)
+alembic/
+alembic.ini
+
+# Scripts de desarrollo
+*.ps1
+*.sh
+build.sh
+render.yaml
+procfile
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Alembic
-alembic/versions/__pycache__/
+# Git
+.git
+.gitignore
 
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
+# Carpetas antiguas (si existen)
+backend/

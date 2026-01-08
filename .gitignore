@@ -7,8 +7,6 @@ __pycache__/
 venv/
 env/
 ENV/
-backend/venv/
-backend/__pycache__/
 *.egg-info/
 
 # Variables de entorno
@@ -34,3 +32,9 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Vercel
+.vercel
+
+# Carpetas antiguas
+backend/
