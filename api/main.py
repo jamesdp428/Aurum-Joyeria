@@ -1,17 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from mangum import Mangum
 import os
+
+# Importar routers
 from api.routers import auth_router, productos_router, carrusel_router
 
+# Crear aplicación
 app = FastAPI(
-    title="Aurum Joyer�a API",
+    title="Aurum Joyería API",
     version="1.0.0",
-    docs_url="/api/docs"
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json"
 )
 
-ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
-
+# Configurar CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,16 +24,40 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+# Incluir routers con prefijo /api
 app.include_router(auth_router.router, prefix="/api", tags=["Auth"])
 app.include_router(productos_router.router, prefix="/api", tags=["Productos"])
 app.include_router(carrusel_router.router, prefix="/api", tags=["Carrusel"])
 
+# Endpoints de salud
 @app.get("/")
 async def root():
-    return {"message": "Aurum Joyer�a API", "version": "1.0.0"}
+    return {
+        "message": "Aurum Joyería API",
+        "version": "1.0.0",
+        "status": "online"
+    }
+
+@app.get("/api")
+async def api_root():
+    return {
+        "message": "Aurum Joyería API",
+        "version": "1.0.0",
+        "endpoints": {
+            "auth": "/api/auth",
+            "productos": "/api/productos",
+            "carrusel": "/api/carrusel",
+            "docs": "/api/docs",
+            "health": "/api/health"
+        }
+    }
 
 @app.get("/api/health")
 async def health():
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+        "environment": os.getenv("ENVIRONMENT", "production")
+    }
 
-handler = app
+# Handler para Vercel (CRÍTICO)
+handler = Mangum(app)

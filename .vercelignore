@@ -4,23 +4,27 @@ __pycache__
 *.pyo
 *.pyd
 .Python
-venv
-env
-ENV
+*.egg-info
+
+# Entornos virtuales
+venv/
+env/
+ENV/
+backend/venv/
 
 # Base de datos local
 *.db
 *.sqlite
 *.sqlite3
 
-# Variables de entorno local
+# Variables de entorno local (solo ignorar .env.local, NO .env)
 .env.local
 
-# Alembic (no necesario en producción)
+# Alembic
 alembic/
 alembic.ini
 
-# Scripts de desarrollo
+# Scripts
 *.ps1
 *.sh
 build.sh
@@ -28,8 +32,8 @@ render.yaml
 procfile
 
 # IDEs
-.vscode
-.idea
+.vscode/
+.idea/
 *.swp
 *.swo
 
@@ -38,8 +42,13 @@ procfile
 Thumbs.db
 
 # Git
-.git
+.git/
 .gitignore
 
-# Carpetas antiguas (si existen)
+# Carpetas innecesarias
 backend/
+node_modules/
+
+# Archivos de desarrollo
+README.md
+.editorconfig
