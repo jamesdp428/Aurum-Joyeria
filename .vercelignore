@@ -10,26 +10,15 @@ __pycache__
 venv/
 env/
 ENV/
-backend/venv/
 
 # Base de datos local
 *.db
 *.sqlite
 *.sqlite3
 
-# Variables de entorno local (solo ignorar .env.local, NO .env)
+# Variables de entorno LOCAL (NO bloquear .env principal)
 .env.local
-
-# Alembic
-alembic/
-alembic.ini
-
-# Scripts
-*.ps1
-*.sh
-build.sh
-render.yaml
-procfile
+.env.development
 
 # IDEs
 .vscode/
@@ -43,12 +32,13 @@ Thumbs.db
 
 # Git
 .git/
-.gitignore
 
-# Carpetas innecesarias
-backend/
-node_modules/
-
-# Archivos de desarrollo
+# Archivos innecesarios
 README.md
-.editorconfig
+*.md
+*.ps1
+*.sh
+build.sh
+render.yaml
+alembic/
+alembic.ini

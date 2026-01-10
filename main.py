@@ -1,4 +1,4 @@
-# main.py - Aplicación Principal Completamente Corregida
+# main.py - Aplicación Principal Optimizada para Vercel
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -24,47 +24,79 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# Detectar entorno
+# ========================================
+# CONFIGURACIÓN DE ENTORNO
+# ========================================
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 IS_PRODUCTION = ENVIRONMENT == "production" or os.getenv("VERCEL") is not None
+
+# 🔥 SECRET_KEY desde variable de entorno (CRÍTICO para producción)
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    if IS_PRODUCTION:
+        raise ValueError("SECRET_KEY must be set in production environment")
+    SECRET_KEY = secrets.token_hex(32)
+    print("⚠️ Using auto-generated SECRET_KEY (development only)")
 
 # ========================================
 # MIDDLEWARE DE CORS
 # ========================================
+ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+]
+
+# 🔥 Agregar dominios de Vercel en producción
+if IS_PRODUCTION:
+    ALLOWED_ORIGINS.extend([
+        "https://*.vercel.app",
+        # 🔥 TODO: Agregar tu dominio personalizado aquí cuando lo tengas
+        # "https://tu-dominio.com",
+    ])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
-    ],
+    allow_origins=ALLOWED_ORIGINS if not IS_PRODUCTION else ["*"],  # En producción, permitir todos por wildcards
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Middleware de sesiones
-SECRET_KEY = os.environ.get("SECRET_KEY", secrets.token_hex(32))
-
+# ========================================
+# MIDDLEWARE DE SESIONES
+# ========================================
 app.add_middleware(
     SessionMiddleware, 
     secret_key=SECRET_KEY,
-    max_age=3600 * 24 * 7,
+    max_age=3600 * 24 * 7,  # 7 días
     same_site="none" if IS_PRODUCTION else "lax",
     https_only=IS_PRODUCTION,
     session_cookie="joyeria_session"
 )
 
-# Configurar templates y estáticos
-templates = Jinja2Templates(directory="templates")
-
+# ========================================
+# CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS Y TEMPLATES
+# ========================================
 BASE_DIR = Path(__file__).resolve().parent
+TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 
+# Configurar templates
+if TEMPLATES_DIR.exists():
+    templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+    print(f"✅ Templates cargados desde: {TEMPLATES_DIR}")
+else:
+    print(f"⚠️ Directorio de templates no encontrado: {TEMPLATES_DIR}")
+    templates = Jinja2Templates(directory="templates")
+
+# Montar archivos estáticos
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-    print("✅ Archivos estáticos montados")
+    print(f"✅ Archivos estáticos montados desde: {STATIC_DIR}")
+else:
+    print(f"⚠️ Directorio de archivos estáticos no encontrado: {STATIC_DIR}")
 
 # ========================================
 # INCLUIR ROUTERS API
@@ -74,7 +106,7 @@ app.include_router(productos_router, prefix="/api", tags=["Productos"])
 app.include_router(carrusel_router, prefix="/api", tags=["Carrusel"])
 
 # ========================================
-# HELPER FUNCTION: Obtener usuario sin fallar
+# HELPER FUNCTIONS
 # ========================================
 
 def safe_get_user(request: Request, db: Session) -> Optional[dict]:
@@ -128,7 +160,7 @@ async def register_page(request: Request):
 
 @app.get("/logout", name="logout")
 async def logout(request: Request):
-    """Cerrar sesión"""
+    """Cerrar sesión (método GET legacy - usar POST /api/auth/logout preferiblemente)"""
     request.session.clear()
     return RedirectResponse(url="/", status_code=303)
 
@@ -285,7 +317,8 @@ async def health_check():
     return {
         "status": "healthy",
         "environment": ENVIRONMENT,
-        "version": "2.0.0"
+        "version": "2.0.0",
+        "is_production": IS_PRODUCTION
     }
 
 # ========================================
@@ -300,7 +333,6 @@ async def not_found(request: Request, exc):
 @app.exception_handler(500)
 async def server_error(request: Request, exc):
     """Página 500 personalizada"""
-    # No intentar obtener usuario si hay error de DB
     user = None
     try:
         user = safe_get_user(request, next(get_db()))
@@ -325,3 +357,10 @@ if __name__ == "__main__":
         port=8000,
         reload=True
     )
+
+# ========================================
+# VERCEL HANDLER
+# ========================================
+
+# Para Vercel
+app = app

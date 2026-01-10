@@ -1,3 +1,5 @@
+# db.py - Configuración de Base de Datos
+
 from typing import Annotated
 from fastapi import Depends
 from sqlalchemy import create_engine, text, event
@@ -6,12 +8,16 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
+
+# ⚠️ CRÍTICO: Cambiar DATABASE_URL por URL_DATABASE
+DATABASE_URL = os.getenv("URL_DATABASE")
 
 if not DATABASE_URL:
-    raise ValueError("❌ DATABASE_URL no está configurada")
-
-print(f"🔗 Conectando a: {DATABASE_URL[:30]}...")
+    raise ValueError("❌ URL_DATABASE no está configurada en .env")
+    
+# Mostrar conexión (ocultando password)
+masked_url = DATABASE_URL[:30] + "..." if DATABASE_URL else "None"
+print(f"🔗 Conectando a: {masked_url}")
 
 # Configuración optimizada para Supabase
 engine = create_engine(
