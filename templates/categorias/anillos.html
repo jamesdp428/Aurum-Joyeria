@@ -1,0 +1,10 @@
+{% extends "base_categoria.html" %}
+
+{# Este archivo hereda TODA la estructura de base_categoria.html #}
+{# base_categoria.html ya define navbar, footer, filtros, etc. #}
+{# Solo necesitamos especificar la categoría #}
+
+{% block title %}Anillos | Aurum Joyería{% endblock %}
+
+{# Indicamos que esta página es de la categoría "anillos" #}
+{% block body_attrs %}data-categoria="anillos"{% endblock %}

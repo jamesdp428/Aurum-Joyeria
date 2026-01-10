@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/categorias.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', path='css/producto.css') }}" />
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="{{ url_for('static', path='js/cargar_productos.js') }}"></script>
+{% endblock %}
+
+{% block title %}{{ categoria_nombre }} | Aurum Joyería{% endblock %}
+
+{% block body_attrs %}data-categoria="{{ categoria }}"{% endblock %}
+
+{% block content %}
+<!-- CONTENIDO PRINCIPAL -->
+<main class="categoria-main">
+    <aside class="filtro">
+        <h3>Ordenar por:</h3>
+        <select id="filtro">
+            <option value="default">Orden por defecto</option>
+            <option value="nombre-asc">Nombre: A-Z</option>
+            <option value="nombre-desc">Nombre: Z-A</option>
+            <option value="destacados">Productos destacados</option>
+            <option value="stock-desc">Mayor stock</option>
+        </select>
+    </aside>
+
+    <section class="contenedor-productos" id="contenedorProductos">
+        <!-- Aquí se cargan los productos con JavaScript -->
+    </section>
+</main>
+{% endblock %}

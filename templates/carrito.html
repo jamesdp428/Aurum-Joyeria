@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Carrito de Compras | Aurum Joyería{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/carrito.css') }}" />
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="{{ url_for('static', path='js/carrito.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<!-- CONTENIDO PRINCIPAL DEL CARRITO -->
+<main class="carrito-main">
+    <div class="breadcrumb">
+        <a href="{{ url_for('index') }}">Inicio</a> > 
+        <span>Carrito de Compras</span>
+    </div>
+
+    <h1 class="carrito-titulo">🛒 Tu Carrito de Compras</h1>
+
+    <div class="carrito-container">
+        <!-- Productos del carrito -->
+        <section class="carrito-productos">
+            <div id="carritoVacio" class="carrito-vacio">
+                <div class="vacio-icon">🛒</div>
+                <h3>Tu carrito está vacío</h3>
+                <p>¡Explora nuestra joyería y encuentra piezas únicas!</p>
+                <a href="{{ url_for('index') }}" class="btn-explorar">Explorar productos</a>
+            </div>
+
+            <div id="carritoConProductos" class="carrito-con-productos" style="display: none;">
+                <div class="carrito-header">
+                    <h3>Productos seleccionados</h3>
+                    <button id="vaciarCarrito" class="btn-vaciar">🗑️ Vaciar carrito</button>
+                </div>
+                
+                <div id="listaProductos" class="lista-productos">
+                    <!-- Los productos se cargan aquí dinámicamente -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Resumen del pedido -->
+        <aside class="carrito-resumen" id="carritoResumen" style="display: none;">
+            <div class="resumen-card">
+                <h3>📋 Resumen del Pedido</h3>
+                
+                <div class="resumen-detalles">
+                    <div class="detalle-linea">
+                        <span>Productos (<span id="totalProductos">0</span>):</span>
+                        <span id="subtotal">$0</span>
+                    </div>
+                    <div class="detalle-linea">
+                        <span>Envío:</span>
+                        <span class="envio-gratis">GRATIS</span>
+                    </div>
+                    <div class="detalle-linea total">
+                        <span><strong>Total:</strong></span>
+                        <span id="totalFinal"><strong>$0</strong></span>
+                    </div>
+                </div>
+
+                <div class="acciones-resumen">
+                    <button id="procederCompra" class="btn-proceder">
+                        💬 Proceder por WhatsApp
+                    </button>
+                    <button id="continuarComprando" class="btn-continuar">
+                        ← Continuar comprando
+                    </button>
+                </div>
+
+                <div class="garantias">
+                    <div class="garantia-item">
+                        <span class="garantia-icon">🅰</span>
+                        <span>Oro 18k garantizado</span>
+                    </div>
+                    <div class="garantia-item">
+                        <span class="garantia-icon">🚚</span>
+                        <span>Envío gratis a toda Colombia</span>
+                    </div>
+                    <div class="garantia-item">
+                        <span class="garantia-icon">🛡️</span>
+                        <span>Garantía de por vida</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</main>
+{% endblock %}
