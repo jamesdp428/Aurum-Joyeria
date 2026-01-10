@@ -38,3 +38,4 @@ Thumbs.db
 
 # Carpetas antiguas
 backend/
+.env*.local

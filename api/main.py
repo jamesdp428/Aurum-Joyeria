@@ -93,5 +93,5 @@ async def health():
         }
     }
 
-# Handler para Vercel
-handler = Mangum(app)
+# Handler para Vercel (ASGI)
+handler = Mangum(app, lifespan="off")
