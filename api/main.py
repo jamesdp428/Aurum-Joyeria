@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from mangum import Mangum
 import os
 import traceback
 
@@ -93,5 +92,6 @@ async def health():
         }
     }
 
-# Handler para Vercel (ASGI)
-handler = Mangum(app, lifespan="off")
+# Handler para Vercel (usando el app directamente)
+# Vercel detectará automáticamente que es una app ASGI
+handler = app

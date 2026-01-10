@@ -2,7 +2,6 @@
 fastapi==0.115.0
 uvicorn==0.27.0
 python-multipart==0.0.20
-mangum==0.20.0
 
 # Base de datos
 sqlalchemy==2.0.36
