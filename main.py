@@ -52,13 +52,11 @@ ALLOWED_ORIGINS = [
 if IS_PRODUCTION:
     ALLOWED_ORIGINS.extend([
         "https://*.vercel.app",
-        # 🔥 TODO: Agregar tu dominio personalizado aquí cuando lo tengas
-        # "https://tu-dominio.com",
     ])
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS if not IS_PRODUCTION else ["*"],  # En producción, permitir todos por wildcards
+    allow_origins=["*"],  # En Vercel es mejor permitir todos
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -91,12 +89,14 @@ else:
     print(f"⚠️ Directorio de templates no encontrado: {TEMPLATES_DIR}")
     templates = Jinja2Templates(directory="templates")
 
-# Montar archivos estáticos
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-    print(f"✅ Archivos estáticos montados desde: {STATIC_DIR}")
-else:
-    print(f"⚠️ Directorio de archivos estáticos no encontrado: {STATIC_DIR}")
+# 🔥 CORRECCIÓN: Montar archivos estáticos SOLO en desarrollo
+# En Vercel, los archivos estáticos se sirven directamente
+if not IS_PRODUCTION and STATIC_DIR.exists():
+    try:
+        app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+        print(f"✅ Archivos estáticos montados desde: {STATIC_DIR}")
+    except Exception as e:
+        print(f"⚠️ Error montando archivos estáticos: {e}")
 
 # ========================================
 # INCLUIR ROUTERS API
@@ -143,10 +143,7 @@ async def index(request: Request):
 @app.get("/login", response_class=HTMLResponse, name="login")
 async def login_page(request: Request):
     """Página de login"""
-    
-    # ✅ CORRECCIÓN: Limpiar sesión fantasma antes de mostrar login
     request.session.clear()
-    
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/register", response_class=HTMLResponse, name="register")
@@ -155,12 +152,11 @@ async def register_page(request: Request):
     user = get_current_user_session(request)
     if user:
         return RedirectResponse(url="/", status_code=303)
-    
     return templates.TemplateResponse("crearcuenta.html", {"request": request})
 
 @app.get("/logout", name="logout")
 async def logout(request: Request):
-    """Cerrar sesión (método GET legacy - usar POST /api/auth/logout preferiblemente)"""
+    """Cerrar sesión"""
     request.session.clear()
     return RedirectResponse(url="/", status_code=303)
 
@@ -178,7 +174,7 @@ async def perfil(request: Request):
 
 @app.get("/carrito", response_class=HTMLResponse, name="carrito")
 async def carrito(request: Request):
-    """Página del carrito de compras - NO requiere autenticación"""
+    """Página del carrito de compras"""
     user = safe_get_user(request, next(get_db()))
     return templates.TemplateResponse("carrito.html", {"request": request, "user": user})
 
@@ -296,15 +292,12 @@ async def admin(request: Request):
     """Panel de administración (solo admin)"""
     user = get_current_user_session(request)
     
-    # Si no está logueado, redirigir a login
     if not user:
         return RedirectResponse(url="/login", status_code=303)
     
-    # Si no es admin, redirigir a inicio
     if user.get("rol") != "admin":
         return RedirectResponse(url="/", status_code=303)
     
-    # Usuario es admin, mostrar panel
     return templates.TemplateResponse("panel.html", {"request": request, "user": user})
 
 # ========================================
@@ -357,10 +350,6 @@ if __name__ == "__main__":
         port=8000,
         reload=True
     )
-
-# ========================================
-# VERCEL HANDLER
-# ========================================
 
 # Para Vercel
 app = app

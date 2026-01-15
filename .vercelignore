@@ -1,5 +1,5 @@
 # Python
-__pycache__
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
@@ -33,12 +33,24 @@ Thumbs.db
 # Git
 .git/
 
-# Archivos innecesarios
+# Archivos innecesarios para deploy
 README.md
-*.md
 *.ps1
 *.sh
 build.sh
 render.yaml
 alembic/
 alembic.ini
+
+# 🔥 IMPORTANTE: NO ignorar estos archivos críticos
+!static/
+!static/**
+!templates/
+!templates/**
+!main.py
+!requirements.txt
+!vercel.json
+!db.py
+!auth.py
+!models.py
+!routers/
