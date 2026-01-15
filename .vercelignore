@@ -16,7 +16,7 @@ ENV/
 *.sqlite
 *.sqlite3
 
-# Variables de entorno LOCAL (NO bloquear .env principal)
+# Variables de entorno LOCAL
 .env.local
 .env.development
 
@@ -33,8 +33,7 @@ Thumbs.db
 # Git
 .git/
 
-# Archivos innecesarios para deploy
-README.md
+# Archivos innecesarios
 *.ps1
 *.sh
 build.sh
@@ -42,15 +41,8 @@ render.yaml
 alembic/
 alembic.ini
 
-# 🔥 IMPORTANTE: NO ignorar estos archivos críticos
+# 🔥 CRÍTICO: NO ignorar carpetas esenciales
 !static/
 !static/**
 !templates/
 !templates/**
-!main.py
-!requirements.txt
-!vercel.json
-!db.py
-!auth.py
-!models.py
-!routers/
