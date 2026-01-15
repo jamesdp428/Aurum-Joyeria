@@ -89,9 +89,8 @@ else:
     print(f"⚠️ Directorio de templates no encontrado: {TEMPLATES_DIR}")
     templates = Jinja2Templates(directory="templates")
 
-# 🔥 CORRECCIÓN: Montar archivos estáticos SOLO en desarrollo
-# En Vercel, los archivos estáticos se sirven directamente
-if not IS_PRODUCTION and STATIC_DIR.exists():
+# 🔥 IMPORTANTE: Siempre montar archivos estáticos (Vercel los sirve pero necesitamos la ruta)
+if STATIC_DIR.exists():
     try:
         app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
         print(f"✅ Archivos estáticos montados desde: {STATIC_DIR}")
