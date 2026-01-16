@@ -95,19 +95,14 @@ else:
 def static_url(path: str) -> str:
     """
     Genera URL estática compatible con Vercel y desarrollo local
-    
-    En Vercel, los archivos estáticos se sirven directamente desde /static/
-    En desarrollo, también usamos /static/ pero montado con StaticFiles
     """
     return f"/static/{path}"
 
-# ✅ Agregar helper a contexto global de templates
-templates.env.globals['static_url'] = static_url
-
-# ✅ IMPORTANTE: Mantener url_for para compatibilidad con templates existentes
-def custom_url_for(request: Request, name: str, **path_params):
+# ✅ Función url_for SIN request (Jinja2 no pasa request automáticamente)
+def custom_url_for(name: str, **path_params):
     """
     Custom url_for que funciona en Vercel
+    Compatible con sintaxis: url_for('static', path='...')
     """
     if name == "static":
         # Para static files, retornar /static/{path}
@@ -131,7 +126,8 @@ def custom_url_for(request: Request, name: str, **path_params):
         }
         return route_map.get(name, '/')
 
-# Agregar custom url_for a templates
+# ✅ Agregar funciones a contexto global de Jinja2
+templates.env.globals['static_url'] = static_url
 templates.env.globals['url_for'] = custom_url_for
 
 # ========================================
