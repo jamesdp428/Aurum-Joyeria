@@ -41,22 +41,9 @@ if not SECRET_KEY:
 # ========================================
 # MIDDLEWARE DE CORS
 # ========================================
-ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-]
-
-# 🔥 Agregar dominios de Vercel en producción
-if IS_PRODUCTION:
-    ALLOWED_ORIGINS.extend([
-        "https://*.vercel.app",
-    ])
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En Vercel es mejor permitir todos
+    allow_origins=["*"],  # En Vercel permitir todos
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -89,13 +76,63 @@ else:
     print(f"⚠️ Directorio de templates no encontrado: {TEMPLATES_DIR}")
     templates = Jinja2Templates(directory="templates")
 
-# 🔥 IMPORTANTE: Siempre montar archivos estáticos (Vercel los sirve pero necesitamos la ruta)
-if STATIC_DIR.exists():
-    try:
-        app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-        print(f"✅ Archivos estáticos montados desde: {STATIC_DIR}")
-    except Exception as e:
-        print(f"⚠️ Error montando archivos estáticos: {e}")
+# 🔥 CRÍTICO: En Vercel, NO montar StaticFiles (Vercel los sirve directamente)
+if not IS_PRODUCTION:
+    # Solo en desarrollo local
+    if STATIC_DIR.exists():
+        try:
+            app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+            print(f"✅ Archivos estáticos montados desde: {STATIC_DIR}")
+        except Exception as e:
+            print(f"⚠️ Error montando archivos estáticos: {e}")
+else:
+    print("ℹ️ Producción (Vercel): archivos estáticos servidos directamente por Vercel")
+
+# ========================================
+# HELPER FUNCTION PARA TEMPLATES
+# ========================================
+
+def static_url(path: str) -> str:
+    """
+    Genera URL estática compatible con Vercel y desarrollo local
+    
+    En Vercel, los archivos estáticos se sirven directamente desde /static/
+    En desarrollo, también usamos /static/ pero montado con StaticFiles
+    """
+    return f"/static/{path}"
+
+# ✅ Agregar helper a contexto global de templates
+templates.env.globals['static_url'] = static_url
+
+# ✅ IMPORTANTE: Mantener url_for para compatibilidad con templates existentes
+def custom_url_for(request: Request, name: str, **path_params):
+    """
+    Custom url_for que funciona en Vercel
+    """
+    if name == "static":
+        # Para static files, retornar /static/{path}
+        path = path_params.get('path', '')
+        return f"/static/{path}"
+    else:
+        # Para otras rutas, usar el nombre de la ruta
+        route_map = {
+            'index': '/',
+            'login': '/login',
+            'register': '/register',
+            'perfil': '/perfil',
+            'carrito': '/carrito',
+            'anillos': '/anillos',
+            'pulseras': '/pulseras',
+            'cadenas': '/cadenas',
+            'aretes': '/aretes',
+            'tobilleras': '/tobilleras',
+            'more_products': '/otros',
+            'admin': '/admin',
+        }
+        return route_map.get(name, '/')
+
+# Agregar custom url_for a templates
+templates.env.globals['url_for'] = custom_url_for
 
 # ========================================
 # INCLUIR ROUTERS API
@@ -300,7 +337,7 @@ async def admin(request: Request):
     return templates.TemplateResponse("panel.html", {"request": request, "user": user})
 
 # ========================================
-# RUTAS DE UTILIDAD
+# RUTAS DE UTILIDAD Y DEBUG
 # ========================================
 
 @app.get("/health")
@@ -311,6 +348,29 @@ async def health_check():
         "environment": ENVIRONMENT,
         "version": "2.0.0",
         "is_production": IS_PRODUCTION
+    }
+
+@app.get("/debug/static")
+async def debug_static():
+    """
+    🔍 DEBUG: Verificar archivos estáticos
+    ⚠️ ELIMINAR en producción final
+    """
+    import os
+    static_files = []
+    
+    if STATIC_DIR.exists():
+        for root, dirs, files in os.walk(STATIC_DIR):
+            for file in files:
+                rel_path = os.path.relpath(os.path.join(root, file), STATIC_DIR)
+                static_files.append(rel_path)
+    
+    return {
+        "static_dir": str(STATIC_DIR),
+        "exists": STATIC_DIR.exists(),
+        "is_production": IS_PRODUCTION,
+        "files_count": len(static_files),
+        "sample_files": static_files[:30]  # Primeros 30 archivos
     }
 
 # ========================================
