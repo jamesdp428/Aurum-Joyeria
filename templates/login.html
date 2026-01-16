@@ -80,11 +80,11 @@
     document.addEventListener('DOMContentLoaded', () => {
       const user = getCurrentUser();
       if (user) {
-        // Ya está logueado, redirigir
+        console.log('Usuario ya logueado, redirigiendo...');
         if (user.rol === 'admin') {
-          window.location.href = '{{ url_for("admin") }}';
+          window.location.href = '/admin';
         } else {
-          window.location.href = '{{ url_for("index") }}';
+          window.location.href = '/';
         }
       }
     });
@@ -128,9 +128,9 @@
         // Redirigir según el rol
         setTimeout(() => {
           if (response.user.rol === 'admin') {
-            window.location.href = '{{ url_for("admin") }}';
+            window.location.href = '/admin';
           } else {
-            window.location.href = '{{ url_for("index") }}';
+            window.location.href = '/';
           }
         }, 1000);
         

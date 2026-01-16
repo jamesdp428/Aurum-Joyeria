@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, status, Request  # ← AGREGAR Request
+﻿from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from typing import List
@@ -15,7 +15,8 @@ from auth import (
     create_access_token,
     get_current_user_token,
     get_current_admin,
-    verify_password
+    verify_password,
+    create_user_session_data
 )
 from email_service import send_verification_email, send_email_change_verification
 
@@ -45,7 +46,7 @@ class VerifyEmailCodeRequest(BaseModel):
 # ========== REGISTRO CON VERIFICACIÓN ==========
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
-async def register_user(user_data: UsuarioCreate, db: Session = Depends(get_db)):
+async def register_user(user_data: UsuarioCreate, request: Request, db: Session = Depends(get_db)):
     """Registra un nuevo usuario y envía email de verificación"""
     
     existing_user = db.query(Usuario).filter(Usuario.email == user_data.email).first()
@@ -72,10 +73,17 @@ async def register_user(user_data: UsuarioCreate, db: Session = Depends(get_db))
     db.refresh(new_user)
     
     # Enviar email de verificación
-    send_verification_email(new_user.email, new_user.nombre, verification_code)
+    try:
+        send_verification_email(new_user.email, new_user.nombre, verification_code)
+    except Exception as e:
+        print(f"⚠️ Error enviando email de verificación: {e}")
+        # No fallar el registro si falla el email
     
-    # Crear token PERO el usuario debe verificar antes de usar la app
+    # Crear token
     access_token = create_access_token(data={"sub": str(new_user.id)})
+    
+    # Guardar sesión en el servidor
+    request.session["user"] = create_user_session_data(new_user)
     
     return {
         "access_token": access_token,
@@ -112,7 +120,6 @@ async def verify_email(code: str, db: Session = Depends(get_db)):
         </html>
         """
     
-    # Comparar fechas con timezone
     if utc_now() > user.verification_expires:
         return """
         <html>
@@ -184,7 +191,14 @@ async def resend_verification(
     current_user.verification_expires = utc_now() + timedelta(hours=24)
     db.commit()
     
-    send_verification_email(current_user.email, current_user.nombre, verification_code)
+    try:
+        send_verification_email(current_user.email, current_user.nombre, verification_code)
+    except Exception as e:
+        print(f"⚠️ Error enviando email: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al enviar el código de verificación"
+        )
     
     return {"message": "Código reenviado exitosamente"}
 
@@ -192,7 +206,7 @@ async def resend_verification(
 
 @router.post("/verify-email-code")
 async def verify_email_with_code(
-    request: VerifyEmailCodeRequest,
+    request_data: VerifyEmailCodeRequest,
     current_user: Usuario = Depends(get_current_user_token),
     db: Session = Depends(get_db)
 ):
@@ -210,7 +224,7 @@ async def verify_email_with_code(
             detail="No hay código de verificación pendiente"
         )
     
-    if current_user.verification_code != request.code:
+    if current_user.verification_code != request_data.code:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Código inválido"
@@ -230,12 +244,12 @@ async def verify_email_with_code(
     
     return {"message": "Email verificado exitosamente"}
 
-# ========== LOGIN - ¡AQUÍ ESTÁ EL FIX! ==========
+# ========== LOGIN ==========
 
 @router.post("/login", response_model=Token)
 async def login(
     user_data: UsuarioLogin, 
-    request: Request,  # ← AGREGAR Request
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Inicia sesión"""
@@ -249,17 +263,15 @@ async def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # ✅ CRÍTICO: Usar str(user.id) en lugar de user.email
+    # Crear token con el ID del usuario
     access_token = create_access_token(data={"sub": str(user.id)})
     
-    # ✅ NUEVO: Guardar sesión en el servidor
-    request.session["user"] = {
-        "id": str(user.id),
-        "email": user.email,
-        "nombre": user.nombre,
-        "rol": user.rol,
-        "email_verificado": user.email_verified
-    }
+    # Guardar sesión en el servidor
+    request.session["user"] = create_user_session_data(user)
+    
+    print(f"✅ Login exitoso para: {user.email}")
+    print(f"   Rol: {user.rol}")
+    print(f"   Sesión guardada: {request.session.get('user')}")
     
     return {
         "access_token": access_token,
@@ -300,28 +312,25 @@ async def update_profile(
 
 @router.post("/change-password")
 async def change_password(
-    request: ChangePasswordRequest,
+    request_data: ChangePasswordRequest,
     current_user: Usuario = Depends(get_current_user_token),
     db: Session = Depends(get_db)
 ):
     """Cambia la contraseña del usuario"""
     
-    # Verificar contraseña actual
-    if not verify_password(request.current_password, current_user.password_hash):
+    if not verify_password(request_data.current_password, current_user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="La contraseña actual es incorrecta"
         )
     
-    # Validar nueva contraseña
-    if len(request.new_password) < 6:
+    if len(request_data.new_password) < 6:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="La nueva contraseña debe tener al menos 6 caracteres"
         )
     
-    # Actualizar contraseña
-    current_user.password_hash = hash_password(request.new_password)
+    current_user.password_hash = hash_password(request_data.new_password)
     db.commit()
     
     return {"message": "Contraseña actualizada exitosamente"}
@@ -330,37 +339,36 @@ async def change_password(
 
 @router.post("/request-email-change")
 async def request_email_change(
-    request: RequestEmailChangeRequest,
+    request_data: RequestEmailChangeRequest,
     current_user: Usuario = Depends(get_current_user_token),
     db: Session = Depends(get_db)
 ):
     """Solicita cambio de email"""
     
-    # Verificar que el nuevo email no esté en uso
-    existing = db.query(Usuario).filter(Usuario.email == request.new_email).first()
+    existing = db.query(Usuario).filter(Usuario.email == request_data.new_email).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El email ya está en uso"
         )
     
-    # Generar código
     code = secrets.token_urlsafe(32)
     
-    # Guardar solicitud pendiente
-    current_user.pending_email = request.new_email
+    current_user.pending_email = request_data.new_email
     current_user.pending_email_code = code
     current_user.pending_email_expires = utc_now() + timedelta(hours=1)
     db.commit()
     
-    # Enviar email
-    send_email_change_verification(request.new_email, current_user.nombre, code)
+    try:
+        send_email_change_verification(request_data.new_email, current_user.nombre, code)
+    except Exception as e:
+        print(f"⚠️ Error enviando email: {e}")
     
-    return {"message": f"Código enviado a {request.new_email}"}
+    return {"message": f"Código enviado a {request_data.new_email}"}
 
 @router.post("/confirm-email-change")
 async def confirm_email_change(
-    request: ConfirmEmailChangeRequest,
+    request_data: ConfirmEmailChangeRequest,
     current_user: Usuario = Depends(get_current_user_token),
     db: Session = Depends(get_db)
 ):
@@ -372,20 +380,18 @@ async def confirm_email_change(
             detail="No hay cambio de email pendiente"
         )
     
-    if current_user.pending_email_code != request.code:
+    if current_user.pending_email_code != request_data.code:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Código inválido"
         )
     
-    # Comparar con timezone
     if utc_now() > current_user.pending_email_expires:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El código ha expirado"
         )
     
-    # Actualizar email
     current_user.email = current_user.pending_email
     current_user.pending_email = None
     current_user.pending_email_code = None
@@ -434,7 +440,6 @@ async def delete_account(
 ):
     """Elimina la cuenta del usuario actual"""
     
-    # No permitir que admins se eliminen a sí mismos si son el último admin
     if current_user.rol == "admin":
         admin_count = db.query(Usuario).filter(Usuario.rol == "admin").count()
         if admin_count <= 1:
@@ -443,7 +448,6 @@ async def delete_account(
                 detail="No puedes eliminar la última cuenta de administrador"
             )
     
-    # Eliminar usuario
     db.delete(current_user)
     db.commit()
     

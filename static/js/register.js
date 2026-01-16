@@ -29,7 +29,8 @@ document.querySelectorAll('.toggle-password').forEach(button => {
 document.addEventListener('DOMContentLoaded', () => {
   const user = getCurrentUser();
   if (user) {
-    window.location.href = '../index.html';
+    console.log('Usuario ya logueado, redirigiendo...');
+    window.location.href = '/';
   }
 });
 
@@ -74,7 +75,11 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   registerBtn.textContent = 'Registrando...';
   
   try {
-    await authAPI.register(email, nombre, password);
+    console.log('📝 Iniciando registro para:', email);
+    
+    const response = await authAPI.register(email, nombre, password);
+    
+    console.log('✅ Registro exitoso:', response);
     
     showMessage('¡Cuenta creada! Por favor verifica tu email.', 'success');
     
@@ -87,12 +92,13 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     }, 1500);
     
   } catch (error) {
-    console.error('Error en registro:', error);
+    console.error('❌ Error en registro:', error);
     
     let errorMessage = 'Error al crear la cuenta';
     
     if (error.message.includes('email ya está registrado') || 
-        error.message.includes('already exists')) {
+        error.message.includes('already exists') ||
+        error.message.includes('ya está registrado')) {
       errorMessage = 'Este email ya está registrado. Por favor usa otro o inicia sesión.';
     } else if (error.message) {
       errorMessage = error.message;
@@ -249,7 +255,7 @@ async function verificarEmailRegistro() {
     
     setTimeout(() => {
       cerrarModalRegistro();
-      window.location.href = '../index.html';
+      window.location.href = '/';
     }, 2000);
     
   } catch (error) {
@@ -298,7 +304,7 @@ function cerrarModalRegistro() {
   if (modal) {
     modal.remove();
   }
-  window.location.href = '../index.html';
+  window.location.href = '/';
 }
 
 // Mostrar mensaje en modal de registro

@@ -25,6 +25,10 @@ console.log('🔗 API Base URL configurada:', API_BASE_URL);
 function saveAuthData(token, user) {
   localStorage.setItem('token', token);
   localStorage.setItem('user', JSON.stringify(user));
+  console.log('💾 Datos guardados en localStorage:', {
+    token: token ? 'presente' : 'ausente',
+    user: user
+  });
 }
 
 function getToken() {
@@ -43,11 +47,10 @@ function isAdmin() {
 
 async function logout() {
   try {
-    // 🔥 NUEVO: Llamar al endpoint de logout del backend
+    // Llamar al endpoint de logout del backend
     await fetchAPI('/auth/logout', { method: 'POST' });
   } catch (error) {
     console.error('Error al cerrar sesión en el servidor:', error);
-    // Continuar con limpieza local aunque falle el backend
   }
   
   // Limpiar almacenamiento local
@@ -70,7 +73,8 @@ async function fetchAPI(endpoint, options = {}) {
     ...options,
     headers: {
       ...options.headers,
-    }
+    },
+    credentials: 'include'  // ✅ CRÍTICO: Incluir cookies de sesión
   };
   
   if (token) {
@@ -94,7 +98,16 @@ async function fetchAPI(endpoint, options = {}) {
     
     if (!response.ok) {
       if (response.status === 401) {
-        logout();
+        console.warn('⚠️ Sesión expirada, limpiando datos...');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
+        // Solo redirigir si no estamos ya en login/register
+        if (!window.location.pathname.includes('/login') && 
+            !window.location.pathname.includes('/register')) {
+          window.location.href = '/login';
+        }
+        
         throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
       }
       
@@ -112,21 +125,25 @@ async function fetchAPI(endpoint, options = {}) {
 
 const authAPI = {
   async register(email, nombre, password) {
+    console.log('📝 Iniciando registro...');
     const response = await fetchAPI('/auth/register', {
       method: 'POST',
       body: JSON.stringify({ email, nombre, password })
     });
     
+    console.log('✅ Registro exitoso:', response);
     saveAuthData(response.access_token, response.user);
     return response;
   },
   
   async login(email, password) {
+    console.log('🔐 Iniciando login...');
     const response = await fetchAPI('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password })
     });
     
+    console.log('✅ Login exitoso:', response);
     saveAuthData(response.access_token, response.user);
     return response;
   },
@@ -189,10 +206,19 @@ const authAPI = {
   },
   
   async verifyEmailWithCode(code) {
-    return await fetchAPI('/auth/verify-email-code', {
+    const response = await fetchAPI('/auth/verify-email-code', {
       method: 'POST',
       body: JSON.stringify({ code })
     });
+    
+    // Actualizar estado local
+    const user = getCurrentUser();
+    if (user) {
+      user.email_verified = true;
+      localStorage.setItem('user', JSON.stringify(user));
+    }
+    
+    return response;
   },
   
   async deleteAccount() {
@@ -361,4 +387,3 @@ if (typeof window !== 'undefined') {
   window.API_LOADED = true;
   console.log('✅ API de Aurum Joyería cargada correctamente');
 }
-
