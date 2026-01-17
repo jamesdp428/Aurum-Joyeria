@@ -20,13 +20,19 @@
     },
     {
       "src": "/api/(.*)",
-      "dest": "main.py"
+      "dest": "main.py",
+      "headers": {
+        "Cache-Control": "no-cache"
+      }
     },
     {
       "src": "/(.*)",
       "dest": "main.py"
     }
   ],
+  "env": {
+    "ENVIRONMENT": "production"
+  },
   "outputDirectory": ".",
   "installCommand": "pip install -r requirements.txt"
 }

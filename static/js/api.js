@@ -4,6 +4,7 @@ function getApiBaseUrl() {
   const hostname = window.location.hostname;
   
   console.log('🌐 Hostname detectado:', hostname);
+  console.log('🌐 Origin completo:', window.location.origin);
   
   // Desarrollo local
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
@@ -47,21 +48,17 @@ function isAdmin() {
 
 async function logout() {
   try {
-    // Llamar al endpoint de logout del backend
     await fetchAPI('/auth/logout', { method: 'POST' });
   } catch (error) {
     console.error('Error al cerrar sesión en el servidor:', error);
   }
   
-  // Limpiar almacenamiento local
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  
-  // Redirigir a la página de inicio
   window.location.href = '/';
 }
 
-// ========== CLIENTE HTTP ==========
+// ========== CLIENTE HTTP (CRÍTICO - CORREGIDO) ==========
 
 async function fetchAPI(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -74,13 +71,14 @@ async function fetchAPI(endpoint, options = {}) {
     headers: {
       ...options.headers,
     },
-    credentials: 'include'  // ✅ CRÍTICO: Incluir cookies de sesión
+    credentials: 'include'
   };
   
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
   
+  // 🔥 CRÍTICO: Solo agregar Content-Type si NO es FormData
   if (options.body && !(options.body instanceof FormData)) {
     config.headers['Content-Type'] = 'application/json';
   }
@@ -89,9 +87,19 @@ async function fetchAPI(endpoint, options = {}) {
     const response = await fetch(url, config);
     
     console.log(`📥 Response: ${response.status} ${response.statusText}`);
+    console.log(`📥 Content-Type: ${response.headers.get('content-type')}`);
     
+    // Si es 204 (No Content), retornar null
     if (response.status === 204) {
       return null;
+    }
+    
+    // 🔥 CRÍTICO: Verificar que la respuesta sea JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      console.error('❌ Respuesta no es JSON:', text.substring(0, 200));
+      throw new Error('El servidor no respondió con JSON. Verifica que la ruta API sea correcta.');
     }
     
     const data = await response.json();
@@ -102,7 +110,6 @@ async function fetchAPI(endpoint, options = {}) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         
-        // Solo redirigir si no estamos ya en login/register
         if (!window.location.pathname.includes('/login') && 
             !window.location.pathname.includes('/register')) {
           window.location.href = '/login';
@@ -211,7 +218,6 @@ const authAPI = {
       body: JSON.stringify({ code })
     });
     
-    // Actualizar estado local
     const user = getCurrentUser();
     if (user) {
       user.email_verified = true;

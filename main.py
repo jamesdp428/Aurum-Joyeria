@@ -1,7 +1,7 @@
 # main.py - Aplicación Principal Optimizada para Vercel
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,14 +39,15 @@ if not SECRET_KEY:
     print("⚠️ Using auto-generated SECRET_KEY (development only)")
 
 # ========================================
-# MIDDLEWARE DE CORS
+# MIDDLEWARE DE CORS (CRÍTICO PARA VERCEL)
 # ========================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En Vercel permitir todos
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # ========================================
@@ -55,7 +56,7 @@ app.add_middleware(
 app.add_middleware(
     SessionMiddleware, 
     secret_key=SECRET_KEY,
-    max_age=3600 * 24 * 7,  # 7 días
+    max_age=3600 * 24 * 7,
     same_site="none" if IS_PRODUCTION else "lax",
     https_only=IS_PRODUCTION,
     session_cookie="joyeria_session"
@@ -78,7 +79,6 @@ else:
 
 # 🔥 CRÍTICO: En Vercel, NO montar StaticFiles (Vercel los sirve directamente)
 if not IS_PRODUCTION:
-    # Solo en desarrollo local
     if STATIC_DIR.exists():
         try:
             app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -89,27 +89,19 @@ else:
     print("ℹ️ Producción (Vercel): archivos estáticos servidos directamente por Vercel")
 
 # ========================================
-# HELPER FUNCTION PARA TEMPLATES
+# HELPER FUNCTIONS PARA TEMPLATES
 # ========================================
 
 def static_url(path: str) -> str:
-    """
-    Genera URL estática compatible con Vercel y desarrollo local
-    """
+    """Genera URL estática compatible con Vercel y desarrollo local"""
     return f"/static/{path}"
 
-# ✅ Función url_for SIN request (Jinja2 no pasa request automáticamente)
 def custom_url_for(name: str, **path_params):
-    """
-    Custom url_for que funciona en Vercel
-    Compatible con sintaxis: url_for('static', path='...')
-    """
+    """Custom url_for que funciona en Vercel"""
     if name == "static":
-        # Para static files, retornar /static/{path}
         path = path_params.get('path', '')
         return f"/static/{path}"
     else:
-        # Para otras rutas, usar el nombre de la ruta
         route_map = {
             'index': '/',
             'login': '/login',
@@ -126,13 +118,14 @@ def custom_url_for(name: str, **path_params):
         }
         return route_map.get(name, '/')
 
-# ✅ Agregar funciones a contexto global de Jinja2
 templates.env.globals['static_url'] = static_url
 templates.env.globals['url_for'] = custom_url_for
 
 # ========================================
-# INCLUIR ROUTERS API
+# 🔥 INCLUIR ROUTERS API (CORREGIDO)
 # ========================================
+# Los routers YA tienen prefix="/auth", "/productos", "/carrusel"
+# Así que los incluimos con prefix="/api" para que queden como /api/auth, /api/productos, etc.
 app.include_router(auth_router, prefix="/api", tags=["Autenticación"])
 app.include_router(productos_router, prefix="/api", tags=["Productos"])
 app.include_router(carrusel_router, prefix="/api", tags=["Carrusel"])
@@ -142,16 +135,7 @@ app.include_router(carrusel_router, prefix="/api", tags=["Carrusel"])
 # ========================================
 
 def safe_get_user(request: Request, db: Session) -> Optional[dict]:
-    """
-    Obtiene usuario de forma segura sin lanzar excepciones
-    
-    Args:
-        request: Request object de FastAPI
-        db: Sesión de base de datos
-        
-    Returns:
-        Diccionario con datos del usuario o None si no está autenticado/falla
-    """
+    """Obtiene usuario de forma segura sin lanzar excepciones"""
     try:
         return get_current_user_hybrid(request, db)
     except Exception as e:
@@ -216,86 +200,50 @@ async def carrito(request: Request):
 
 @app.get("/anillos", response_class=HTMLResponse, name="anillos")
 async def anillos(request: Request):
-    """Página de categoría Anillos"""
     user = safe_get_user(request, next(get_db()))
     return templates.TemplateResponse(
         "base_categoria.html", 
-        {
-            "request": request, 
-            "user": user,
-            "categoria": "anillos",
-            "categoria_nombre": "Anillos"
-        }
+        {"request": request, "user": user, "categoria": "anillos", "categoria_nombre": "Anillos"}
     )
 
 @app.get("/pulseras", response_class=HTMLResponse, name="pulseras")
 async def pulseras(request: Request):
-    """Página de categoría Pulseras"""
     user = safe_get_user(request, next(get_db()))
     return templates.TemplateResponse(
         "base_categoria.html", 
-        {
-            "request": request, 
-            "user": user,
-            "categoria": "pulseras",
-            "categoria_nombre": "Pulseras"
-        }
+        {"request": request, "user": user, "categoria": "pulseras", "categoria_nombre": "Pulseras"}
     )
 
 @app.get("/cadenas", response_class=HTMLResponse, name="cadenas")
 async def cadenas(request: Request):
-    """Página de categoría Cadenas"""
     user = safe_get_user(request, next(get_db()))
     return templates.TemplateResponse(
         "base_categoria.html", 
-        {
-            "request": request, 
-            "user": user,
-            "categoria": "cadenas",
-            "categoria_nombre": "Cadenas"
-        }
+        {"request": request, "user": user, "categoria": "cadenas", "categoria_nombre": "Cadenas"}
     )
 
 @app.get("/aretes", response_class=HTMLResponse, name="aretes")
 async def aretes(request: Request):
-    """Página de categoría Aretes"""
     user = safe_get_user(request, next(get_db()))
     return templates.TemplateResponse(
         "base_categoria.html", 
-        {
-            "request": request, 
-            "user": user,
-            "categoria": "aretes",
-            "categoria_nombre": "Aretes"
-        }
+        {"request": request, "user": user, "categoria": "aretes", "categoria_nombre": "Aretes"}
     )
 
 @app.get("/tobilleras", response_class=HTMLResponse, name="tobilleras")
 async def tobilleras(request: Request):
-    """Página de categoría Tobilleras"""
     user = safe_get_user(request, next(get_db()))
     return templates.TemplateResponse(
         "base_categoria.html", 
-        {
-            "request": request, 
-            "user": user,
-            "categoria": "tobilleras",
-            "categoria_nombre": "Tobilleras"
-        }
+        {"request": request, "user": user, "categoria": "tobilleras", "categoria_nombre": "Tobilleras"}
     )
 
 @app.get("/otros", response_class=HTMLResponse, name="more_products")
 async def more_products(request: Request):
-    """Página de categoría Más Productos (Otros)"""
     user = safe_get_user(request, next(get_db()))
     return templates.TemplateResponse(
         "base_categoria.html", 
-        {
-            "request": request, 
-            "user": user,
-            "categoria": "otros",
-            "categoria_nombre": "Más Productos"
-        }
+        {"request": request, "user": user, "categoria": "otros", "categoria_nombre": "Más Productos"}
     )
 
 # ========================================
@@ -304,15 +252,10 @@ async def more_products(request: Request):
 
 @app.get("/producto/{producto_id}", response_class=HTMLResponse, name="producto_detalle")
 async def producto_detalle(request: Request, producto_id: str):
-    """Página de detalle de producto"""
     user = safe_get_user(request, next(get_db()))
     return templates.TemplateResponse(
         "producto.html", 
-        {
-            "request": request, 
-            "user": user,
-            "producto_id": producto_id
-        }
+        {"request": request, "user": user, "producto_id": producto_id}
     )
 
 # ========================================
@@ -346,41 +289,46 @@ async def health_check():
         "is_production": IS_PRODUCTION
     }
 
-@app.get("/debug/static")
-async def debug_static():
-    """
-    🔍 DEBUG: Verificar archivos estáticos
-    ⚠️ ELIMINAR en producción final
-    """
-    import os
-    static_files = []
-    
-    if STATIC_DIR.exists():
-        for root, dirs, files in os.walk(STATIC_DIR):
-            for file in files:
-                rel_path = os.path.relpath(os.path.join(root, file), STATIC_DIR)
-                static_files.append(rel_path)
-    
-    return {
-        "static_dir": str(STATIC_DIR),
-        "exists": STATIC_DIR.exists(),
-        "is_production": IS_PRODUCTION,
-        "files_count": len(static_files),
-        "sample_files": static_files[:30]  # Primeros 30 archivos
-    }
+@app.get("/api/test")
+async def api_test():
+    """🔥 TEST: Verificar que la API responde correctamente"""
+    return JSONResponse({
+        "status": "ok",
+        "message": "API funcionando correctamente",
+        "endpoints": {
+            "auth": "/api/auth/login",
+            "register": "/api/auth/register",
+            "productos": "/api/productos",
+            "carrusel": "/api/carrusel"
+        }
+    })
 
 # ========================================
 # MANEJO DE ERRORES
 # ========================================
 
 @app.exception_handler(404)
-async def not_found(request: Request, exc):
-    """Página 404 personalizada"""
+async def not_found_handler(request: Request, exc):
+    """Manejo de errores 404"""
+    # Si es una petición API, devolver JSON
+    if request.url.path.startswith("/api/"):
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "Endpoint no encontrado"}
+        )
+    # Si es una página HTML, redirigir a inicio
     return RedirectResponse(url="/", status_code=303)
 
 @app.exception_handler(500)
-async def server_error(request: Request, exc):
-    """Página 500 personalizada"""
+async def server_error_handler(request: Request, exc):
+    """Manejo de errores 500"""
+    # Si es una petición API, devolver JSON
+    if request.url.path.startswith("/api/"):
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Error interno del servidor"}
+        )
+    # Si es una página HTML, mostrar página de error
     user = None
     try:
         user = safe_get_user(request, next(get_db()))
