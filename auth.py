@@ -1,454 +1,347 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.responses import HTMLResponse
-from sqlalchemy.orm import Session
-from typing import List
+# auth.py - Sistema de autenticación completo (CORREGIDO)
+
 from datetime import datetime, timedelta, timezone  # ✅ Agregar timezone
-from pydantic import BaseModel
-import secrets
+from typing import Optional
+import uuid
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from fastapi import Depends, HTTPException, status, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
+import os
+from dotenv import load_dotenv
 
 from db import get_db
 from models import Usuario
-from schemas import UsuarioCreate, UsuarioLogin, UsuarioResponse, Token
-from auth import (
-    hash_password,
-    authenticate_user,
-    create_access_token,
-    get_current_user_token,
-    get_current_admin,
-    verify_password,
-    create_user_session_data
-)
-from email_service import send_verification_email, send_email_change_verification
 
-router = APIRouter(prefix="/auth")
+load_dotenv()
 
-# ========== FUNCIÓN AUXILIAR PARA TIMEZONE ==========
+# ========================================
+# CONFIGURACIÓN
+# ========================================
 
-def utc_now():
-    """Retorna datetime con timezone UTC"""
-    return datetime.now(timezone.utc)  # ✅ CORRECCIÓN
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 días
 
-# ========== SCHEMAS ADICIONALES ==========
+# Contexto para hashing de contraseñas
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-class ChangePasswordRequest(BaseModel):
-    current_password: str
-    new_password: str
+# Security scheme para tokens Bearer
+security = HTTPBearer()
 
-class RequestEmailChangeRequest(BaseModel):
-    new_email: str
+# ========================================
+# FUNCIONES DE HASHING
+# ========================================
 
-class ConfirmEmailChangeRequest(BaseModel):
-    code: str
+def hash_password(password: str) -> str:
+    """Hashea una contraseña usando bcrypt"""
+    return pwd_context.hash(password)
 
-class VerifyEmailCodeRequest(BaseModel):
-    code: str
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verifica que una contraseña coincida con su hash"""
+    return pwd_context.verify(plain_password, hashed_password)
 
-# ========== REGISTRO CON VERIFICACIÓN ==========
+# ========================================
+# FUNCIONES JWT
+# ========================================
 
-@router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
-async def register_user(user_data: UsuarioCreate, request: Request, db: Session = Depends(get_db)):
-    """Registra un nuevo usuario y envía email de verificación"""
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Crea un token JWT
     
-    existing_user = db.query(Usuario).filter(Usuario.email == user_data.email).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El email ya está registrado"
-        )
+    Args:
+        data: Datos a codificar en el token (típicamente user_id y email)
+        expires_delta: Tiempo de expiración personalizado
+        
+    Returns:
+        Token JWT codificado
+    """
+    to_encode = data.copy()
     
-    verification_code = secrets.token_urlsafe(32)
+    # ✅ CORRECCIÓN: Usar datetime.now(timezone.utc) en lugar de datetime.utcnow()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    new_user = Usuario(
-        email=user_data.email,
-        nombre=user_data.nombre,
-        password_hash=hash_password(user_data.password),
-        rol="usuario",
-        email_verified=False,
-        verification_code=verification_code,
-        verification_expires=utc_now() + timedelta(hours=24)
+    to_encode.update({"exp": expire})
+    
+    # ✅ IMPORTANTE: Convertir UUID a string si existe 'sub' con UUID
+    if 'sub' in to_encode and isinstance(to_encode['sub'], uuid.UUID):
+        to_encode['sub'] = str(to_encode['sub'])
+    
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    
+    return encoded_jwt
+
+def decode_access_token(token: str) -> Optional[dict]:
+    """
+    Decodifica y valida un token JWT
+    
+    Args:
+        token: Token JWT a decodificar
+        
+    Returns:
+        Payload del token si es válido, None si es inválido
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None
+
+# ========================================
+# AUTENTICACIÓN DE USUARIO
+# ========================================
+
+def authenticate_user(db: Session, email: str, password: str) -> Optional[Usuario]:
+    """
+    Autentica un usuario por email y contraseña
+    
+    Args:
+        db: Sesión de base de datos
+        email: Email del usuario
+        password: Contraseña en texto plano
+        
+    Returns:
+        Usuario si las credenciales son correctas, None si no
+    """
+    usuario = db.query(Usuario).filter(Usuario.email == email).first()
+    
+    if not usuario:
+        return None
+    
+    if not verify_password(password, usuario.password_hash):
+        return None
+    
+    return usuario
+
+# ========================================
+# OBTENER USUARIO ACTUAL (TOKEN)
+# ========================================
+
+async def get_current_user_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> Usuario:
+    """
+    Obtiene el usuario actual desde un token Bearer
+    Usado para endpoints API que requieren autenticación
+    
+    Args:
+        credentials: Credenciales HTTP Bearer (token)
+        db: Sesión de base de datos
+        
+    Returns:
+        Usuario autenticado
+        
+    Raises:
+        HTTPException: Si el token es inválido o el usuario no existe
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="No se pudo validar las credenciales",
+        headers={"WWW-Authenticate": "Bearer"},
     )
     
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    token = credentials.credentials
+    payload = decode_access_token(token)
     
-    # Enviar email de verificación
+    if payload is None:
+        raise credentials_exception
+    
+    user_id_str: str = payload.get("sub")
+    if user_id_str is None:
+        raise credentials_exception
+    
+    # ✅ Convertir string de vuelta a UUID
     try:
-        send_verification_email(new_user.email, new_user.nombre, verification_code)
-    except Exception as e:
-        print(f"⚠️ Error enviando email de verificación: {e}")
-        # No fallar el registro si falla el email
+        user_uuid = uuid.UUID(user_id_str)
+    except (ValueError, AttributeError, TypeError):
+        raise credentials_exception
     
-    # Crear token
-    access_token = create_access_token(data={"sub": str(new_user.id)})
+    # ✅ Buscar usuario por UUID correcto
+    usuario = db.query(Usuario).filter(Usuario.id == user_uuid).first()
     
-    # Guardar sesión en el servidor
-    request.session["user"] = create_user_session_data(new_user)
+    if usuario is None:
+        raise credentials_exception
     
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": new_user
-    }
+    return usuario
 
-# ========== VERIFICAR EMAIL ==========
+# ========================================
+# OBTENER USUARIO ACTUAL (SESIÓN)
+# ========================================
 
-@router.get("/verify-email", response_class=HTMLResponse)
-async def verify_email(code: str, db: Session = Depends(get_db)):
-    """Verifica el email con el código recibido"""
-    
-    user = db.query(Usuario).filter(Usuario.verification_code == code).first()
-    
-    if not user:
-        return """
-        <html>
-            <head>
-                <title>Error - Aurum Joyería</title>
-                <style>
-                    body { font-family: Arial; background: #000; color: #fff; text-align: center; padding: 50px; }
-                    .container { background: #1a1a1a; border: 2px solid #f44336; border-radius: 20px; padding: 40px; max-width: 500px; margin: 0 auto; }
-                    h1 { color: #f44336; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>❌ Código Inválido</h1>
-                    <p>El código de verificación no es válido.</p>
-                    <a href="/" style="color: #f9dc5e;">Volver al inicio</a>
-                </div>
-            </body>
-        </html>
-        """
-    
-    if utc_now() > user.verification_expires:
-        return """
-        <html>
-            <head>
-                <title>Expirado - Aurum Joyería</title>
-                <style>
-                    body { font-family: Arial; background: #000; color: #fff; text-align: center; padding: 50px; }
-                    .container { background: #1a1a1a; border: 2px solid #ff9800; border-radius: 20px; padding: 40px; max-width: 500px; margin: 0 auto; }
-                    h1 { color: #ff9800; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>⏰ Código Expirado</h1>
-                    <p>El código de verificación ha expirado. Solicita uno nuevo desde tu perfil.</p>
-                    <a href="/perfil" style="color: #f9dc5e;">Ir a mi perfil</a>
-                </div>
-            </body>
-        </html>
-        """
-    
-    # Verificar email
-    user.email_verified = True
-    user.verification_code = None
-    user.verification_expires = None
-    db.commit()
-    
-    return """
-    <html>
-        <head>
-            <title>Verificado - Aurum Joyería</title>
-            <meta http-equiv="refresh" content="3;url=/">
-            <style>
-                body { font-family: Arial; background: #000; color: #fff; text-align: center; padding: 50px; }
-                .container { background: linear-gradient(145deg, #1e1e1e, #2a2a2a); border: 2px solid #f9dc5e; border-radius: 20px; padding: 40px; max-width: 500px; margin: 0 auto; }
-                h1 { color: #f9dc5e; }
-                .checkmark { font-size: 80px; color: #4CAF50; margin: 20px 0; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="checkmark">✓</div>
-                <h1>¡Email Verificado!</h1>
-                <p>Tu cuenta ha sido verificada exitosamente.</p>
-                <p>Serás redirigido en 3 segundos...</p>
-                <a href="/" style="color: #f9dc5e;">Ir ahora</a>
-            </div>
-        </body>
-    </html>
+def get_current_user_session(request: Request) -> Optional[dict]:
     """
+    Obtiene el usuario actual desde la sesión
+    Usado para páginas HTML que usan cookies de sesión
+    
+    Args:
+        request: Request object de FastAPI
+        
+    Returns:
+        Diccionario con datos del usuario si está logueado, None si no
+    """
+    user_data = request.session.get("user")
+    return user_data
 
-# ========== REENVIAR CÓDIGO ==========
-
-@router.post("/resend-verification")
-async def resend_verification(
-    current_user: Usuario = Depends(get_current_user_token),
-    db: Session = Depends(get_db)
-):
-    """Reenvía el código de verificación"""
+def require_user_session(request: Request) -> dict:
+    """
+    Requiere que el usuario esté autenticado via sesión
+    Lanza excepción si no está logueado
     
-    if current_user.email_verified:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El email ya está verificado"
-        )
-    
-    verification_code = secrets.token_urlsafe(32)
-    current_user.verification_code = verification_code
-    current_user.verification_expires = utc_now() + timedelta(hours=24)
-    db.commit()
-    
-    try:
-        send_verification_email(current_user.email, current_user.nombre, verification_code)
-    except Exception as e:
-        print(f"⚠️ Error enviando email: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al enviar el código de verificación"
-        )
-    
-    return {"message": "Código reenviado exitosamente"}
-
-# ========== VERIFICAR EMAIL CON CÓDIGO MANUAL ==========
-
-@router.post("/verify-email-code")
-async def verify_email_with_code(
-    request_data: VerifyEmailCodeRequest,
-    current_user: Usuario = Depends(get_current_user_token),
-    db: Session = Depends(get_db)
-):
-    """Verifica el email con código manual (desde perfil)"""
-    
-    if current_user.email_verified:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El email ya está verificado"
-        )
-    
-    if not current_user.verification_code:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No hay código de verificación pendiente"
-        )
-    
-    if current_user.verification_code != request_data.code:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Código inválido"
-        )
-    
-    if utc_now() > current_user.verification_expires:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El código ha expirado"
-        )
-    
-    # Verificar email
-    current_user.email_verified = True
-    current_user.verification_code = None
-    current_user.verification_expires = None
-    db.commit()
-    
-    return {"message": "Email verificado exitosamente"}
-
-# ========== LOGIN ==========
-
-@router.post("/login", response_model=Token)
-async def login(
-    user_data: UsuarioLogin, 
-    request: Request,
-    db: Session = Depends(get_db)
-):
-    """Inicia sesión"""
-    
-    user = authenticate_user(db, user_data.email, user_data.password)
-    
+    Args:
+        request: Request object de FastAPI
+        
+    Returns:
+        Diccionario con datos del usuario
+        
+    Raises:
+        HTTPException: Si no hay usuario en sesión
+    """
+    user = get_current_user_session(request)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email o contraseña incorrectos",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="No autenticado"
         )
-    
-    # Crear token con el ID del usuario
-    access_token = create_access_token(data={"sub": str(user.id)})
-    
-    # Guardar sesión en el servidor
-    request.session["user"] = create_user_session_data(user)
-    
-    print(f"✅ Login exitoso para: {user.email}")
-    print(f"   Rol: {user.rol}")
-    print(f"   Sesión guardada: {request.session.get('user')}")
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": user
-    }
-    
-@router.post("/logout")
-async def logout_endpoint(request: Request):
-    """Cierra sesión y limpia la sesión del servidor"""
-    request.session.clear()
-    return {"message": "Sesión cerrada exitosamente"}
-
-# ========== PERFIL ==========
-
-@router.get("/me", response_model=UsuarioResponse)
-async def get_current_user_profile(current_user: Usuario = Depends(get_current_user_token)):
-    """Obtiene el perfil del usuario actual"""
-    return current_user
-
-@router.put("/me", response_model=UsuarioResponse)
-async def update_profile(
-    nombre: str = None,
-    current_user: Usuario = Depends(get_current_user_token),
-    db: Session = Depends(get_db)
-):
-    """Actualiza el perfil"""
-    
-    if nombre:
-        current_user.nombre = nombre
-    
-    db.commit()
-    db.refresh(current_user)
-    
-    return current_user
-
-# ========== CAMBIO DE CONTRASEÑA ==========
-
-@router.post("/change-password")
-async def change_password(
-    request_data: ChangePasswordRequest,
-    current_user: Usuario = Depends(get_current_user_token),
-    db: Session = Depends(get_db)
-):
-    """Cambia la contraseña del usuario"""
-    
-    if not verify_password(request_data.current_password, current_user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="La contraseña actual es incorrecta"
-        )
-    
-    if len(request_data.new_password) < 6:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="La nueva contraseña debe tener al menos 6 caracteres"
-        )
-    
-    current_user.password_hash = hash_password(request_data.new_password)
-    db.commit()
-    
-    return {"message": "Contraseña actualizada exitosamente"}
-
-# ========== CAMBIO DE EMAIL ==========
-
-@router.post("/request-email-change")
-async def request_email_change(
-    request_data: RequestEmailChangeRequest,
-    current_user: Usuario = Depends(get_current_user_token),
-    db: Session = Depends(get_db)
-):
-    """Solicita cambio de email"""
-    
-    existing = db.query(Usuario).filter(Usuario.email == request_data.new_email).first()
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El email ya está en uso"
-        )
-    
-    code = secrets.token_urlsafe(32)
-    
-    current_user.pending_email = request_data.new_email
-    current_user.pending_email_code = code
-    current_user.pending_email_expires = utc_now() + timedelta(hours=1)
-    db.commit()
-    
-    try:
-        send_email_change_verification(request_data.new_email, current_user.nombre, code)
-    except Exception as e:
-        print(f"⚠️ Error enviando email: {e}")
-    
-    return {"message": f"Código enviado a {request_data.new_email}"}
-
-@router.post("/confirm-email-change")
-async def confirm_email_change(
-    request_data: ConfirmEmailChangeRequest,
-    current_user: Usuario = Depends(get_current_user_token),
-    db: Session = Depends(get_db)
-):
-    """Confirma cambio de email"""
-    
-    if not current_user.pending_email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No hay cambio de email pendiente"
-        )
-    
-    if current_user.pending_email_code != request_data.code:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Código inválido"
-        )
-    
-    if utc_now() > current_user.pending_email_expires:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El código ha expirado"
-        )
-    
-    current_user.email = current_user.pending_email
-    current_user.pending_email = None
-    current_user.pending_email_code = None
-    current_user.pending_email_expires = None
-    current_user.email_verified = True
-    db.commit()
-    
-    return {"message": "Email actualizado exitosamente"}
-
-# ========== ADMIN ==========
-
-@router.get("/users", response_model=List[UsuarioResponse])
-async def list_users(
-    skip: int = 0,
-    limit: int = 100,
-    current_admin: Usuario = Depends(get_current_admin),
-    db: Session = Depends(get_db)
-):
-    """Lista todos los usuarios (solo admin)"""
-    users = db.query(Usuario).offset(skip).limit(limit).all()
-    return users
-
-@router.put("/users/{user_id}/promote", response_model=UsuarioResponse)
-async def promote_to_admin(
-    user_id: str,
-    current_admin: Usuario = Depends(get_current_admin),
-    db: Session = Depends(get_db)
-):
-    """Promueve un usuario a administrador (solo admin)"""
-    user = db.query(Usuario).filter(Usuario.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
-    user.rol = "admin"
-    db.commit()
-    db.refresh(user)
-    
     return user
 
-# ========== ELIMINAR CUENTA ==========
+# ========================================
+# AUTENTICACIÓN HÍBRIDA (TOKEN O SESIÓN)
+# ========================================
 
-@router.delete("/delete-account")
-async def delete_account(
-    current_user: Usuario = Depends(get_current_user_token),
-    db: Session = Depends(get_db)
-):
-    """Elimina la cuenta del usuario actual"""
+def get_current_user_hybrid(request: Request, db: Session) -> Optional[dict]:
+    """
+    Obtiene el usuario actual desde token Bearer o sesión
+    Intenta primero con sesión, luego con token
     
-    if current_user.rol == "admin":
-        admin_count = db.query(Usuario).filter(Usuario.rol == "admin").count()
-        if admin_count <= 1:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No puedes eliminar la última cuenta de administrador"
-            )
+    Args:
+        request: Request object de FastAPI
+        db: Sesión de base de datos
+        
+    Returns:
+        Diccionario con datos del usuario si está autenticado, None si no
+    """
+    # Intentar obtener desde sesión primero
+    user_session = get_current_user_session(request)
+    if user_session:
+        return user_session
     
-    db.delete(current_user)
-    db.commit()
+    # Intentar obtener desde token Bearer
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        payload = decode_access_token(token)
+        
+        if payload:
+            user_id_str = payload.get("sub")
+            if user_id_str:
+                try:
+                    # ✅ Convertir string a UUID
+                    user_uuid = uuid.UUID(user_id_str)
+                    
+                    # ✅ Buscar usuario por UUID
+                    usuario = db.query(Usuario).filter(Usuario.id == user_uuid).first()
+                    
+                    if usuario:
+                        return {
+                            "id": str(usuario.id),  # ✅ Convertir UUID a string para JSON
+                            "email": usuario.email,
+                            "nombre": usuario.nombre,
+                            "rol": usuario.rol,
+                            "email_verificado": usuario.email_verified
+                        }
+                except (ValueError, AttributeError, TypeError):
+                    pass  # UUID inválido, ignorar
     
-    return {"message": "Cuenta eliminada exitosamente"}
+    return None
+
+# ========================================
+# VERIFICACIÓN DE ROLES
+# ========================================
+
+def require_admin(user: dict) -> dict:
+    """
+    Verifica que el usuario tenga rol de administrador
+    
+    Args:
+        user: Diccionario con datos del usuario
+        
+    Returns:
+        Usuario si es admin
+        
+    Raises:
+        HTTPException: Si el usuario no es admin
+    """
+    if not user or user.get("rol") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tiene permisos de administrador"
+        )
+    return user
+
+async def get_current_admin(
+    current_user: Usuario = Depends(get_current_user_token)
+) -> Usuario:
+    """
+    Obtiene el usuario actual y verifica que sea administrador
+    Usado como dependencia en endpoints que requieren permisos de admin
+    
+    Args:
+        current_user: Usuario actual obtenido del token
+        
+    Returns:
+        Usuario si es administrador
+        
+    Raises:
+        HTTPException: Si el usuario no es administrador
+    """
+    if current_user.rol != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tiene permisos de administrador"
+        )
+    return current_user
+
+# ========================================
+# UTILIDADES
+# ========================================
+
+def create_user_session_data(usuario: Usuario) -> dict:
+    """
+    Crea un diccionario con los datos del usuario para almacenar en sesión
+    
+    Args:
+        usuario: Objeto Usuario de la base de datos
+        
+    Returns:
+        Diccionario con datos seguros del usuario (sin contraseña)
+    """
+    return {
+        "id": str(usuario.id),  # ✅ Convertir UUID a string
+        "email": usuario.email,
+        "nombre": usuario.nombre,
+        "rol": usuario.rol,
+        "email_verificado": usuario.email_verified
+    }
+
+def validate_password_strength(password: str) -> tuple[bool, str]:
+    """
+    Valida la fortaleza de una contraseña
+    
+    Args:
+        password: Contraseña a validar
+        
+    Returns:
+        Tupla (es_válida, mensaje_error)
+    """
+    if len(password) < 6:
+        return False, "La contraseña debe tener al menos 6 caracteres"
+    
+    # Aquí puedes agregar más validaciones si quieres
+    # Por ejemplo: mayúsculas, números, caracteres especiales
+    
+    return True, ""
