@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from sqlalchemy import text
 from pathlib import Path
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -30,6 +31,9 @@ app = FastAPI(
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 IS_PRODUCTION = ENVIRONMENT == "production" or os.getenv("VERCEL") is not None
 
+print(f"🌐 Entorno: {ENVIRONMENT}")
+print(f"🔧 Es producción: {IS_PRODUCTION}")
+
 # 🔥 SECRET_KEY desde variable de entorno (CRÍTICO para producción)
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
@@ -37,6 +41,8 @@ if not SECRET_KEY:
         raise ValueError("SECRET_KEY must be set in production environment")
     SECRET_KEY = secrets.token_hex(32)
     print("⚠️ Using auto-generated SECRET_KEY (development only)")
+else:
+    print("✅ SECRET_KEY cargada desde variables de entorno")
 
 # ========================================
 # MIDDLEWARE DE CORS (CRÍTICO PARA VERCEL)
@@ -289,17 +295,42 @@ async def health_check():
         "is_production": IS_PRODUCTION
     }
 
+@app.get("/api/health/db")
+async def health_check_db():
+    """🔥 Verificar conexión a base de datos"""
+    try:
+        db = next(get_db())
+        result = db.execute(text("SELECT 1"))
+        db.close()
+        return {
+            "status": "ok",
+            "database": "connected",
+            "message": "Conexión a base de datos exitosa"
+        }
+    except Exception as e:
+        print(f"❌ Error en health check DB: {e}")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "database": "disconnected",
+                "error": str(e)
+            }
+        )
+
 @app.get("/api/test")
 async def api_test():
     """🔥 TEST: Verificar que la API responde correctamente"""
     return JSONResponse({
         "status": "ok",
         "message": "API funcionando correctamente",
+        "environment": ENVIRONMENT,
         "endpoints": {
-            "auth": "/api/auth/login",
-            "register": "/api/auth/register",
+            "auth_login": "/api/auth/login",
+            "auth_register": "/api/auth/register",
             "productos": "/api/productos",
-            "carrusel": "/api/carrusel"
+            "carrusel": "/api/carrusel",
+            "health_db": "/api/health/db"
         }
     })
 
@@ -322,6 +353,8 @@ async def not_found_handler(request: Request, exc):
 @app.exception_handler(500)
 async def server_error_handler(request: Request, exc):
     """Manejo de errores 500"""
+    print(f"❌ Error 500: {exc}")
+    
     # Si es una petición API, devolver JSON
     if request.url.path.startswith("/api/"):
         return JSONResponse(
@@ -340,6 +373,29 @@ async def server_error_handler(request: Request, exc):
         {"request": request, "user": user}, 
         status_code=500
     )
+
+# ========================================
+# EVENTO DE INICIO
+# ========================================
+
+@app.on_event("startup")
+async def startup_event():
+    """Evento que se ejecuta al iniciar la aplicación"""
+    print("=" * 60)
+    print("🚀 Iniciando Aurum Joyería")
+    print(f"   Entorno: {ENVIRONMENT}")
+    print(f"   Producción: {IS_PRODUCTION}")
+    print(f"   Secret Key: {'✅ Configurada' if SECRET_KEY else '❌ No configurada'}")
+    print("=" * 60)
+    
+    # Test de conexión a DB
+    try:
+        db = next(get_db())
+        db.execute(text("SELECT 1"))
+        db.close()
+        print("✅ Conexión a base de datos exitosa")
+    except Exception as e:
+        print(f"❌ Error conectando a base de datos: {e}")
 
 # ========================================
 # PUNTO DE ENTRADA

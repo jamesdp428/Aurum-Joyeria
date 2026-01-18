@@ -1,8 +1,8 @@
-# db.py - Configuración de Base de Datos para Vercel + Supabase
+# db.py - Configuración de Base de Datos para Vercel + Supabase (CORREGIDO)
 
 from typing import Annotated
 from fastapi import Depends
-from sqlalchemy import create_engine, text, event
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import NullPool
 import os
@@ -22,67 +22,60 @@ if not DATABASE_URL:
 # Detectar entorno
 IS_VERCEL = os.getenv("VERCEL") is not None or os.getenv("ENVIRONMENT") == "production"
 
-print(f"🌍 Entorno: {'VERCEL (Production)' if IS_VERCEL else 'Local (Development)'}")
+print(f"🌐 Entorno: {'VERCEL (Production)' if IS_VERCEL else 'Local (Development)'}")
+print(f"🔗 Database URL: {DATABASE_URL[:50]}...")
 
 # ========================================
-# CONFIGURACIÓN DIFERENCIADA POR ENTORNO
+# 🔥 CONFIGURACIÓN PARA VERCEL - CRÍTICO
 # ========================================
 
 if IS_VERCEL:
-    # 🔥 CONFIGURACIÓN PARA VERCEL (Serverless)
-    # Usar NullPool - NO mantener conexiones abiertas
+    print("⚡ Usando configuración SERVERLESS")
     
-    print("⚡ Usando configuración SERVERLESS (NullPool)")
-    
-    # IMPORTANTE: Cambiar a connection pooling de Supabase
-    # Si tu URL tiene :5432, cámbiala a :6543
+    # 🔥 IMPORTANTE: Asegurar que usa Transaction Pooler (port 6543)
     if ":5432" in DATABASE_URL:
         DATABASE_URL = DATABASE_URL.replace(":5432", ":6543")
-        DATABASE_URL += "?pgbouncer=true"
-        print("🔄 Cambiado a Connection Pooling (port 6543)")
+        print("🔄 Cambiado a Transaction Pooling (port 6543)")
     
+    # 🔥 CRÍTICO: Agregar parámetros de conexión optimizados para Vercel
+    if "?" in DATABASE_URL:
+        DATABASE_URL += "&"
+    else:
+        DATABASE_URL += "?"
+    
+    DATABASE_URL += "sslmode=require&connect_timeout=10"
+    
+    # 🔥 CRÍTICO: NullPool + configuración mínima
     engine = create_engine(
         DATABASE_URL,
         echo=False,
-        future=True,
-        poolclass=NullPool,  # ✅ CRÍTICO: No pool para serverless
+        poolclass=NullPool,  # ✅ NO mantener conexiones
         connect_args={
             "connect_timeout": 10,
-            "keepalives": 1,
-            "keepalives_idle": 30,
-            "keepalives_interval": 10,
-            "keepalives_count": 5,
+            "application_name": "aurum_vercel",
+            # 🔥 IMPORTANTE: Deshabilitar keepalives en Vercel
+            "keepalives": 0,
+        },
+        execution_options={
+            "isolation_level": "AUTOCOMMIT"
         }
     )
     
 else:
-    # 🏠 CONFIGURACIÓN PARA LOCAL (Development)
-    
-    print("🏠 Usando configuración LOCAL (QueuePool)")
+    # 🏠 CONFIGURACIÓN PARA LOCAL
+    print("🏠 Usando configuración LOCAL")
     
     engine = create_engine(
         DATABASE_URL,
         echo=False,
-        future=True,
-        pool_size=3,
-        max_overflow=2,
+        pool_size=5,
+        max_overflow=10,
         pool_pre_ping=True,
-        pool_recycle=300,
+        pool_recycle=3600,
         connect_args={
             "connect_timeout": 10,
-            "options": "-c statement_timeout=30000"
-        },
-        pool_timeout=20,
-        pool_use_lifo=True
+        }
     )
-    
-    # Event listeners solo para desarrollo
-    @event.listens_for(engine, "connect")
-    def receive_connect(dbapi_conn, connection_record):
-        cursor = dbapi_conn.cursor()
-        cursor.execute("SET SESSION statement_timeout = '30s'")
-        cursor.execute("SET SESSION idle_in_transaction_session_timeout = '60s'")
-        cursor.close()
 
 # ========================================
 # SESSION MAKER
@@ -92,7 +85,6 @@ SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine,
-    future=True,
     expire_on_commit=False
 )
 
@@ -103,11 +95,17 @@ SessionLocal = sessionmaker(
 def get_db():
     """
     Dependency para obtener sesión de DB
-    En Vercel, cada request crea una nueva conexión
+    ✅ Compatible con Vercel Serverless
     """
     db = SessionLocal()
     try:
+        # 🔥 Test rápido de conexión en Vercel
+        if IS_VERCEL:
+            db.execute(text("SELECT 1"))
         yield db
+    except Exception as e:
+        print(f"❌ Error en get_db: {e}")
+        raise
     finally:
         db.close()
 
@@ -120,10 +118,11 @@ SessionDepends = Annotated[Session, Depends(get_db)]
 def test_connection():
     """Test de conexión a la base de datos"""
     try:
-        with engine.connect() as connection:
-            result = connection.execute(text("SELECT 1"))
-            print("✅ Conexión exitosa a la base de datos")
-            return True
+        db = SessionLocal()
+        result = db.execute(text("SELECT 1"))
+        db.close()
+        print("✅ Conexión exitosa a la base de datos")
+        return True
     except Exception as e:
         print(f"❌ Error al conectar: {e}")
         return False

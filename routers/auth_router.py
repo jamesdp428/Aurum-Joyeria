@@ -1,8 +1,9 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError
 from typing import List
-from datetime import datetime, timedelta, timezone  # ✅ Agregar timezone
+from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel
 import secrets
 
@@ -26,7 +27,7 @@ router = APIRouter(prefix="/auth")
 
 def utc_now():
     """Retorna datetime con timezone UTC"""
-    return datetime.now(timezone.utc)  # ✅ CORRECCIÓN
+    return datetime.now(timezone.utc)
 
 # ========== SCHEMAS ADICIONALES ==========
 
@@ -43,53 +44,74 @@ class ConfirmEmailChangeRequest(BaseModel):
 class VerifyEmailCodeRequest(BaseModel):
     code: str
 
-# ========== REGISTRO CON VERIFICACIÓN ==========
+# ========== REGISTRO CON VERIFICACIÓN Y MANEJO DE ERRORES ==========
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def register_user(user_data: UsuarioCreate, request: Request, db: Session = Depends(get_db)):
     """Registra un nuevo usuario y envía email de verificación"""
     
-    existing_user = db.query(Usuario).filter(Usuario.email == user_data.email).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El email ya está registrado"
-        )
-    
-    verification_code = secrets.token_urlsafe(32)
-    
-    new_user = Usuario(
-        email=user_data.email,
-        nombre=user_data.nombre,
-        password_hash=hash_password(user_data.password),
-        rol="usuario",
-        email_verified=False,
-        verification_code=verification_code,
-        verification_expires=utc_now() + timedelta(hours=24)
-    )
-    
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    # Enviar email de verificación
     try:
-        send_verification_email(new_user.email, new_user.nombre, verification_code)
+        # Verificar si el email ya existe
+        existing_user = db.query(Usuario).filter(Usuario.email == user_data.email).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El email ya está registrado"
+            )
+        
+        verification_code = secrets.token_urlsafe(32)
+        
+        new_user = Usuario(
+            email=user_data.email,
+            nombre=user_data.nombre,
+            password_hash=hash_password(user_data.password),
+            rol="usuario",
+            email_verified=False,
+            verification_code=verification_code,
+            verification_expires=utc_now() + timedelta(hours=24)
+        )
+        
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        # Enviar email de verificación (no bloqueante)
+        try:
+            send_verification_email(new_user.email, new_user.nombre, verification_code)
+        except Exception as e:
+            print(f"⚠️ Error enviando email de verificación: {e}")
+            # No fallar el registro si falla el email
+        
+        # Crear token
+        access_token = create_access_token(data={"sub": str(new_user.id)})
+        
+        # Guardar sesión en el servidor
+        request.session["user"] = create_user_session_data(new_user)
+        
+        print(f"✅ Usuario registrado exitosamente: {new_user.email}")
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": new_user
+        }
+        
+    except OperationalError as e:
+        print(f"❌ Error de base de datos en registro: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Error de conexión con la base de datos. Por favor intenta nuevamente."
+        )
+    except HTTPException:
+        raise  # Re-lanzar HTTPExceptions
     except Exception as e:
-        print(f"⚠️ Error enviando email de verificación: {e}")
-        # No fallar el registro si falla el email
-    
-    # Crear token
-    access_token = create_access_token(data={"sub": str(new_user.id)})
-    
-    # Guardar sesión en el servidor
-    request.session["user"] = create_user_session_data(new_user)
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": new_user
-    }
+        print(f"❌ Error inesperado en registro: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno del servidor"
+        )
 
 # ========== VERIFICAR EMAIL ==========
 
@@ -97,9 +119,82 @@ async def register_user(user_data: UsuarioCreate, request: Request, db: Session 
 async def verify_email(code: str, db: Session = Depends(get_db)):
     """Verifica el email con el código recibido"""
     
-    user = db.query(Usuario).filter(Usuario.verification_code == code).first()
-    
-    if not user:
+    try:
+        user = db.query(Usuario).filter(Usuario.verification_code == code).first()
+        
+        if not user:
+            return """
+            <html>
+                <head>
+                    <title>Error - Aurum Joyería</title>
+                    <style>
+                        body { font-family: Arial; background: #000; color: #fff; text-align: center; padding: 50px; }
+                        .container { background: #1a1a1a; border: 2px solid #f44336; border-radius: 20px; padding: 40px; max-width: 500px; margin: 0 auto; }
+                        h1 { color: #f44336; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>❌ Código Inválido</h1>
+                        <p>El código de verificación no es válido.</p>
+                        <a href="/" style="color: #f9dc5e;">Volver al inicio</a>
+                    </div>
+                </body>
+            </html>
+            """
+        
+        if utc_now() > user.verification_expires:
+            return """
+            <html>
+                <head>
+                    <title>Expirado - Aurum Joyería</title>
+                    <style>
+                        body { font-family: Arial; background: #000; color: #fff; text-align: center; padding: 50px; }
+                        .container { background: #1a1a1a; border: 2px solid #ff9800; border-radius: 20px; padding: 40px; max-width: 500px; margin: 0 auto; }
+                        h1 { color: #ff9800; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>⏰ Código Expirado</h1>
+                        <p>El código de verificación ha expirado. Solicita uno nuevo desde tu perfil.</p>
+                        <a href="/perfil" style="color: #f9dc5e;">Ir a mi perfil</a>
+                    </div>
+                </body>
+            </html>
+            """
+        
+        # Verificar email
+        user.email_verified = True
+        user.verification_code = None
+        user.verification_expires = None
+        db.commit()
+        
+        return """
+        <html>
+            <head>
+                <title>Verificado - Aurum Joyería</title>
+                <meta http-equiv="refresh" content="3;url=/">
+                <style>
+                    body { font-family: Arial; background: #000; color: #fff; text-align: center; padding: 50px; }
+                    .container { background: linear-gradient(145deg, #1e1e1e, #2a2a2a); border: 2px solid #f9dc5e; border-radius: 20px; padding: 40px; max-width: 500px; margin: 0 auto; }
+                    h1 { color: #f9dc5e; }
+                    .checkmark { font-size: 80px; color: #4CAF50; margin: 20px 0; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="checkmark">✓</div>
+                    <h1>¡Email Verificado!</h1>
+                    <p>Tu cuenta ha sido verificada exitosamente.</p>
+                    <p>Serás redirigido en 3 segundos...</p>
+                    <a href="/" style="color: #f9dc5e;">Ir ahora</a>
+                </div>
+            </body>
+        </html>
+        """
+    except Exception as e:
+        print(f"❌ Error en verify_email: {e}")
         return """
         <html>
             <head>
@@ -112,64 +207,13 @@ async def verify_email(code: str, db: Session = Depends(get_db)):
             </head>
             <body>
                 <div class="container">
-                    <h1>❌ Código Inválido</h1>
-                    <p>El código de verificación no es válido.</p>
+                    <h1>❌ Error</h1>
+                    <p>Ocurrió un error al verificar el email.</p>
                     <a href="/" style="color: #f9dc5e;">Volver al inicio</a>
                 </div>
             </body>
         </html>
         """
-    
-    if utc_now() > user.verification_expires:
-        return """
-        <html>
-            <head>
-                <title>Expirado - Aurum Joyería</title>
-                <style>
-                    body { font-family: Arial; background: #000; color: #fff; text-align: center; padding: 50px; }
-                    .container { background: #1a1a1a; border: 2px solid #ff9800; border-radius: 20px; padding: 40px; max-width: 500px; margin: 0 auto; }
-                    h1 { color: #ff9800; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>⏰ Código Expirado</h1>
-                    <p>El código de verificación ha expirado. Solicita uno nuevo desde tu perfil.</p>
-                    <a href="/perfil" style="color: #f9dc5e;">Ir a mi perfil</a>
-                </div>
-            </body>
-        </html>
-        """
-    
-    # Verificar email
-    user.email_verified = True
-    user.verification_code = None
-    user.verification_expires = None
-    db.commit()
-    
-    return """
-    <html>
-        <head>
-            <title>Verificado - Aurum Joyería</title>
-            <meta http-equiv="refresh" content="3;url=/">
-            <style>
-                body { font-family: Arial; background: #000; color: #fff; text-align: center; padding: 50px; }
-                .container { background: linear-gradient(145deg, #1e1e1e, #2a2a2a); border: 2px solid #f9dc5e; border-radius: 20px; padding: 40px; max-width: 500px; margin: 0 auto; }
-                h1 { color: #f9dc5e; }
-                .checkmark { font-size: 80px; color: #4CAF50; margin: 20px 0; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="checkmark">✓</div>
-                <h1>¡Email Verificado!</h1>
-                <p>Tu cuenta ha sido verificada exitosamente.</p>
-                <p>Serás redirigido en 3 segundos...</p>
-                <a href="/" style="color: #f9dc5e;">Ir ahora</a>
-            </div>
-        </body>
-    </html>
-    """
 
 # ========== REENVIAR CÓDIGO ==========
 
@@ -244,7 +288,7 @@ async def verify_email_with_code(
     
     return {"message": "Email verificado exitosamente"}
 
-# ========== LOGIN ==========
+# ========== LOGIN CON MANEJO ROBUSTO DE ERRORES ==========
 
 @router.post("/login", response_model=Token)
 async def login(
@@ -252,33 +296,50 @@ async def login(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """Inicia sesión"""
+    """Inicia sesión con manejo robusto de errores"""
     
-    user = authenticate_user(db, user_data.email, user_data.password)
-    
-    if not user:
+    try:
+        print(f"🔐 Intentando login para: {user_data.email}")
+        
+        # Intentar autenticar
+        user = authenticate_user(db, user_data.email, user_data.password)
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Email o contraseña incorrectos",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Crear token con el ID del usuario
+        access_token = create_access_token(data={"sub": str(user.id)})
+        
+        # Guardar sesión en el servidor
+        request.session["user"] = create_user_session_data(user)
+        
+        print(f"✅ Login exitoso para: {user.email} (rol: {user.rol})")
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": user
+        }
+        
+    except OperationalError as e:
+        print(f"❌ Error de base de datos en login: {e}")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email o contraseña incorrectos",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Error de conexión con la base de datos. Por favor intenta nuevamente."
         )
-    
-    # Crear token con el ID del usuario
-    access_token = create_access_token(data={"sub": str(user.id)})
-    
-    # Guardar sesión en el servidor
-    request.session["user"] = create_user_session_data(user)
-    
-    print(f"✅ Login exitoso para: {user.email}")
-    print(f"   Rol: {user.rol}")
-    print(f"   Sesión guardada: {request.session.get('user')}")
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": user
-    }
-    
+    except HTTPException:
+        raise  # Re-lanzar HTTPExceptions (como 401)
+    except Exception as e:
+        print(f"❌ Error inesperado en login: {type(e).__name__} - {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno del servidor"
+        )
+
 @router.post("/logout")
 async def logout_endpoint(request: Request):
     """Cierra sesión y limpia la sesión del servidor"""
