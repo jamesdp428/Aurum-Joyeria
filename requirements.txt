@@ -30,3 +30,5 @@ resend==0.8.0
 
 # Procesamiento de imágenes
 Pillow==10.2.0
+
+requests==2.31.0

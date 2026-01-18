@@ -334,6 +334,29 @@ async def api_test():
         }
     })
 
+@app.get("/api/health/supabase")
+async def health_check_supabase():
+    """Verificar conexión a Supabase REST API"""
+    try:
+        from supabase_client import supabase
+        # Test simple: intentar leer usuarios
+        users = supabase.get_all_users(skip=0, limit=1)
+        return {
+            "status": "ok",
+            "supabase": "connected",
+            "message": "Conexión a Supabase REST API exitosa"
+        }
+    except Exception as e:
+        print(f"❌ Error en health check Supabase: {e}")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "supabase": "disconnected",
+                "error": str(e)
+            }
+        )
+
 # ========================================
 # MANEJO DE ERRORES
 # ========================================
