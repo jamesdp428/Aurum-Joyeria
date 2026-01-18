@@ -2,7 +2,7 @@
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from typing import List
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone  # ✅ Agregar timezone
 from pydantic import BaseModel
 import secrets
 
@@ -26,7 +26,7 @@ router = APIRouter(prefix="/auth")
 
 def utc_now():
     """Retorna datetime con timezone UTC"""
-    return datetime.now(timezone.utc)
+    return datetime.now(timezone.utc)  # ✅ CORRECCIÓN
 
 # ========== SCHEMAS ADICIONALES ==========
 

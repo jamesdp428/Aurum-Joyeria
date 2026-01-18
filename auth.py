@@ -1,6 +1,6 @@
-# auth.py - Sistema de autenticación completo
+# auth.py - Sistema de autenticación completo (CORREGIDO)
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone  # ✅ Agregar timezone
 from typing import Optional
 import uuid
 from jose import JWTError, jwt
@@ -59,10 +59,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     """
     to_encode = data.copy()
     
+    # ✅ CORRECCIÓN: Usar datetime.now(timezone.utc) en lugar de datetime.utcnow()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
     
@@ -251,7 +252,7 @@ def get_current_user_hybrid(request: Request, db: Session) -> Optional[dict]:
                             "email": usuario.email,
                             "nombre": usuario.nombre,
                             "rol": usuario.rol,
-                            "email_verificado": usuario.email_verificado
+                            "email_verificado": usuario.email_verified
                         }
                 except (ValueError, AttributeError, TypeError):
                     pass  # UUID inválido, ignorar
@@ -324,7 +325,7 @@ def create_user_session_data(usuario: Usuario) -> dict:
         "email": usuario.email,
         "nombre": usuario.nombre,
         "rol": usuario.rol,
-        "email_verificado": usuario.email_verificado
+        "email_verificado": usuario.email_verified
     }
 
 def validate_password_strength(password: str) -> tuple[bool, str]:
