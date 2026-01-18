@@ -140,10 +140,11 @@ app.include_router(carrusel_router, prefix="/api", tags=["Carrusel"])
 # HELPER FUNCTIONS
 # ========================================
 
-def safe_get_user(request: Request, db: Session) -> Optional[dict]:
+def safe_get_user(request: Request) -> Optional[dict]:
     """Obtiene usuario de forma segura sin lanzar excepciones"""
     try:
-        return get_current_user_hybrid(request, db)
+        # Solo usar sesión, no DB
+        return get_current_user_session(request)
     except Exception as e:
         print(f"⚠️ Error obteniendo usuario: {e}")
         return None
@@ -155,7 +156,7 @@ def safe_get_user(request: Request, db: Session) -> Optional[dict]:
 @app.get("/", response_class=HTMLResponse, name="index")
 async def index(request: Request):
     """Página de inicio"""
-    user = safe_get_user(request, next(get_db()))
+    user = safe_get_user(request)
     return templates.TemplateResponse("index.html", {"request": request, "user": user})
 
 # ========================================
@@ -197,7 +198,7 @@ async def perfil(request: Request):
 @app.get("/carrito", response_class=HTMLResponse, name="carrito")
 async def carrito(request: Request):
     """Página del carrito de compras"""
-    user = safe_get_user(request, next(get_db()))
+    user = safe_get_user(request)
     return templates.TemplateResponse("carrito.html", {"request": request, "user": user})
 
 # ========================================
@@ -206,7 +207,7 @@ async def carrito(request: Request):
 
 @app.get("/anillos", response_class=HTMLResponse, name="anillos")
 async def anillos(request: Request):
-    user = safe_get_user(request, next(get_db()))
+    user = safe_get_user(request)
     return templates.TemplateResponse(
         "base_categoria.html", 
         {"request": request, "user": user, "categoria": "anillos", "categoria_nombre": "Anillos"}
@@ -214,7 +215,7 @@ async def anillos(request: Request):
 
 @app.get("/pulseras", response_class=HTMLResponse, name="pulseras")
 async def pulseras(request: Request):
-    user = safe_get_user(request, next(get_db()))
+    user = safe_get_user(request)
     return templates.TemplateResponse(
         "base_categoria.html", 
         {"request": request, "user": user, "categoria": "pulseras", "categoria_nombre": "Pulseras"}
@@ -222,7 +223,7 @@ async def pulseras(request: Request):
 
 @app.get("/cadenas", response_class=HTMLResponse, name="cadenas")
 async def cadenas(request: Request):
-    user = safe_get_user(request, next(get_db()))
+    user = safe_get_user(request)
     return templates.TemplateResponse(
         "base_categoria.html", 
         {"request": request, "user": user, "categoria": "cadenas", "categoria_nombre": "Cadenas"}
@@ -230,7 +231,7 @@ async def cadenas(request: Request):
 
 @app.get("/aretes", response_class=HTMLResponse, name="aretes")
 async def aretes(request: Request):
-    user = safe_get_user(request, next(get_db()))
+    user = safe_get_user(request)
     return templates.TemplateResponse(
         "base_categoria.html", 
         {"request": request, "user": user, "categoria": "aretes", "categoria_nombre": "Aretes"}
@@ -238,7 +239,7 @@ async def aretes(request: Request):
 
 @app.get("/tobilleras", response_class=HTMLResponse, name="tobilleras")
 async def tobilleras(request: Request):
-    user = safe_get_user(request, next(get_db()))
+    user = safe_get_user(request)
     return templates.TemplateResponse(
         "base_categoria.html", 
         {"request": request, "user": user, "categoria": "tobilleras", "categoria_nombre": "Tobilleras"}
@@ -246,7 +247,7 @@ async def tobilleras(request: Request):
 
 @app.get("/otros", response_class=HTMLResponse, name="more_products")
 async def more_products(request: Request):
-    user = safe_get_user(request, next(get_db()))
+    user = safe_get_user(request)
     return templates.TemplateResponse(
         "base_categoria.html", 
         {"request": request, "user": user, "categoria": "otros", "categoria_nombre": "Más Productos"}
@@ -258,7 +259,7 @@ async def more_products(request: Request):
 
 @app.get("/producto/{producto_id}", response_class=HTMLResponse, name="producto_detalle")
 async def producto_detalle(request: Request, producto_id: str):
-    user = safe_get_user(request, next(get_db()))
+    user = safe_get_user(request)
     return templates.TemplateResponse(
         "producto.html", 
         {"request": request, "user": user, "producto_id": producto_id}
@@ -334,29 +335,6 @@ async def api_test():
         }
     })
 
-@app.get("/api/health/supabase")
-async def health_check_supabase():
-    """Verificar conexión a Supabase REST API"""
-    try:
-        from supabase_client import supabase
-        # Test simple: intentar leer usuarios
-        users = supabase.get_all_users(skip=0, limit=1)
-        return {
-            "status": "ok",
-            "supabase": "connected",
-            "message": "Conexión a Supabase REST API exitosa"
-        }
-    except Exception as e:
-        print(f"❌ Error en health check Supabase: {e}")
-        return JSONResponse(
-            status_code=503,
-            content={
-                "status": "error",
-                "supabase": "disconnected",
-                "error": str(e)
-            }
-        )
-
 # ========================================
 # MANEJO DE ERRORES
 # ========================================
@@ -387,7 +365,7 @@ async def server_error_handler(request: Request, exc):
     # Si es una página HTML, mostrar página de error
     user = None
     try:
-        user = safe_get_user(request, next(get_db()))
+        user = safe_get_user(request)
     except:
         pass
     
@@ -411,14 +389,13 @@ async def startup_event():
     print(f"   Secret Key: {'✅ Configurada' if SECRET_KEY else '❌ No configurada'}")
     print("=" * 60)
     
-    # Test de conexión a DB
+    # Test de conexión a Supabase REST API
     try:
-        db = next(get_db())
-        db.execute(text("SELECT 1"))
-        db.close()
-        print("✅ Conexión a base de datos exitosa")
+        from supabase_client import supabase
+        users = supabase.get_all_users(skip=0, limit=1)
+        print("✅ Conexión a Supabase REST API exitosa")
     except Exception as e:
-        print(f"❌ Error conectando a base de datos: {e}")
+        print(f"❌ Error conectando a Supabase: {e}")
 
 # ========================================
 # PUNTO DE ENTRADA
