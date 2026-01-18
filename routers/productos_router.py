@@ -1,4 +1,5 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
+from fastapi.responses import JSONResponse
 from typing import List, Optional
 from supabase import create_client, Client
 import os
@@ -271,7 +272,8 @@ async def update_producto(
             detail=str(e)
         )
 
-@router.delete("/{producto_id}", status_code=status.HTTP_204_NO_CONTENT)
+# 🔥 CRÍTICO: Cambiar de 204 a 200 con JSON response
+@router.delete("/{producto_id}")
 async def delete_producto(request: Request, producto_id: str):
     """Elimina un producto (solo admin)"""
     
@@ -299,7 +301,11 @@ async def delete_producto(request: Request, producto_id: str):
                 detail="Error al eliminar producto"
             )
         
-        return None
+        # 🔥 RETORNAR JSON en lugar de None
+        return JSONResponse(
+            status_code=200,
+            content={"message": "Producto eliminado exitosamente", "id": producto_id}
+        )
         
     except HTTPException:
         raise

@@ -1,4 +1,5 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
+from fastapi.responses import JSONResponse
 from typing import List, Optional
 from supabase import create_client, Client
 import os
@@ -236,7 +237,8 @@ async def update_carrusel_item(
             detail=str(e)
         )
 
-@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+# 🔥 CRÍTICO: Cambiar de 204 a 200 con JSON response
+@router.delete("/{item_id}")
 async def delete_carrusel_item(request: Request, item_id: str):
     """Elimina item del carrusel (solo admin)"""
     
@@ -264,7 +266,11 @@ async def delete_carrusel_item(request: Request, item_id: str):
                 detail="Error al eliminar item del carrusel"
             )
         
-        return None
+        # 🔥 RETORNAR JSON en lugar de None
+        return JSONResponse(
+            status_code=200,
+            content={"message": "Item eliminado exitosamente", "id": item_id}
+        )
         
     except HTTPException:
         raise
