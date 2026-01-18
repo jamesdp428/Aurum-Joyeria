@@ -1,5 +1,4 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from sqlalchemy.orm import Session
+﻿from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
 from typing import List, Optional
 from supabase import create_client, Client
 import os
@@ -8,28 +7,35 @@ import uuid
 from PIL import Image
 import io
 
-from db import get_db
-from models import Producto, Usuario
-from schemas import ProductoCreate, ProductoUpdate, ProductoResponse
-from auth import get_current_admin
+from supabase_client import supabase as supabase_rest
+from schemas import ProductoResponse
+from auth import decode_access_token
 
 load_dotenv()
 
-# ✅ CORRECCIÓN: Eliminar el prefijo "/api" duplicado
-router = APIRouter(prefix="/productos")  # ← CAMBIO AQUÍ
+router = APIRouter(prefix="/productos")
 
-# Configurar Supabase Client
+# Configurar Supabase Client para Storage
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase_storage: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ========== FUNCIONES AUXILIARES ==========
 
+def get_current_admin_from_session(request: Request):
+    """Verifica que el usuario sea admin desde la sesión"""
+    user_session = request.session.get("user")
+    if not user_session or user_session.get("rol") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tiene permisos de administrador"
+        )
+    return user_session
+
 def optimize_image(file_content: bytes, max_size: tuple = (1200, 1200)) -> bytes:
-    """Optimiza una imagen redimensionándola y comprimiéndola"""
+    """Optimiza una imagen"""
     image = Image.open(io.BytesIO(file_content))
     
-    # Convertir a RGB si es necesario
     if image.mode in ('RGBA', 'LA', 'P'):
         background = Image.new('RGB', image.size, (255, 255, 255))
         if image.mode == 'P':
@@ -37,109 +43,98 @@ def optimize_image(file_content: bytes, max_size: tuple = (1200, 1200)) -> bytes
         background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
         image = background
     
-    # Redimensionar manteniendo aspect ratio
     image.thumbnail(max_size, Image.Resampling.LANCZOS)
     
-    # Guardar optimizada
     output = io.BytesIO()
     image.save(output, format='JPEG', quality=85, optimize=True)
     return output.getvalue()
 
 async def upload_image_to_supabase(file: UploadFile, bucket: str = "productos-images") -> str:
-    """Sube una imagen a Supabase Storage y retorna la URL pública"""
+    """Sube imagen a Supabase Storage"""
     
-    # Leer contenido del archivo
     file_content = await file.read()
     
-    # VALIDACIÓN: Verificar que hay contenido
     if not file_content:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El archivo de imagen está vacío"
+            detail="El archivo está vacío"
         )
     
-    # Optimizar imagen
     try:
         optimized_content = optimize_image(file_content)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Error al procesar la imagen: {str(e)}"
+            detail=f"Error al procesar imagen: {str(e)}"
         )
     
-    # Generar nombre único
     file_extension = file.filename.split('.')[-1].lower()
     if file_extension not in ['jpg', 'jpeg', 'png', 'webp']:
         file_extension = 'jpg'
     
     unique_filename = f"producto_{uuid.uuid4()}.{file_extension}"
     
-    # Subir a Supabase Storage
     try:
-        print(f"📤 Subiendo imagen: {unique_filename} ({len(optimized_content)} bytes)")
-        
-        response = supabase.storage.from_(bucket).upload(
+        supabase_storage.storage.from_(bucket).upload(
             path=unique_filename,
             file=optimized_content,
             file_options={"content-type": "image/jpeg", "upsert": "false"}
         )
         
-        # Obtener URL pública
-        public_url = supabase.storage.from_(bucket).get_public_url(unique_filename)
-        
-        print(f"✅ Imagen subida exitosamente: {public_url}")
+        public_url = supabase_storage.storage.from_(bucket).get_public_url(unique_filename)
         return public_url
         
     except Exception as e:
-        print(f"❌ Error detallado al subir imagen: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al subir imagen a Supabase: {str(e)}"
+            detail=f"Error al subir imagen: {str(e)}"
         )
 
 async def delete_image_from_supabase(image_url: str, bucket: str = "productos-images"):
-    """Elimina una imagen de Supabase Storage"""
+    """Elimina imagen de Supabase Storage"""
     try:
-        # Extraer filename de la URL
         filename = image_url.split('/')[-1]
-        supabase.storage.from_(bucket).remove([filename])
-        print(f"🗑️ Imagen eliminada: {filename}")
+        supabase_storage.storage.from_(bucket).remove([filename])
     except Exception as e:
-        print(f"⚠️ Error al eliminar imagen: {str(e)}")
+        print(f"⚠️ Error al eliminar imagen: {e}")
 
 # ========== ENDPOINTS PÚBLICOS ==========
 
-@router.get("", response_model=List[ProductoResponse])
+@router.get("", response_model=List[dict])
 async def get_productos(
     categoria: Optional[str] = None,
     destacado: Optional[bool] = None,
     activo: Optional[bool] = None,
     skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db)
+    limit: int = 100
 ):
-    """Obtiene lista de productos con filtros opcionales"""
+    """Obtiene lista de productos con filtros"""
     
-    query = db.query(Producto)
-    
-    # Solo filtrar por activo si se especifica explícitamente
-    if activo is not None:
-        query = query.filter(Producto.activo == activo)
-    
-    if categoria:
-        query = query.filter(Producto.categoria == categoria)
-    
-    if destacado is not None:
-        query = query.filter(Producto.destacado == destacado)
-    
-    productos = query.order_by(Producto.created_at.desc()).offset(skip).limit(limit).all()
-    return productos
+    try:
+        filters = {}
+        if categoria:
+            filters["categoria"] = categoria
+        if destacado is not None:
+            filters["destacado"] = destacado
+        if activo is not None:
+            filters["activo"] = activo
+        filters["skip"] = skip
+        filters["limit"] = limit
+        
+        productos = supabase_rest.get_productos(filters)
+        return productos
+    except Exception as e:
+        print(f"❌ Error obteniendo productos: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
-@router.get("/{producto_id}", response_model=ProductoResponse)
-async def get_producto(producto_id: str, db: Session = Depends(get_db)):
+@router.get("/{producto_id}")
+async def get_producto(producto_id: str):
     """Obtiene un producto por ID"""
     
-    producto = db.query(Producto).filter(Producto.id == producto_id).first()
+    producto = supabase_rest.get_producto_by_id(producto_id)
     
     if not producto:
         raise HTTPException(
@@ -149,25 +144,11 @@ async def get_producto(producto_id: str, db: Session = Depends(get_db)):
     
     return producto
 
-@router.get("/categoria/{categoria}", response_model=List[ProductoResponse])
-async def get_productos_by_categoria(
-    categoria: str,
-    activo: bool = True,
-    db: Session = Depends(get_db)
-):
-    """Obtiene productos por categoría"""
-    
-    productos = db.query(Producto).filter(
-        Producto.categoria == categoria,
-        Producto.activo == activo
-    ).all()
-    
-    return productos
-
 # ========== ENDPOINTS ADMIN ==========
 
-@router.post("", response_model=ProductoResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_producto(
+    request: Request,
     nombre: str = Form(...),
     descripcion: Optional[str] = Form(None),
     precio: Optional[float] = Form(None),
@@ -175,57 +156,54 @@ async def create_producto(
     stock: int = Form(0),
     destacado: bool = Form(False),
     activo: bool = Form(True),
-    imagen: Optional[UploadFile] = File(None),
-    current_admin: Usuario = Depends(get_current_admin),
-    db: Session = Depends(get_db)
+    imagen: Optional[UploadFile] = File(None)
 ):
     """Crea un nuevo producto (solo admin)"""
     
-    print(f"🔨 Creando producto: {nombre}")
-    print(f"   Categoría: {categoria}")
-    print(f"   Imagen recibida: {imagen.filename if imagen else 'Sin imagen'}")
-    
-    # Subir imagen si existe
-    imagen_url = None
-    if imagen and imagen.filename:
-        try:
-            imagen_url = await upload_image_to_supabase(imagen)
-            print(f"✅ URL de imagen generada: {imagen_url}")
-        except Exception as e:
-            print(f"❌ Error al subir imagen: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error al subir la imagen: {str(e)}"
-            )
-    
-    # Crear producto
-    nuevo_producto = Producto(
-        nombre=nombre,
-        descripcion=descripcion,
-        precio=precio,
-        categoria=categoria,
-        stock=stock,
-        destacado=destacado,
-        activo=activo,
-        imagen_url=imagen_url
-    )
+    # Verificar admin
+    get_current_admin_from_session(request)
     
     try:
-        db.add(nuevo_producto)
-        db.commit()
-        db.refresh(nuevo_producto)
-        print(f"✅ Producto creado con ID: {nuevo_producto.id}")
+        # Subir imagen si existe
+        imagen_url = None
+        if imagen and imagen.filename:
+            imagen_url = await upload_image_to_supabase(imagen)
+        
+        # Crear producto
+        producto_data = {
+            "id": str(uuid.uuid4()),
+            "nombre": nombre,
+            "descripcion": descripcion,
+            "precio": precio,
+            "categoria": categoria,
+            "stock": stock,
+            "destacado": destacado,
+            "activo": activo,
+            "imagen_url": imagen_url
+        }
+        
+        nuevo_producto = supabase_rest.create_producto(producto_data)
+        
+        if not nuevo_producto:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error al crear producto"
+            )
+        
         return nuevo_producto
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        db.rollback()
-        print(f"❌ Error al guardar producto en DB: {str(e)}")
+        print(f"❌ Error creando producto: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al guardar el producto: {str(e)}"
+            detail=str(e)
         )
 
-@router.put("/{producto_id}", response_model=ProductoResponse)
+@router.put("/{producto_id}")
 async def update_producto(
+    request: Request,
     producto_id: str,
     nombre: Optional[str] = Form(None),
     descripcion: Optional[str] = Form(None),
@@ -234,98 +212,111 @@ async def update_producto(
     stock: Optional[int] = Form(None),
     destacado: Optional[bool] = Form(None),
     activo: Optional[bool] = Form(None),
-    imagen: Optional[UploadFile] = File(None),
-    current_admin: Usuario = Depends(get_current_admin),
-    db: Session = Depends(get_db)
+    imagen: Optional[UploadFile] = File(None)
 ):
-    """Actualiza un producto existente (solo admin)"""
+    """Actualiza un producto (solo admin)"""
     
-    producto = db.query(Producto).filter(Producto.id == producto_id).first()
-    
-    if not producto:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Producto no encontrado"
-        )
-    
-    print(f"🔨 Actualizando producto: {producto.nombre}")
-    
-    # Actualizar campos si se proporcionan
-    if nombre is not None:
-        producto.nombre = nombre
-    if descripcion is not None:
-        producto.descripcion = descripcion
-    if precio is not None:
-        producto.precio = precio
-    if categoria is not None:
-        producto.categoria = categoria
-    if stock is not None:
-        producto.stock = stock
-    if destacado is not None:
-        producto.destacado = destacado
-    if activo is not None:
-        producto.activo = activo
-    
-    # Actualizar imagen si se proporciona
-    if imagen and imagen.filename:
-        print(f"🖼️ Actualizando imagen...")
-        try:
-            # Eliminar imagen anterior si existe
-            if producto.imagen_url:
-                await delete_image_from_supabase(producto.imagen_url)
-            
-            # Subir nueva imagen
-            producto.imagen_url = await upload_image_to_supabase(imagen)
-            print(f"✅ Nueva imagen: {producto.imagen_url}")
-        except Exception as e:
-            print(f"❌ Error al actualizar imagen: {str(e)}")
-            # No lanzar error, continuar con la actualización
+    # Verificar admin
+    get_current_admin_from_session(request)
     
     try:
-        db.commit()
-        db.refresh(producto)
-        print(f"✅ Producto actualizado")
-        return producto
+        # Obtener producto actual
+        producto = supabase_rest.get_producto_by_id(producto_id)
+        if not producto:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Producto no encontrado"
+            )
+        
+        # Preparar actualizaciones
+        updates = {}
+        if nombre is not None:
+            updates["nombre"] = nombre
+        if descripcion is not None:
+            updates["descripcion"] = descripcion
+        if precio is not None:
+            updates["precio"] = precio
+        if categoria is not None:
+            updates["categoria"] = categoria
+        if stock is not None:
+            updates["stock"] = stock
+        if destacado is not None:
+            updates["destacado"] = destacado
+        if activo is not None:
+            updates["activo"] = activo
+        
+        # Actualizar imagen si se proporciona
+        if imagen and imagen.filename:
+            if producto.get("imagen_url"):
+                await delete_image_from_supabase(producto["imagen_url"])
+            updates["imagen_url"] = await upload_image_to_supabase(imagen)
+        
+        # Actualizar producto
+        producto_actualizado = supabase_rest.update_producto(producto_id, updates)
+        
+        if not producto_actualizado:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error al actualizar producto"
+            )
+        
+        return producto_actualizado
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        db.rollback()
-        print(f"❌ Error al actualizar en DB: {str(e)}")
+        print(f"❌ Error actualizando producto: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al actualizar el producto: {str(e)}"
+            detail=str(e)
         )
 
 @router.delete("/{producto_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_producto(
-    producto_id: str,
-    current_admin: Usuario = Depends(get_current_admin),
-    db: Session = Depends(get_db)
-):
+async def delete_producto(request: Request, producto_id: str):
     """Elimina un producto (solo admin)"""
     
-    producto = db.query(Producto).filter(Producto.id == producto_id).first()
+    # Verificar admin
+    get_current_admin_from_session(request)
     
-    if not producto:
+    try:
+        producto = supabase_rest.get_producto_by_id(producto_id)
+        if not producto:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Producto no encontrado"
+            )
+        
+        # Eliminar imagen
+        if producto.get("imagen_url"):
+            await delete_image_from_supabase(producto["imagen_url"])
+        
+        # Eliminar producto
+        success = supabase_rest.delete_producto(producto_id)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error al eliminar producto"
+            )
+        
+        return None
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error eliminando producto: {e}")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Producto no encontrado"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
         )
-    
-    print(f"🗑️ Eliminando producto: {producto.nombre}")
-    
-    # Eliminar imagen de Supabase si existe
-    if producto.imagen_url:
-        await delete_image_from_supabase(producto.imagen_url)
-    
-    # Eliminar producto de la base de datos
-    db.delete(producto)
-    db.commit()
-    
-    print(f"✅ Producto eliminado")
-    return None
 
 @router.get("/categorias/list")
-async def get_categorias(db: Session = Depends(get_db)):
-    """Obtiene lista de categorías disponibles"""
-    
-    categorias = db.query(Producto.categoria).distinct().all()
-    return [cat[0] for cat in categorias]
+async def get_categorias():
+    """Obtiene lista de categorías"""
+    try:
+        productos = supabase_rest.get_productos({})
+        categorias = list(set(p.get("categoria") for p in productos if p.get("categoria")))
+        return categorias
+    except Exception as e:
+        print(f"❌ Error obteniendo categorías: {e}")
+        return []
