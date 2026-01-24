@@ -87,18 +87,25 @@ async function fetchAPI(endpoint, options = {}) {
     const response = await fetch(url, config);
     
     console.log(`📥 Response: ${response.status} ${response.statusText}`);
-    console.log(`📥 Content-Type: ${response.headers.get('content-type')}`);
     
-    // Si es 204 (No Content), retornar null
+    // Si es 204 (No Content), retornar objeto vacío
     if (response.status === 204) {
-      return null;
+      return { success: true };
     }
     
     // 🔥 CRÍTICO: Verificar que la respuesta sea JSON
     const contentType = response.headers.get('content-type');
+    
+    // Si no es JSON, intentar leer como texto para debugging
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
       console.error('❌ Respuesta no es JSON:', text.substring(0, 200));
+      
+      // Si la respuesta es exitosa pero no es JSON, asumir éxito
+      if (response.ok) {
+        return { success: true };
+      }
+      
       throw new Error('El servidor no respondió con JSON. Verifica que la ruta API sea correcta.');
     }
     
@@ -118,7 +125,7 @@ async function fetchAPI(endpoint, options = {}) {
         throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
       }
       
-      throw new Error(data.detail || 'Error en la petición');
+      throw new Error(data.detail || data.message || 'Error en la petición');
     }
     
     return data;
@@ -184,34 +191,6 @@ const authAPI = {
     });
   },
   
-  async requestEmailChange(newEmail) {
-    return await fetchAPI('/auth/request-email-change', {
-      method: 'POST',
-      body: JSON.stringify({ new_email: newEmail })
-    });
-  },
-  
-  async confirmEmailChange(code) {
-    const response = await fetchAPI('/auth/confirm-email-change', {
-      method: 'POST',
-      body: JSON.stringify({ code })
-    });
-    
-    const user = getCurrentUser();
-    const profile = await this.getProfile();
-    user.email = profile.email;
-    user.email_verified = profile.email_verified;
-    localStorage.setItem('user', JSON.stringify(user));
-    
-    return response;
-  },
-  
-  async resendVerification() {
-    return await fetchAPI('/auth/resend-verification', {
-      method: 'POST'
-    });
-  },
-  
   async verifyEmailWithCode(code) {
     const response = await fetchAPI('/auth/verify-email-code', {
       method: 'POST',
@@ -255,7 +234,7 @@ const productosAPI = {
   },
   
   async getByCategoria(categoria) {
-    return await fetchAPI(`/productos/categoria/${categoria}`);
+    return await fetchAPI(`/productos?categoria=${categoria}&activo=true`);
   },
   
   async create(productoData, imagenFile = null) {
@@ -288,12 +267,12 @@ const productosAPI = {
   async update(id, productoData, imagenFile = null) {
     const formData = new FormData();
     
-    if (productoData.nombre) formData.append('nombre', productoData.nombre);
+    if (productoData.nombre !== undefined) formData.append('nombre', productoData.nombre);
     if (productoData.descripcion !== undefined) formData.append('descripcion', productoData.descripcion);
     if (productoData.precio !== undefined && productoData.precio !== null && productoData.precio !== '') {
       formData.append('precio', productoData.precio);
     }
-    if (productoData.categoria) formData.append('categoria', productoData.categoria);
+    if (productoData.categoria !== undefined) formData.append('categoria', productoData.categoria);
     if (productoData.stock !== undefined) formData.append('stock', productoData.stock);
     if (productoData.destacado !== undefined) formData.append('destacado', productoData.destacado);
     if (productoData.activo !== undefined) formData.append('activo', productoData.activo);

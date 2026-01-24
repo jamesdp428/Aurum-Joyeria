@@ -114,18 +114,21 @@ document.addEventListener("DOMContentLoaded", async () => {
           precioHTML = '<p class="precio consultar">Consultar precio</p>';
         }
 
+        // 🔥 CRÍTICO: Imagen con placeholder y ruta correcta
+        const imagenUrl = producto.imagen_url || 'https://via.placeholder.com/300x300/1a1a1a/f9dc5e?text=Sin+Imagen';
+
         return `
           <div class="producto-card" data-stock="${stockClass}">
             ${destacadoBadge}
-            <img src="${producto.imagen_url || '../../img/placeholder.jpg'}" 
+            <img src="${imagenUrl}" 
                   alt="${producto.nombre}" 
                   loading="lazy"
-                  onerror="this.src='../../img/placeholder.jpg'; this.onerror=null;" />
+                  onerror="this.src='https://via.placeholder.com/300x300/1a1a1a/f9dc5e?text=Sin+Imagen'; this.onerror=null;" />
             <h3>${producto.nombre}</h3>
             <p class="descripcion">${producto.descripcion || 'Sin descripción'}</p>
             ${precioHTML}
             <p class="stock ${stockClass}">${stockText}</p>
-            <a href="producto.html?id=${producto.id}" class="ver-mas">Ver más</a>
+            <a href="/producto/${producto.id}" class="ver-mas">Ver más</a>
           </div>
         `;
       }).join("");
@@ -164,7 +167,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             <summary>Información de depuración</summary>
             <p><strong>URL actual:</strong> ${window.location.href}</p>
             <p><strong>Categoría esperada:</strong> ${document.body.dataset.categoria || 'No definida'}</p>
-            <p><strong>Backend URL:</strong> http://127.0.0.1:8000/api</p>
             <p><strong>Error completo:</strong> ${error.stack}</p>
           </details>
         </div>

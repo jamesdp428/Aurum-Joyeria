@@ -253,12 +253,15 @@ async def more_products(request: Request):
         {"request": request, "user": user, "categoria": "otros", "categoria_nombre": "Más Productos"}
     )
 
+
+
 # ========================================
 # RUTAS DE PRODUCTO
 # ========================================
 
 @app.get("/producto/{producto_id}", response_class=HTMLResponse, name="producto_detalle")
 async def producto_detalle(request: Request, producto_id: str):
+    """Página de detalle de producto"""
     user = safe_get_user(request)
     return templates.TemplateResponse(
         "producto.html", 

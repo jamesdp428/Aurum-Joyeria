@@ -1,86 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}Producto | Aurum Joyería{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', path='css/producto.css') }}" />
-<style>
-    .detalle-producto {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 60px;
-        padding: 60px 40px;
-        background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
-        color: #fff;
-        align-items: flex-start;
-        min-height: 100vh;
-    }
-
-    .imagenes-producto {
-        flex: 1;
-        min-width: 400px;
-        max-width: 600px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    #imagenPrincipal {
-        width: 100%;
-        height: 500px;
-        object-fit: cover;
-        border-radius: 18px;
-    }
-
-    .miniaturas img {
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
-        border: 3px solid transparent;
-        cursor: pointer;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        opacity: 0.7;
-    }
-
-    .miniaturas img.active {
-        border-color: #f9dc5e;
-        opacity: 1;
-        box-shadow: 0 0 20px rgba(249, 220, 94, 0.3);
-    }
-
-    .info-producto {
-        flex: 1;
-        min-width: 400px;
-        background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
-        padding: 40px;
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-        border: 1px solid rgba(249, 220, 94, 0.1);
-        position: relative;
-    }
-
-    @media (max-width: 768px) {
-        .detalle-producto {
-            flex-direction: column;
-            gap: 30px;
-            padding: 30px 20px;
-        }
-        
-        .imagenes-producto {
-            min-width: auto;
-            max-width: 100%;
-        }
-        
-        .info-producto {
-            min-width: auto;
-        }
-        
-        #imagenPrincipal {
-            height: 400px;
-        }
-    }
-</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -88,113 +9,102 @@
 <script defer src="{{ url_for('static', path='js/cantidad.js') }}"></script>
 {% endblock %}
 
+{% block title %}Producto | Aurum Joyería{% endblock %}
+
 {% block content %}
 <!-- CONTENIDO PRINCIPAL -->
 <main class="detalle-producto">
-    <!-- Sección de imágenes -->
-    <section class="imagenes-producto">
-        <div class="imagen-principal-container">
-            <img id="imagenPrincipal" src="" alt="" />
-        </div>
-        
-        <div class="miniaturas" id="miniaturasContainer">
-            <!-- Las miniaturas se cargan aquí con JavaScript -->
-        </div>
-    </section>
+    <!-- BREADCRUMB -->
+    <nav class="breadcrumb">
+        <a href="/">Inicio</a>
+        <span>/</span>
+        <a href="#" id="categoriaBreadcrumb">Categoría</a>
+        <span>/</span>
+        <span id="nombreBreadcrumb">Producto</span>
+    </nav>
 
-    <!-- Información del producto -->
-    <section class="info-producto">
-        <div class="breadcrumb">
-            <a href="{{ url_for('index') }}">Inicio</a> > 
-            <a href="#" id="categoriaBreadcrumb">Categoría</a> > 
-            <span id="nombreBreadcrumb">Producto</span>
-        </div>
-
-        <h1 id="nombreProducto">Cargando...</h1>
-        
-        <div class="rating">
-            <div class="stars">★★★★★</div>
-            <span class="rating-text">(Oro 18k - Calidad Premium)</span>
-        </div>
-
-        <div class="descripcion">
-            <p id="descripcionProducto">Cargando descripción...</p>
-        </div>
-
-        <div class="stock-container">
-            <div id="stockProducto" class="stock disponible">Cargando stock...</div>
-        </div>
-
-        <!-- Información adicional -->
-        <div class="info-adicional">
-            <div class="info-item">
-                <div class="icon">🅰</div>
-                <h5>Oro 18 Kilates</h5>
-                <p>Máxima pureza y calidad garantizada</p>
+    <div class="producto-container">
+        <!-- GALERÍA DE IMÁGENES -->
+        <div class="producto-galeria">
+            <div class="imagen-principal">
+                <img id="imagenPrincipal" 
+                     src="https://via.placeholder.com/500x500/1a1a1a/f9dc5e?text=Cargando..." 
+                     alt="Producto">
             </div>
-            <div class="info-item">
-                <div class="icon">🛡️</div>
-                <h5>Garantía</h5>
-                <p>Garantía de por vida en defectos de fabricación</p>
-            </div>
-            <div class="info-item">
-                <div class="icon">🚚</div>
-                <h5>Envío</h5>
-                <p>Envío gratuito a toda Colombia</p>
+            <div class="miniaturas" id="miniaturasContainer">
+                <!-- Las miniaturas se cargan dinámicamente -->
             </div>
         </div>
 
-        <!-- Control de cantidad -->
-        <div class="cantidad-section">
-            <h4>Cantidad:</h4>
+        <!-- INFORMACIÓN DEL PRODUCTO -->
+        <div class="producto-info">
+            <h1 id="nombreProducto">Cargando...</h1>
+            
+            <p class="categoria-producto">
+                Categoría: <span id="categoriaProducto">-</span>
+            </p>
+            
+            <p class="descripcion-producto" id="descripcionProducto">
+                Cargando descripción...
+            </p>
+            
+            <div class="stock-info">
+                <p id="stockProducto" class="stock">Verificando stock...</p>
+            </div>
+
+            <!-- CONTROL DE CANTIDAD -->
             <div class="cantidad-control">
-                <button type="button" onclick="cambiarCantidad(-1)">-</button>
-                <input type="number" id="cantidad" value="1" min="1" max="10">
-                <button type="button" onclick="cambiarCantidad(1)">+</button>
+                <label for="cantidad">Cantidad:</label>
+                <div class="cantidad-input-group">
+                    <button type="button" onclick="cambiarCantidad(-1)" class="btn-cantidad">-</button>
+                    <input type="number" id="cantidad" value="1" min="1" max="10" />
+                    <button type="button" onclick="cambiarCantidad(1)" class="btn-cantidad">+</button>
+                </div>
+            </div>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <div class="producto-acciones">
+                <button id="agregarCarrito" class="btn-agregar-carrito">
+                    Agregar al carrito
+                </button>
+                <a id="comprarWhatsApp" 
+                   href="#" 
+                   class="btn-whatsapp" 
+                   target="_blank" 
+                   rel="noopener noreferrer">
+                    Comprar por WhatsApp
+                </a>
+            </div>
+
+            <!-- INFORMACIÓN ADICIONAL -->
+            <div class="info-adicional">
+                <div class="info-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M20 7h-9m9 0c0 1.105-.895 2-2 2h-5c-1.105 0-2-.895-2-2m9 0c0-1.105-.895-2-2-2h-5c-1.105 0-2 .895-2 2m-8 0h2m0 0c0-1.105.895-2 2-2m-2 2c0 1.105.895 2 2 2m0-4h7.5M12 11v10m-4-6h8"/>
+                    </svg>
+                    <span>Garantía de autenticidad</span>
+                </div>
+                <div class="info-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 11l3 3L22 4"/>
+                        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                    </svg>
+                    <span>Envío seguro</span>
+                </div>
+                <div class="info-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    <span>Atención personalizada</span>
+                </div>
             </div>
         </div>
-
-        <!-- Botones de acción -->
-        <div class="acciones">
-            <button id="agregarCarrito" class="btn-primary">
-                Agregar al carrito
-            </button>
-            
-            <a id="comprarWhatsApp" href="#" class="btn-whatsapp" target="_blank" rel="noopener noreferrer">
-                💬 Consultar por WhatsApp
-            </a>
-            
-            <button class="btn-secondary" onclick="history.back()">
-                ← Volver atrás
-            </button>
-        </div>
-
-        <!-- Características del producto -->
-        <div class="caracteristicas">
-            <h4>Características</h4>
-            <ul>
-                <li><strong>Material:</strong> <span>Oro 18 Kilates</span></li>
-                <li><strong>Origen:</strong> <span>Medellín, Colombia</span></li>
-                <li><strong>Artesanía:</strong> <span>Hecho a mano</span></li>
-                <li><strong>Categoría:</strong> <span id="categoriaProducto">-</span></li>
-                <li><strong>Disponibilidad:</strong> <span id="disponibilidadProducto">-</span></li>
-            </ul>
-        </div>
-    </section>
+    </div>
 </main>
-{% endblock %}
 
-{% block extra_scripts %}
+<!-- Script inline para pasar el ID del producto -->
 <script>
-    console.log("Página cargada, URL actual:", window.location.href);
-    console.log("Parámetros URL:", window.location.search);
-    
-    document.addEventListener("DOMContentLoaded", () => {
-        console.log("Elementos encontrados:");
-        console.log("- imagenPrincipal:", !!document.getElementById("imagenPrincipal"));
-        console.log("- nombreProducto:", !!document.getElementById("nombreProducto"));
-        console.log("- miniaturasContainer:", !!document.getElementById("miniaturasContainer"));
-        console.log("- detalle-producto:", !!document.querySelector(".detalle-producto"));
-    });
+    window.PRODUCTO_ID = "{{ producto_id }}";
 </script>
 {% endblock %}

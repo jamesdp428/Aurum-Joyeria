@@ -9,9 +9,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
   
-  // Obtener ID del producto desde la URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const productoId = urlParams.get('id');
+  // Obtener ID del producto desde window.PRODUCTO_ID (pasado por el template)
+  const productoId = window.PRODUCTO_ID;
   
   console.log('📦 ID del producto:', productoId);
   
@@ -47,7 +46,7 @@ function renderizarProducto(producto) {
   
   if (categoriaBreadcrumb) {
     categoriaBreadcrumb.textContent = capitalizar(producto.categoria);
-    categoriaBreadcrumb.href = `${producto.categoria}.html`;
+    categoriaBreadcrumb.href = `/${producto.categoria}`;
   }
   
   if (nombreBreadcrumb) {
@@ -79,10 +78,10 @@ function renderizarProducto(producto) {
       imagenPrincipal.src = producto.imagen_url;
       imagenPrincipal.alt = producto.nombre;
       imagenPrincipal.onerror = function() {
-        this.src = '../../img/placeholder.jpg';
+        this.src = 'https://via.placeholder.com/500x500/1a1a1a/f9dc5e?text=Sin+Imagen';
       };
     } else {
-      imagenPrincipal.src = '../../img/placeholder.jpg';
+      imagenPrincipal.src = 'https://via.placeholder.com/500x500/1a1a1a/f9dc5e?text=Sin+Imagen';
       imagenPrincipal.alt = 'Sin imagen disponible';
     }
   }
@@ -94,14 +93,13 @@ function renderizarProducto(producto) {
       <img src="${producto.imagen_url}" 
            alt="${producto.nombre}" 
            class="active"
-           onclick="cambiarImagenPrincipal(this.src)"
-           onerror="this.src='../../img/placeholder.jpg'">
+           onclick="cambiarImagenPrincipal('${producto.imagen_url}')"
+           onerror="this.src='https://via.placeholder.com/100x100/1a1a1a/f9dc5e?text=Sin+Imagen'">
     `;
   }
   
   // STOCK
   const stockProducto = document.getElementById('stockProducto');
-  const disponibilidadProducto = document.getElementById('disponibilidadProducto');
   
   if (stockProducto) {
     if (producto.stock > 10) {
@@ -114,10 +112,6 @@ function renderizarProducto(producto) {
       stockProducto.textContent = '❌ Agotado';
       stockProducto.className = 'stock agotado';
     }
-  }
-  
-  if (disponibilidadProducto) {
-    disponibilidadProducto.textContent = producto.stock > 0 ? 'En stock' : 'Agotado';
   }
   
   // CONFIGURAR INPUT DE CANTIDAD
@@ -204,7 +198,9 @@ function agregarAlCarrito(producto) {
   alert(`✅ ${cantidad} ${producto.nombre}(s) agregado(s) al carrito`);
   
   // Actualizar contador del carrito si existe
-  actualizarContadorCarrito();
+  if (typeof actualizarContadorCarrito === 'function') {
+    actualizarContadorCarrito();
+  }
   
   console.log('🛒 Carrito actualizado:', carrito);
 }
@@ -240,20 +236,6 @@ function cambiarImagenPrincipal(src) {
     miniaturas.forEach(img => {
       img.classList.toggle('active', img.src === src);
     });
-  }
-}
-
-// ========== ACTUALIZAR CONTADOR DEL CARRITO ==========
-
-function actualizarContadorCarrito() {
-  const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-  const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
-  
-  // Si existe un elemento contador en el navbar
-  const contador = document.getElementById('carritoContador');
-  if (contador) {
-    contador.textContent = totalItems;
-    contador.style.display = totalItems > 0 ? 'block' : 'none';
   }
 }
 
@@ -310,5 +292,4 @@ function mostrarError(mensaje) {
 if (typeof window !== 'undefined') {
   window.cambiarImagenPrincipal = cambiarImagenPrincipal;
   window.agregarAlCarrito = agregarAlCarrito;
-  window.actualizarContadorCarrito = actualizarContadorCarrito;
 }

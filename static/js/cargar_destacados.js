@@ -1,4 +1,4 @@
-// Cargar productos destacados desde la API - CON DEBUG
+// Cargar productos destacados desde la API
 document.addEventListener('DOMContentLoaded', async () => {
   const productosGrid = document.querySelector('.productos-grid');
   
@@ -70,10 +70,11 @@ document.addEventListener('DOMContentLoaded', async () => {
  * Crea una tarjeta de producto
  */
 function crearProductoCard(producto) {
-  console.log(`🏗️ Creando card para: ${producto.nombre}`);
+  console.log(`🗂️ Creando card para: ${producto.nombre}`);
   
   const card = document.createElement('a');
-  card.href = `html/categorias/producto.html?id=${producto.id}`;
+  // 🔥 CRÍTICO: Usar ruta correcta sin /html/
+  card.href = `/producto/${producto.id}`;
   card.className = 'producto-destacado';
   
   // Badge de destacado
