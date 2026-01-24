@@ -273,6 +273,8 @@ async def update_producto(
         )
 
 # 🔥 CRÍTICO: Cambiar de 204 a 200 con JSON response
+# Al final del archivo productos_router.py, reemplaza el endpoint DELETE:
+
 @router.delete("/{producto_id}")
 async def delete_producto(request: Request, producto_id: str):
     """Elimina un producto (solo admin)"""
@@ -301,11 +303,12 @@ async def delete_producto(request: Request, producto_id: str):
                 detail="Error al eliminar producto"
             )
         
-        # 🔥 RETORNAR JSON en lugar de None
-        return JSONResponse(
-            status_code=200,
-            content={"message": "Producto eliminado exitosamente", "id": producto_id}
-        )
+        # ✅ RETORNAR JSON consistente
+        return {
+            "success": True,
+            "message": "Producto eliminado exitosamente", 
+            "id": producto_id
+        }
         
     except HTTPException:
         raise
