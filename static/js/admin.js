@@ -15,13 +15,9 @@ function logoutFromPanel() {
   if (confirm('¿Estás seguro de cerrar sesión?')) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    // Redirigir correctamente desde /html/admin/ a la raíz
     window.location.href = '../../index.html';
   }
 }
-
-// Reemplazar el event listener del botón logout
-document.getElementById('logoutBtn').addEventListener('click', logoutFromPanel);
 
 // ========== INICIALIZACIÓN ==========
 
@@ -32,22 +28,13 @@ function inicializarAdmin() {
     cargarCarrusel();
     
     // Event listeners
-    document.getElementById('logoutBtn').addEventListener('click', logoutFromPanel); // CAMBIO AQUÍ
+    document.getElementById('logoutBtn').addEventListener('click', logoutFromPanel);
     document.getElementById('btnNuevoProducto').addEventListener('click', () => abrirModalProducto());
     document.getElementById('btnNuevoCarrusel').addEventListener('click', () => abrirModalCarrusel());
     document.getElementById('filterCategoria').addEventListener('change', cargarProductos);
     document.getElementById('filterDestacado').addEventListener('change', cargarProductos);
 }
 
-// Función logout personalizada para el panel de admin
-function logoutFromPanel() {
-  if (confirm('¿Estás seguro de cerrar sesión?')) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    // Redirigir correctamente desde /html/admin/ a la raíz
-    window.location.href = '../../index.html';
-  }
-}
 // ========== TABS ==========
 
 function configurarTabs() {
@@ -103,9 +90,9 @@ function configurarModales() {
         });
     });
     
-    // Preview de imágenes
+    // Preview de imágenes - SOPORTE MÚLTIPLE
     document.getElementById('productoImagen').addEventListener('change', (e) => {
-        previewImagen(e.target, 'imagenPreview');
+        previewImagenesMultiples(e.target, 'imagenPreview');
     });
     
     document.getElementById('carruselImagen').addEventListener('change', (e) => {
@@ -145,6 +132,32 @@ function previewImagen(input, previewId) {
         };
         
         reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// 🔥 NUEVA: Preview para múltiples imágenes
+function previewImagenesMultiples(input, previewId) {
+    const preview = document.getElementById(previewId);
+    preview.innerHTML = '';
+    
+    if (input.files && input.files.length > 0) {
+        Array.from(input.files).forEach((file, index) => {
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                const imgContainer = document.createElement('div');
+                imgContainer.style.cssText = 'display: inline-block; margin: 5px; position: relative;';
+                imgContainer.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview ${index + 1}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #f9dc5e;">
+                    <span style="position: absolute; top: -5px; right: -5px; background: #f9dc5e; color: #000; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">${index + 1}</span>
+                `;
+                preview.appendChild(imgContainer);
+            };
+            
+            reader.readAsDataURL(file);
+        });
+        
+        preview.classList.add('show');
     }
 }
 
@@ -307,38 +320,51 @@ async function guardarProducto(e) {
         activo
     };
     
-    const imagenFile = imagenInput.files[0] || null;
+    // 🔥 MÚLTIPLES IMÁGENES
+    const imagenesFiles = imagenInput.files.length > 0 ? Array.from(imagenInput.files) : null;
     
     try {
         if (id) {
+            // Editar - solo primera imagen por ahora
+            const imagenFile = imagenesFiles && imagenesFiles.length > 0 ? imagenesFiles[0] : null;
             await productosAPI.update(id, productoData, imagenFile);
-            alert('Producto actualizado exitosamente');
+            alert('✅ Producto actualizado exitosamente');
         } else {
+            // Crear - solo primera imagen por ahora
+            const imagenFile = imagenesFiles && imagenesFiles.length > 0 ? imagenesFiles[0] : null;
             await productosAPI.create(productoData, imagenFile);
-            alert('Producto creado exitosamente');
+            alert('✅ Producto creado exitosamente');
         }
         
         cerrarModal(document.getElementById('modalProducto'));
-        cargarProductos();
+        await cargarProductos(); // 🔥 AWAIT para asegurar recarga
         
     } catch (error) {
         console.error('Error guardando producto:', error);
-        alert('Error al guardar el producto: ' + error.message);
+        alert('❌ Error al guardar el producto: ' + error.message);
     }
 }
 
+// 🔥 CORREGIDO: Manejo de respuesta del DELETE
 async function eliminarProducto(id) {
     if (!confirm('¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer.')) {
         return;
     }
     
     try {
-        await productosAPI.delete(id);
-        alert('Producto eliminado exitosamente');
-        cargarProductos();
+        const response = await productosAPI.delete(id);
+        
+        // ✅ Verificar respuesta correcta
+        if (response && (response.success === true || response.message)) {
+            alert('✅ Producto eliminado exitosamente');
+            await cargarProductos(); // 🔥 AWAIT para asegurar recarga
+        } else {
+            throw new Error('Respuesta inesperada del servidor');
+        }
+        
     } catch (error) {
         console.error('Error eliminando producto:', error);
-        alert('Error al eliminar el producto: ' + error.message);
+        alert('❌ Error al eliminar el producto: ' + error.message);
     }
 }
 
@@ -349,7 +375,7 @@ async function cargarCarrusel() {
     grid.innerHTML = '<div class="loading">Cargando carrusel...</div>';
     
     try {
-        const items = await carruselAPI.getAll(undefined);  // Mostrar todos
+        const items = await carruselAPI.getAll(undefined);
         
         if (items.length === 0) {
             grid.innerHTML = '<div class="empty-state">No hay imágenes en el carrusel</div>';
@@ -481,32 +507,40 @@ async function guardarCarrusel(e) {
     try {
         if (id) {
             await carruselAPI.update(id, carruselData, imagenFile);
-            alert('Carrusel actualizado exitosamente');
+            alert('✅ Carrusel actualizado exitosamente');
         } else {
             await carruselAPI.create(carruselData, imagenFile);
-            alert('Imagen agregada al carrusel exitosamente');
+            alert('✅ Imagen agregada al carrusel exitosamente');
         }
         
         cerrarModal(document.getElementById('modalCarrusel'));
-        cargarCarrusel();
+        await cargarCarrusel(); // 🔥 AWAIT para asegurar recarga
         
     } catch (error) {
         console.error('Error guardando carrusel:', error);
-        alert('Error al guardar el carrusel: ' + error.message);
+        alert('❌ Error al guardar el carrusel: ' + error.message);
     }
 }
 
+// 🔥 CORREGIDO: Manejo de respuesta del DELETE
 async function eliminarCarrusel(id) {
     if (!confirm('¿Estás seguro de eliminar esta imagen del carrusel? Esta acción no se puede deshacer.')) {
         return;
     }
     
     try {
-        await carruselAPI.delete(id);
-        alert('Imagen eliminada exitosamente');
-        cargarCarrusel();
+        const response = await carruselAPI.delete(id);
+        
+        // ✅ Verificar respuesta correcta
+        if (response && (response.success === true || response.message)) {
+            alert('✅ Imagen eliminada exitosamente');
+            await cargarCarrusel(); // 🔥 AWAIT para asegurar recarga
+        } else {
+            throw new Error('Respuesta inesperada del servidor');
+        }
+        
     } catch (error) {
         console.error('Error eliminando carrusel:', error);
-        alert('Error al eliminar la imagen: ' + error.message);
+        alert('❌ Error al eliminar la imagen: ' + error.message);
     }
 }

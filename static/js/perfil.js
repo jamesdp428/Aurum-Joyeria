@@ -10,11 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
   configurarEventos();
 });
 
-// Cargar información del perfil
+// 🔥 CORREGIDO: Cargar información del perfil SIEMPRE desde la API
 async function cargarPerfil() {
   try {
+    // ✅ SIEMPRE obtener datos actualizados desde el servidor
     const perfil = await authAPI.getProfile();
     
+    console.log('✅ Perfil cargado desde servidor:', perfil);
+    
+    // Mostrar información
     document.getElementById('perfilNombre').textContent = perfil.nombre;
     document.getElementById('perfilEmail').textContent = perfil.email;
     document.getElementById('perfilRol').textContent = perfil.rol === 'admin' ? 'Administrador' : 'Usuario';
@@ -37,14 +41,27 @@ async function cargarPerfil() {
     document.getElementById('editNombre').value = perfil.nombre;
     document.getElementById('editEmail').value = perfil.email;
     
-    // Actualizar localStorage
-    const currentUser = getCurrentUser();
-    currentUser.email_verified = perfil.email_verified;
-    localStorage.setItem('user', JSON.stringify(currentUser));
+    // 🔥 IMPORTANTE: Actualizar localStorage con datos frescos del servidor
+    const updatedUser = {
+      id: perfil.id,
+      email: perfil.email,
+      nombre: perfil.nombre,
+      rol: perfil.rol,
+      email_verified: perfil.email_verified
+    };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    console.log('✅ LocalStorage actualizado con datos del servidor');
     
   } catch (error) {
-    console.error('Error cargando perfil:', error);
-    showMessage('profileMessage', 'Error al cargar el perfil', 'error');
+    console.error('❌ Error cargando perfil:', error);
+    showMessage('profileMessage', 'Error al cargar el perfil: ' + error.message, 'error');
+    
+    // Si falla la API, intentar logout y redirigir a login
+    if (error.message.includes('401') || error.message.includes('autenticado')) {
+      setTimeout(() => {
+        logout();
+      }, 2000);
+    }
   }
 }
 
@@ -182,7 +199,7 @@ async function eliminarCuenta() {
   }
 }
 
-// Actualizar perfil
+// 🔥 CORREGIDO: Actualizar perfil con recarga desde servidor
 async function actualizarPerfil(e) {
   e.preventDefault();
   
@@ -254,12 +271,14 @@ async function actualizarPerfil(e) {
       setTimeout(() => {
         document.getElementById('formEditarPerfil').style.display = 'none';
         document.querySelector('.registro-formulario:first-of-type').style.display = 'block';
+        // 🔥 Recargar perfil desde servidor
         cargarPerfil();
       }, 3000);
     } else {
       setTimeout(() => {
         document.getElementById('formEditarPerfil').style.display = 'none';
         document.querySelector('.registro-formulario:first-of-type').style.display = 'block';
+        // 🔥 Recargar perfil desde servidor
         cargarPerfil();
       }, 2000);
     }

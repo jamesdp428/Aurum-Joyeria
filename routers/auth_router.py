@@ -194,23 +194,48 @@ async def logout_endpoint(request: Request):
 
 @router.get("/me")
 async def get_current_user_profile(request: Request):
-    """Obtiene el perfil del usuario actual"""
+    """
+    🔥 CORREGIDO: Obtiene el perfil del usuario actual
+    SIEMPRE desde la base de datos (datos frescos)
+    """
     
-    # Intentar desde sesión
+    # Primero intentar obtener desde sesión o token
     user_session = request.session.get("user")
-    if user_session:
-        return user_session
+    user_id = None
     
-    # Intentar desde token
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
+    if user_session:
+        user_id = user_session.get("id")
+    else:
+        # Intentar desde token
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            try:
+                user = get_current_user_from_token(token)
+                user_id = user.get("id")
+            except HTTPException:
+                pass
+    
+    if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="No autenticado"
         )
     
-    token = auth_header.split(" ")[1]
-    user = get_current_user_from_token(token)
+    # 🔥 IMPORTANTE: SIEMPRE obtener datos frescos desde Supabase
+    user = supabase.get_user_by_id(user_id)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+    
+    # 🔥 Actualizar sesión con datos frescos
+    request.session["user"] = create_user_session_data(user)
+    
+    print(f"✅ Perfil obtenido (fresco desde DB): {user['email']}")
+    
     return user
 
 @router.put("/me")
@@ -233,8 +258,10 @@ async def update_profile(nombre: str, request: Request):
             detail="Error al actualizar usuario"
         )
     
-    # Actualizar sesión
+    # Actualizar sesión con datos frescos
     request.session["user"] = create_user_session_data(updated_user)
+    
+    print(f"✅ Perfil actualizado: {updated_user['email']}")
     
     return updated_user
 
@@ -251,6 +278,7 @@ async def change_password(request_data: ChangePasswordRequest, request: Request)
             detail="No autenticado"
         )
     
+    # 🔥 Obtener datos frescos de la DB
     user = supabase.get_user_by_id(user_session["id"])
     if not user:
         raise HTTPException(
@@ -273,6 +301,8 @@ async def change_password(request_data: ChangePasswordRequest, request: Request)
     new_hash = hash_password(request_data.new_password)
     supabase.update_user(user["id"], {"password_hash": new_hash})
     
+    print(f"✅ Contraseña cambiada: {user['email']}")
+    
     return {"message": "Contraseña actualizada exitosamente"}
 
 # ========== VERIFICACIÓN DE EMAIL ==========
@@ -288,6 +318,7 @@ async def verify_email_with_code(request_data: VerifyEmailCodeRequest, request: 
             detail="No autenticado"
         )
     
+    # 🔥 Obtener datos frescos de la DB
     user = supabase.get_user_by_id(user_session["id"])
     if not user:
         raise HTTPException(
@@ -322,11 +353,16 @@ async def verify_email_with_code(request_data: VerifyEmailCodeRequest, request: 
         )
     
     # Verificar email
-    supabase.update_user(user["id"], {
+    updated_user = supabase.update_user(user["id"], {
         "email_verified": True,
         "verification_code": None,
         "verification_expires": None
     })
+    
+    # 🔥 Actualizar sesión con datos frescos
+    request.session["user"] = create_user_session_data(updated_user)
+    
+    print(f"✅ Email verificado: {updated_user['email']}")
     
     return {"message": "Email verificado exitosamente"}
 
