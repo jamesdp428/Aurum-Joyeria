@@ -135,7 +135,7 @@ function previewImagen(input, previewId) {
     }
 }
 
-// 🔥 NUEVA: Preview para múltiples imágenes
+// 🔥 Preview para múltiples imágenes
 function previewImagenesMultiples(input, previewId) {
     const preview = document.getElementById(previewId);
     preview.innerHTML = '';
@@ -274,8 +274,31 @@ function abrirModalProducto(producto = null) {
         document.getElementById('productoDestacado').checked = producto.destacado;
         document.getElementById('productoActivo').checked = producto.activo;
         
-        if (producto.imagen_url) {
-            const preview = document.getElementById('imagenPreview');
+        // 🔥 Mostrar preview de TODAS las imágenes si existen
+        const preview = document.getElementById('imagenPreview');
+        
+        if (producto.imagenes_urls) {
+            try {
+                const urls = JSON.parse(producto.imagenes_urls);
+                urls.forEach((url, index) => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.style.cssText = 'display: inline-block; margin: 5px; position: relative;';
+                    imgContainer.innerHTML = `
+                        <img src="${url}" alt="Imagen ${index + 1}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #f9dc5e;" onerror="this.src='https://via.placeholder.com/100x100/1a1a1a/f9dc5e?text=Sin+Imagen'">
+                        <span style="position: absolute; top: -5px; right: -5px; background: #f9dc5e; color: #000; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">${index + 1}</span>
+                    `;
+                    preview.appendChild(imgContainer);
+                });
+                preview.classList.add('show');
+            } catch (e) {
+                // Si falla, mostrar solo la imagen principal
+                if (producto.imagen_url) {
+                    preview.innerHTML = `<img src="${producto.imagen_url}" alt="Preview" onerror="this.src='https://via.placeholder.com/300x300/1a1a1a/f9dc5e?text=Sin+Imagen'">`;
+                    preview.classList.add('show');
+                }
+            }
+        } else if (producto.imagen_url) {
+            // Solo imagen principal
             preview.innerHTML = `<img src="${producto.imagen_url}" alt="Preview" onerror="this.src='https://via.placeholder.com/300x300/1a1a1a/f9dc5e?text=Sin+Imagen'">`;
             preview.classList.add('show');
         }
@@ -320,24 +343,23 @@ async function guardarProducto(e) {
         activo
     };
     
-    // 🔥 MÚLTIPLES IMÁGENES
+    // 🔥 MÚLTIPLES IMÁGENES - Convertir FileList a Array
     const imagenesFiles = imagenInput.files.length > 0 ? Array.from(imagenInput.files) : null;
     
     try {
         if (id) {
-            // Editar - solo primera imagen por ahora
-            const imagenFile = imagenesFiles && imagenesFiles.length > 0 ? imagenesFiles[0] : null;
-            await productosAPI.update(id, productoData, imagenFile);
+            // Editar - Por defecto AGREGAR imágenes nuevas a las existentes
+            // Para REEMPLAZAR todas, cambiar el tercer parámetro a false
+            await productosAPI.update(id, productoData, imagenesFiles, true);
             alert('✅ Producto actualizado exitosamente');
         } else {
-            // Crear - solo primera imagen por ahora
-            const imagenFile = imagenesFiles && imagenesFiles.length > 0 ? imagenesFiles[0] : null;
-            await productosAPI.create(productoData, imagenFile);
+            // Crear
+            await productosAPI.create(productoData, imagenesFiles);
             alert('✅ Producto creado exitosamente');
         }
         
         cerrarModal(document.getElementById('modalProducto'));
-        await cargarProductos(); // 🔥 AWAIT para asegurar recarga
+        await cargarProductos();
         
     } catch (error) {
         console.error('Error guardando producto:', error);
@@ -345,7 +367,7 @@ async function guardarProducto(e) {
     }
 }
 
-// 🔥 CORREGIDO: Manejo de respuesta del DELETE
+// ✅ CORREGIDO: Manejo robusto de DELETE
 async function eliminarProducto(id) {
     if (!confirm('¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer.')) {
         return;
@@ -354,13 +376,11 @@ async function eliminarProducto(id) {
     try {
         const response = await productosAPI.delete(id);
         
-        // ✅ Verificar respuesta correcta
-        if (response && (response.success === true || response.message)) {
-            alert('✅ Producto eliminado exitosamente');
-            await cargarProductos(); // 🔥 AWAIT para asegurar recarga
-        } else {
-            throw new Error('Respuesta inesperada del servidor');
-        }
+        // ✅ Verificar que fue exitoso (debería ser true por el nuevo fetchAPI)
+        console.log('Respuesta de eliminación:', response);
+        
+        alert('✅ Producto eliminado exitosamente');
+        await cargarProductos();
         
     } catch (error) {
         console.error('Error eliminando producto:', error);
@@ -514,7 +534,7 @@ async function guardarCarrusel(e) {
         }
         
         cerrarModal(document.getElementById('modalCarrusel'));
-        await cargarCarrusel(); // 🔥 AWAIT para asegurar recarga
+        await cargarCarrusel();
         
     } catch (error) {
         console.error('Error guardando carrusel:', error);
@@ -522,7 +542,7 @@ async function guardarCarrusel(e) {
     }
 }
 
-// 🔥 CORREGIDO: Manejo de respuesta del DELETE
+// ✅ CORREGIDO: Manejo robusto de DELETE
 async function eliminarCarrusel(id) {
     if (!confirm('¿Estás seguro de eliminar esta imagen del carrusel? Esta acción no se puede deshacer.')) {
         return;
@@ -531,13 +551,10 @@ async function eliminarCarrusel(id) {
     try {
         const response = await carruselAPI.delete(id);
         
-        // ✅ Verificar respuesta correcta
-        if (response && (response.success === true || response.message)) {
-            alert('✅ Imagen eliminada exitosamente');
-            await cargarCarrusel(); // 🔥 AWAIT para asegurar recarga
-        } else {
-            throw new Error('Respuesta inesperada del servidor');
-        }
+        console.log('Respuesta de eliminación:', response);
+        
+        alert('✅ Imagen eliminada exitosamente');
+        await cargarCarrusel();
         
     } catch (error) {
         console.error('Error eliminando carrusel:', error);

@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import uuid
 from PIL import Image
 import io
+import json
 
 from supabase_client import supabase as supabase_rest
 from schemas import ProductoResponse
@@ -99,6 +100,28 @@ async def delete_image_from_supabase(image_url: str, bucket: str = "productos-im
     except Exception as e:
         print(f"⚠️ Error al eliminar imagen: {e}")
 
+# 🔥 NUEVA: Subir múltiples imágenes
+async def upload_multiple_images(files: List[UploadFile]) -> List[str]:
+    """Sube múltiples imágenes y devuelve lista de URLs"""
+    urls = []
+    for file in files:
+        try:
+            url = await upload_image_to_supabase(file)
+            urls.append(url)
+        except Exception as e:
+            print(f"⚠️ Error subiendo {file.filename}: {e}")
+            # Continuar con las demás imágenes
+    return urls
+
+# 🔥 NUEVA: Eliminar múltiples imágenes
+async def delete_multiple_images(image_urls: List[str]):
+    """Elimina múltiples imágenes de Supabase Storage"""
+    for url in image_urls:
+        try:
+            await delete_image_from_supabase(url)
+        except Exception as e:
+            print(f"⚠️ Error eliminando imagen {url}: {e}")
+
 # ========== ENDPOINTS PÚBLICOS ==========
 
 @router.get("", response_model=List[dict])
@@ -157,18 +180,25 @@ async def create_producto(
     stock: int = Form(0),
     destacado: bool = Form(False),
     activo: bool = Form(True),
-    imagen: Optional[UploadFile] = File(None)
+    imagenes: List[UploadFile] = File([])  # 🔥 MÚLTIPLES IMÁGENES
 ):
-    """Crea un nuevo producto (solo admin)"""
+    """Crea un nuevo producto (solo admin) - Soporta múltiples imágenes"""
     
     # Verificar admin
     get_current_admin_from_session(request)
     
     try:
-        # Subir imagen si existe
-        imagen_url = None
-        if imagen and imagen.filename:
-            imagen_url = await upload_image_to_supabase(imagen)
+        # 🔥 Subir múltiples imágenes
+        imagenes_urls = []
+        if imagenes and len(imagenes) > 0:
+            # Filtrar archivos vacíos
+            imagenes_validas = [img for img in imagenes if img.filename]
+            if imagenes_validas:
+                imagenes_urls = await upload_multiple_images(imagenes_validas)
+        
+        # 🔥 imagen_url = primera imagen (compatibilidad)
+        # imagenes_urls = array completo de URLs
+        imagen_principal = imagenes_urls[0] if imagenes_urls else None
         
         # Crear producto
         producto_data = {
@@ -180,7 +210,8 @@ async def create_producto(
             "stock": stock,
             "destacado": destacado,
             "activo": activo,
-            "imagen_url": imagen_url
+            "imagen_url": imagen_principal,  # Primera imagen
+            "imagenes_urls": json.dumps(imagenes_urls) if imagenes_urls else None  # Todas las imágenes como JSON
         }
         
         nuevo_producto = supabase_rest.create_producto(producto_data)
@@ -191,6 +222,7 @@ async def create_producto(
                 detail="Error al crear producto"
             )
         
+        print(f"✅ Producto creado con {len(imagenes_urls)} imágenes")
         return nuevo_producto
         
     except HTTPException:
@@ -213,9 +245,10 @@ async def update_producto(
     stock: Optional[int] = Form(None),
     destacado: Optional[bool] = Form(None),
     activo: Optional[bool] = Form(None),
-    imagen: Optional[UploadFile] = File(None)
+    imagenes: List[UploadFile] = File([]),  # 🔥 MÚLTIPLES IMÁGENES
+    mantener_imagenes: bool = Form(True)  # 🔥 NUEVA: opción para mantener o reemplazar
 ):
-    """Actualiza un producto (solo admin)"""
+    """Actualiza un producto (solo admin) - Soporta múltiples imágenes"""
     
     # Verificar admin
     get_current_admin_from_session(request)
@@ -246,11 +279,35 @@ async def update_producto(
         if activo is not None:
             updates["activo"] = activo
         
-        # Actualizar imagen si se proporciona
-        if imagen and imagen.filename:
-            if producto.get("imagen_url"):
-                await delete_image_from_supabase(producto["imagen_url"])
-            updates["imagen_url"] = await upload_image_to_supabase(imagen)
+        # 🔥 Manejar múltiples imágenes
+        imagenes_validas = [img for img in imagenes if img.filename]
+        
+        if imagenes_validas and len(imagenes_validas) > 0:
+            # Obtener imágenes actuales
+            imagenes_actuales = []
+            if producto.get("imagenes_urls"):
+                try:
+                    imagenes_actuales = json.loads(producto["imagenes_urls"])
+                except:
+                    imagenes_actuales = []
+            
+            if not mantener_imagenes:
+                # 🔥 REEMPLAZAR: Eliminar imágenes antiguas
+                if imagenes_actuales:
+                    await delete_multiple_images(imagenes_actuales)
+                elif producto.get("imagen_url"):
+                    await delete_image_from_supabase(producto["imagen_url"])
+                
+                # Subir nuevas imágenes
+                nuevas_urls = await upload_multiple_images(imagenes_validas)
+                updates["imagen_url"] = nuevas_urls[0] if nuevas_urls else None
+                updates["imagenes_urls"] = json.dumps(nuevas_urls) if nuevas_urls else None
+            else:
+                # 🔥 AGREGAR: Mantener antiguas y agregar nuevas
+                nuevas_urls = await upload_multiple_images(imagenes_validas)
+                todas_urls = imagenes_actuales + nuevas_urls
+                updates["imagen_url"] = todas_urls[0] if todas_urls else None
+                updates["imagenes_urls"] = json.dumps(todas_urls)
         
         # Actualizar producto
         producto_actualizado = supabase_rest.update_producto(producto_id, updates)
@@ -272,9 +329,6 @@ async def update_producto(
             detail=str(e)
         )
 
-# 🔥 CRÍTICO: Cambiar de 204 a 200 con JSON response
-# Al final del archivo productos_router.py, reemplaza el endpoint DELETE:
-
 @router.delete("/{producto_id}")
 async def delete_producto(request: Request, producto_id: str):
     """Elimina un producto (solo admin)"""
@@ -290,7 +344,15 @@ async def delete_producto(request: Request, producto_id: str):
                 detail="Producto no encontrado"
             )
         
-        # Eliminar imagen
+        # 🔥 Eliminar TODAS las imágenes
+        if producto.get("imagenes_urls"):
+            try:
+                imagenes_urls = json.loads(producto["imagenes_urls"])
+                await delete_multiple_images(imagenes_urls)
+            except:
+                pass
+        
+        # Eliminar imagen principal por si acaso
         if producto.get("imagen_url"):
             await delete_image_from_supabase(producto["imagen_url"])
         
@@ -303,12 +365,15 @@ async def delete_producto(request: Request, producto_id: str):
                 detail="Error al eliminar producto"
             )
         
-        # ✅ RETORNAR JSON consistente
-        return {
-            "success": True,
-            "message": "Producto eliminado exitosamente", 
-            "id": producto_id
-        }
+        # ✅ SIEMPRE retornar JSON con status 200
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "message": "Producto eliminado exitosamente", 
+                "id": producto_id
+            }
+        )
         
     except HTTPException:
         raise

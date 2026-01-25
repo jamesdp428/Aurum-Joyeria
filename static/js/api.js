@@ -58,7 +58,7 @@ async function logout() {
   window.location.href = '/';
 }
 
-// ========== CLIENTE HTTP (CRÍTICO - CORREGIDO) ==========
+// ========== CLIENTE HTTP ==========
 
 async function fetchAPI(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -78,7 +78,7 @@ async function fetchAPI(endpoint, options = {}) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
   
-  // 🔥 CRÍTICO: Solo agregar Content-Type si NO es FormData
+  // Solo agregar Content-Type si NO es FormData
   if (options.body && !(options.body instanceof FormData)) {
     config.headers['Content-Type'] = 'application/json';
   }
@@ -88,30 +88,48 @@ async function fetchAPI(endpoint, options = {}) {
     
     console.log(`📥 Response: ${response.status} ${response.statusText}`);
     
-    // Si es 204 (No Content), retornar objeto vacío
-    if (response.status === 204) {
-      return { success: true };
-    }
+    // 🔥 CRÍTICO: Primero verificar si la respuesta está OK
+    const isSuccess = response.ok; // status 200-299
     
-    // 🔥 CRÍTICO: Verificar que la respuesta sea JSON
+    // Intentar leer el cuerpo
+    let data = null;
     const contentType = response.headers.get('content-type');
     
-    // Si no es JSON, intentar leer como texto para debugging
-    if (!contentType || !contentType.includes('application/json')) {
-      const text = await response.text();
-      console.error('❌ Respuesta no es JSON:', text.substring(0, 200));
-      
-      // Si la respuesta es exitosa pero no es JSON, asumir éxito
-      if (response.ok) {
-        return { success: true };
+    // Si hay content-type JSON, intentar parsear
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        const text = await response.text();
+        if (text && text.trim().length > 0) {
+          data = JSON.parse(text);
+        } else {
+          // Respuesta vacía pero exitosa
+          data = { success: true, message: 'Operación exitosa' };
+        }
+      } catch (parseError) {
+        console.warn('⚠️ Error parseando JSON, asumiendo éxito:', parseError);
+        data = { success: true, message: 'Operación exitosa' };
       }
+    } else {
+      // No es JSON, leer como texto
+      const text = await response.text();
       
-      throw new Error('El servidor no respondió con JSON. Verifica que la ruta API sea correcta.');
+      if (text && text.trim().length > 0) {
+        // Intentar parsear como JSON de todas formas
+        try {
+          data = JSON.parse(text);
+        } catch {
+          // No es JSON, crear objeto de éxito
+          data = { success: true, message: 'Operación exitosa' };
+        }
+      } else {
+        // Sin contenido, asumir éxito si status OK
+        data = { success: true, message: 'Operación exitosa' };
+      }
     }
     
-    const data = await response.json();
-    
-    if (!response.ok) {
+    // Ahora verificar si fue exitoso
+    if (!isSuccess) {
+      // Error HTTP
       if (response.status === 401) {
         console.warn('⚠️ Sesión expirada, limpiando datos...');
         localStorage.removeItem('token');
@@ -125,10 +143,15 @@ async function fetchAPI(endpoint, options = {}) {
         throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
       }
       
-      throw new Error(data.detail || data.message || 'Error en la petición');
+      // Otros errores
+      const errorMessage = data?.detail || data?.message || `Error ${response.status}`;
+      throw new Error(errorMessage);
     }
     
+    // ✅ Respuesta exitosa
+    console.log('✅ Respuesta exitosa:', data);
     return data;
+    
   } catch (error) {
     console.error('❌ Error en fetchAPI:', error);
     throw error;
@@ -237,7 +260,8 @@ const productosAPI = {
     return await fetchAPI(`/productos?categoria=${categoria}&activo=true`);
   },
   
-  async create(productoData, imagenFile = null) {
+  // 🔥 NUEVO: Soporte para múltiples imágenes
+  async create(productoData, imagenesFiles = null) {
     const formData = new FormData();
     
     formData.append('nombre', productoData.nombre);
@@ -254,8 +278,16 @@ const productosAPI = {
       formData.append('precio', productoData.precio);
     }
     
-    if (imagenFile) {
-      formData.append('imagen', imagenFile);
+    // 🔥 MÚLTIPLES IMÁGENES
+    if (imagenesFiles) {
+      // Puede ser un solo File o un array de Files
+      const files = Array.isArray(imagenesFiles) ? imagenesFiles : [imagenesFiles];
+      
+      files.forEach(file => {
+        if (file && file instanceof File) {
+          formData.append('imagenes', file);
+        }
+      });
     }
     
     return await fetchAPI('/productos', {
@@ -264,7 +296,8 @@ const productosAPI = {
     });
   },
   
-  async update(id, productoData, imagenFile = null) {
+  // 🔥 ACTUALIZADO: Soporte para múltiples imágenes
+  async update(id, productoData, imagenesFiles = null, mantenerImagenes = true) {
     const formData = new FormData();
     
     if (productoData.nombre !== undefined) formData.append('nombre', productoData.nombre);
@@ -276,7 +309,19 @@ const productosAPI = {
     if (productoData.stock !== undefined) formData.append('stock', productoData.stock);
     if (productoData.destacado !== undefined) formData.append('destacado', productoData.destacado);
     if (productoData.activo !== undefined) formData.append('activo', productoData.activo);
-    if (imagenFile) formData.append('imagen', imagenFile);
+    
+    formData.append('mantener_imagenes', mantenerImagenes);
+    
+    // 🔥 MÚLTIPLES IMÁGENES
+    if (imagenesFiles) {
+      const files = Array.isArray(imagenesFiles) ? imagenesFiles : [imagenesFiles];
+      
+      files.forEach(file => {
+        if (file && file instanceof File) {
+          formData.append('imagenes', file);
+        }
+      });
+    }
     
     return await fetchAPI(`/productos/${id}`, {
       method: 'PUT',
@@ -284,10 +329,14 @@ const productosAPI = {
     });
   },
   
+  // ✅ DELETE corregido
   async delete(id) {
-    return await fetchAPI(`/productos/${id}`, {
+    console.log('🗑️ Eliminando producto:', id);
+    const response = await fetchAPI(`/productos/${id}`, {
       method: 'DELETE'
     });
+    console.log('✅ Producto eliminado:', response);
+    return response;
   },
   
   async getCategorias() {
@@ -351,10 +400,14 @@ const carruselAPI = {
     });
   },
   
+  // ✅ DELETE corregido
   async delete(id) {
-    return await fetchAPI(`/carrusel/${id}`, {
+    console.log('🗑️ Eliminando carrusel:', id);
+    const response = await fetchAPI(`/carrusel/${id}`, {
       method: 'DELETE'
     });
+    console.log('✅ Carrusel eliminado:', response);
+    return response;
   }
 };
 

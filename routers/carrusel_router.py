@@ -237,9 +237,6 @@ async def update_carrusel_item(
             detail=str(e)
         )
 
-# 🔥 CRÍTICO: Cambiar de 204 a 200 con JSON response
-# Al final del archivo carrusel_router.py, reemplaza el endpoint DELETE:
-
 @router.delete("/{item_id}")
 async def delete_carrusel_item(request: Request, item_id: str):
     """Elimina item del carrusel (solo admin)"""
@@ -268,12 +265,15 @@ async def delete_carrusel_item(request: Request, item_id: str):
                 detail="Error al eliminar item del carrusel"
             )
         
-        # ✅ RETORNAR JSON consistente
-        return {
-            "success": True,
-            "message": "Item eliminado exitosamente", 
-            "id": item_id
-        }
+        # ✅ SIEMPRE retornar JSON con status 200
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "message": "Item eliminado exitosamente", 
+                "id": item_id
+            }
+        )
         
     except HTTPException:
         raise
