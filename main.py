@@ -241,7 +241,7 @@ async def aretes(request: Request):
 async def combos(request: Request):
     user = safe_get_user(request)
     return templates.TemplateResponse(
-        "combos.html", 
+        "base_categoria.html", 
         {"request": request, "user": user, "categoria": "tobilleras", "categoria_nombre": "Combos"}
     )
 
@@ -249,7 +249,7 @@ async def combos(request: Request):
 async def dijes(request: Request):
     user = safe_get_user(request)
     return templates.TemplateResponse(
-        "dijes.html", 
+        "base_categoria.html", 
         {"request": request, "user": user, "categoria": "otros", "categoria_nombre": "Dijes y Herrajes"}
     )
 
