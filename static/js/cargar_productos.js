@@ -25,12 +25,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       throw new Error('La API de productos no está disponible. Asegúrate de cargar api.js antes de este script.');
     }
 
+    // Mapeo de categorías DB a nombre visible
+    const nombreCategoria = {
+      'tobilleras': 'Combos',
+      'otros': 'Dijes y Herrajes',
+      'anillos': 'Anillos',
+      'pulseras': 'Pulseras',
+      'cadenas': 'Cadenas',
+      'aretes': 'Aretes'
+    };
+
     // Si la categoría es "otros" o "more-products", traer productos de varias categorías
     if (categoriaActual === 'otros' || categoriaActual === 'more-products') {
       // Traer todos los productos y filtrar las categorías principales
       const todosProductos = await productosAPI.getAll({ activo: true });
       const categoriasExcluidas = ['anillos', 'aretes', 'pulseras', 'cadenas', 'tobilleras'];
       productosFiltrados = todosProductos.filter(p => !categoriasExcluidas.includes(p.categoria));
+    } else if (categoriaActual === 'tobilleras') {
+      // Combos: traer productos con categoría tobilleras
+      productosFiltrados = await productosAPI.getByCategoria('tobilleras');
     } else {
       // Traer productos de la categoría específica
       productosFiltrados = await productosAPI.getByCategoria(categoriaActual);
@@ -41,7 +54,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (productosFiltrados.length === 0) {
       contenedor.innerHTML = `
         <div class="error">
-          <p>No se encontraron productos en la categoría "${categoriaActual}".</p>
+          <p>No se encontraron productos en la categoría "${nombreCategoria[categoriaActual] || categoriaActual}".</p>
           <p>Intenta navegar a otra categoría o contacta al administrador.</p>
         </div>
       `;
