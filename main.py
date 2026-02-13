@@ -118,8 +118,8 @@ def custom_url_for(name: str, **path_params):
             'pulseras': '/pulseras',
             'cadenas': '/cadenas',
             'aretes': '/aretes',
-            'tobilleras': '/tobilleras',
-            'more_products': '/otros',
+            'combos': '/combos',
+            'dijes': '/dijes',
             'admin': '/admin',
         }
         return route_map.get(name, '/')
@@ -237,20 +237,20 @@ async def aretes(request: Request):
         {"request": request, "user": user, "categoria": "aretes", "categoria_nombre": "Aretes"}
     )
 
-@app.get("/tobilleras", response_class=HTMLResponse, name="tobilleras")
-async def tobilleras(request: Request):
+@app.get("/combos", response_class=HTMLResponse, name="combos")
+async def combos(request: Request):
     user = safe_get_user(request)
     return templates.TemplateResponse(
-        "base_categoria.html", 
-        {"request": request, "user": user, "categoria": "tobilleras", "categoria_nombre": "Tobilleras"}
+        "combos.html", 
+        {"request": request, "user": user, "categoria": "tobilleras", "categoria_nombre": "Combos"}
     )
 
-@app.get("/otros", response_class=HTMLResponse, name="more_products")
-async def more_products(request: Request):
+@app.get("/dijes", response_class=HTMLResponse, name="dijes")
+async def dijes(request: Request):
     user = safe_get_user(request)
     return templates.TemplateResponse(
-        "base_categoria.html", 
-        {"request": request, "user": user, "categoria": "otros", "categoria_nombre": "Más Productos"}
+        "dijes.html", 
+        {"request": request, "user": user, "categoria": "otros", "categoria_nombre": "Dijes y Herrajes"}
     )
 
 

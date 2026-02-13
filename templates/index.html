@@ -12,15 +12,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- CARRUSEL -->
-<section class="carrusel" id="carrusel">
-  <div class="slides">
-    <!-- Las imágenes se cargarán dinámicamente -->
-  </div>
-  <div class="dots">
-    <!-- Los dots se generarán dinámicamente -->
-  </div>
-</section>
 
 <!-- PRODUCTOS DESTACADOS -->
 <section class="productos-destacados">
@@ -59,15 +50,15 @@
       <span class="btn-ver-mas">Ver colección</span>
     </a>
 
-    <a href="{{ url_for('tobilleras') }}" class="coleccion-card">
-      <img src="{{ url_for('static', path='img/TOBILLERA 4.png') }}" alt="Tobilleras" loading="lazy">
-      <h3>Tobilleras</h3>
+    <a href="{{ url_for('combos') }}" class="coleccion-card">
+      <img src="{{ url_for('static', path='img/TOBILLERA 4.png') }}" alt="Combos" loading="lazy">
+      <h3>Combos</h3>
       <span class="btn-ver-mas">Ver colección</span>
     </a>
 
-    <a href="{{ url_for('more_products') }}" class="coleccion-card">
-      <img src="{{ url_for('static', path='img/DIJE BOLSA DE DINEROS.webp') }}" alt="Más productos" loading="lazy">
-      <h3>Más productos</h3>
+    <a href="{{ url_for('dijes') }}" class="coleccion-card">
+      <img src="{{ url_for('static', path='img/DIJE BOLSA DE DINEROS.webp') }}" alt="Dijes y Herrajes" loading="lazy">
+      <h3>Dijes y Herrajes</h3>
       <span class="btn-ver-mas">Ver colección</span>
     </a>
 

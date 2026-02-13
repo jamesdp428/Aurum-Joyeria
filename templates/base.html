@@ -55,7 +55,7 @@
             </div>
 
             <div class="icons">
-                <!-- Ícono de usuario/login - RUTAS CORREGIDAS -->
+                <!-- Ícono de usuario/login -->
                 <a href="/login" id="userIcon" title="Iniciar sesión">
                     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -63,7 +63,7 @@
                     </svg>
                 </a>
                 
-                <!-- Ícono de carrito - RUTA CORREGIDA -->
+                <!-- Ícono de carrito -->
                 <a href="/carrito">
                     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
                         <circle cx="9" cy="21" r="1"/>
@@ -82,8 +82,8 @@
             <li><a href="/pulseras">Pulseras</a></li>
             <li><a href="/cadenas">Cadenas</a></li>
             <li><a href="/aretes">Aretes</a></li>
-            <li><a href="/tobilleras">Tobilleras</a></li>
-            <li><a href="/otros">Más productos</a></li>
+            <li><a href="/combos">Combos</a></li>
+            <li><a href="/dijes">Dijes y Herrajes</a></li>
         </ul>
     </nav>
 
@@ -94,8 +94,8 @@
             <li><a href="/pulseras">Pulseras</a></li>
             <li><a href="/cadenas">Cadenas</a></li>
             <li><a href="/aretes">Aretes</a></li>
-            <li><a href="/tobilleras">Tobilleras</a></li>
-            <li><a href="/otros">Más productos</a></li>
+            <li><a href="/combos">Combos</a></li>
+            <li><a href="/dijes">Dijes y Herrajes</a></li>
         </ul>
     </nav>
 </header>
@@ -169,26 +169,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = getCurrentUser();
             
             if (user) {
-                // Usuario logueado - redirigir a perfil (RUTA CORREGIDA)
+                // Usuario logueado - redirigir a perfil
                 userIcon.href = '/perfil';
                 userIcon.title = `Mi perfil (${user.nombre})`;
                 console.log('✅ Usuario detectado:', user.nombre);
             } else {
-                // Usuario NO logueado - redirigir a login (RUTA CORREGIDA)
+                // Usuario NO logueado - redirigir a login
                 userIcon.href = '/login';
                 userIcon.title = 'Iniciar sesión';
                 console.log('ℹ️ No hay usuario logueado');
             }
         } catch (error) {
             console.error('Error al actualizar icono de usuario:', error);
-            // En caso de error, mantener el link a login por defecto
             userIcon.href = '/login';
         }
     }
 });
 </script>
-
-
 
 <!-- Botón de admin (solo para administradores) -->
 <script defer src="{{ url_for('static', path='js/admin-panel-button.js') }}"></script>
