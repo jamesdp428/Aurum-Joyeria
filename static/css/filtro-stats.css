@@ -1,0 +1,80 @@
+/* ===== ESTADÍSTICAS DEL FILTRO ===== */
+
+.filtro-stats {
+  margin-top: 20px;
+  padding: 15px;
+  background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
+  border-radius: 8px;
+  border: 1px solid rgba(249, 220, 94, 0.1);
+  animation: fadeIn 0.3s ease;
+}
+
+.filtro-stats p {
+  margin: 8px 0;
+  font-size: 0.85rem;
+  color: #aaa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  line-height: 1.6;
+}
+
+.filtro-stats strong {
+  color: #f9dc5e;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.filtro-stats .stat-label {
+  color: #999;
+}
+
+.filtro-stats hr {
+  border: none;
+  border-top: 1px solid rgba(249, 220, 94, 0.1);
+  margin: 10px 0;
+}
+
+/* Badge de filtro activo */
+.filtro-activo-badge {
+  display: inline-block;
+  background: linear-gradient(45deg, #f9dc5e, #ffd700);
+  color: #000;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Animación para cuando cambian las estadísticas */
+@keyframes statUpdate {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.filtro-stats.updating strong {
+  animation: statUpdate 0.3s ease;
+  color: #ffd700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filtro-stats {
+    padding: 12px;
+  }
+  
+  .filtro-stats p {
+    font-size: 0.8rem;
+  }
+  
+  .filtro-stats strong {
+    font-size: 0.85rem;
+  }
+}

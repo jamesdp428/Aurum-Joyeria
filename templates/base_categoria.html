@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="{{ url_for('static', path='css/categorias.css') }}" />
 <link rel="stylesheet" href="{{ url_for('static', path='css/producto.css') }}" />
 <link rel="stylesheet" href="{{ url_for('static', path='css/paginacion.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', path='css/filtro-stats.css') }}" />
 {% endblock %}
 
 {% block extra_js %}
@@ -20,12 +21,18 @@
     <aside class="filtro">
         <h3>Ordenar por:</h3>
         <select id="filtro">
-            <option value="default">Orden por defecto</option>
+            <option value="default">Más recientes</option>
             <option value="nombre-asc">Nombre: A-Z</option>
             <option value="nombre-desc">Nombre: Z-A</option>
+            <option value="precio-asc">Precio: Menor a mayor</option>
+            <option value="precio-desc">Precio: Mayor a menor</option>
             <option value="destacados">Productos destacados</option>
             <option value="stock-desc">Mayor stock</option>
         </select>
+        
+        <div class="filtro-stats" id="filtroStats">
+            <!-- Se llena con JavaScript -->
+        </div>
     </aside>
 
     <section class="contenedor-productos" id="contenedorProductos">
