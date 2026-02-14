@@ -19,6 +19,10 @@ class Usuario(Base):
     verification_code = Column(String(64), nullable=True)
     verification_expires = Column(DateTime(timezone=True), nullable=True)
     
+    # 🔥 NUEVO: Campos para recuperación de contraseña
+    password_reset_code = Column(String(64), nullable=True)
+    password_reset_expires = Column(DateTime(timezone=True), nullable=True)
+    
     # Campos para cambio de email
     pending_email = Column(String(255), nullable=True)
     pending_email_code = Column(String(64), nullable=True)
@@ -38,6 +42,7 @@ class Producto(Base):
     categoria = Column(String(100), nullable=False, index=True)
     stock = Column(Integer, default=0)
     imagen_url = Column(Text)
+    imagenes_urls = Column(Text, nullable=True)  # JSON array de URLs
     destacado = Column(Boolean, default=False, index=True)
     activo = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

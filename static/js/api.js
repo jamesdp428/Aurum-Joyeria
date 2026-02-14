@@ -233,6 +233,32 @@ const authAPI = {
     return await fetchAPI('/auth/delete-account', {
       method: 'DELETE'
     });
+  },
+  
+  // 🔥 NUEVO: Reenviar código de verificación
+  async resendVerification() {
+    return await fetchAPI('/auth/resend-verification', {
+      method: 'POST'
+    });
+  },
+  
+  // 🔥 NUEVO: Solicitar recuperación de contraseña
+  async requestPasswordReset(email) {
+    return await fetchAPI('/auth/request-password-reset', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+  },
+  
+  // 🔥 NUEVO: Restablecer contraseña con código
+  async resetPassword(code, newPassword) {
+    return await fetchAPI('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        code: code,
+        new_password: newPassword
+      })
+    });
   }
 };
 

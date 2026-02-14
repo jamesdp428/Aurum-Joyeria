@@ -42,6 +42,10 @@
 
       <button type="submit" id="loginBtn">Ingresar</button>
 
+      <p class="login-link">
+        <a href="#" id="forgotPasswordLink" style="color: #f9dc5e; text-decoration: none;">¿Olvidaste tu contraseña?</a>
+      </p>
+
       <p class="login-link">¿No tienes cuenta? <a href="{{ url_for('register') }}">Regístrate</a></p>
     </form>
   </div>
@@ -169,6 +173,299 @@
           messageBox.style.display = 'none';
         }, 5000);
       }
+    }
+    
+    // 🔥 MODAL DE RECUPERACIÓN DE CONTRASEÑA
+    document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      mostrarModalRecuperacion();
+    });
+    
+    function mostrarModalRecuperacion() {
+      const modalHTML = `
+        <div id="modalRecuperacion" style="
+          display: flex;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.95);
+          justify-content: center;
+          align-items: center;
+          z-index: 10000;
+        ">
+          <div style="
+            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+            border: 2px solid #f9dc5e;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+          ">
+            <h2 style="color: #f9dc5e; margin-top: 0;">🔑 Recuperar contraseña</h2>
+            
+            <div id="paso1" style="display: block;">
+              <p style="color: #ccc; margin-bottom: 20px;">
+                Ingresa tu email y te enviaremos un código para restablecer tu contraseña.
+              </p>
+              
+              <div id="recoveryMessage" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 20px;"></div>
+              
+              <input 
+                type="email" 
+                id="recoveryEmail" 
+                placeholder="Tu correo electrónico"
+                style="
+                  width: 100%;
+                  padding: 12px;
+                  background: #2a2a2a;
+                  border: 1px solid #444;
+                  border-radius: 8px;
+                  color: white;
+                  margin-bottom: 20px;
+                  font-size: 16px;
+                "
+              >
+              
+              <div style="display: flex; gap: 10px;">
+                <button 
+                  id="btnEnviarCodigo"
+                  style="
+                    flex: 1;
+                    padding: 12px;
+                    background: linear-gradient(45deg, #f9dc5e, #ffd700);
+                    color: #000;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    cursor: pointer;
+                  "
+                >
+                  Enviar código
+                </button>
+                <button 
+                  id="btnCancelarRecuperacion"
+                  style="
+                    flex: 1;
+                    padding: 12px;
+                    background: #333;
+                    color: white;
+                    border: 1px solid #555;
+                    border-radius: 8px;
+                    cursor: pointer;
+                  "
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+            
+            <div id="paso2" style="display: none;">
+              <p style="color: #ccc; margin-bottom: 20px;">
+                Ingresa el código que enviamos a tu email y tu nueva contraseña.
+              </p>
+              
+              <div id="resetMessage" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 20px;"></div>
+              
+              <input 
+                type="text" 
+                id="resetCode" 
+                placeholder="Código de recuperación"
+                style="
+                  width: 100%;
+                  padding: 12px;
+                  background: #2a2a2a;
+                  border: 1px solid #444;
+                  border-radius: 8px;
+                  color: white;
+                  margin-bottom: 15px;
+                  font-size: 16px;
+                "
+              >
+              
+              <div class="password-container" style="margin-bottom: 15px;">
+                <input 
+                  type="password" 
+                  id="newPassword" 
+                  placeholder="Nueva contraseña (mínimo 6 caracteres)"
+                  style="
+                    width: 100%;
+                    padding: 12px;
+                    background: #2a2a2a;
+                    border: 1px solid #444;
+                    border-radius: 8px;
+                    color: white;
+                    font-size: 16px;
+                  "
+                >
+              </div>
+              
+              <div class="password-container" style="margin-bottom: 20px;">
+                <input 
+                  type="password" 
+                  id="newPasswordConfirm" 
+                  placeholder="Confirmar nueva contraseña"
+                  style="
+                    width: 100%;
+                    padding: 12px;
+                    background: #2a2a2a;
+                    border: 1px solid #444;
+                    border-radius: 8px;
+                    color: white;
+                    font-size: 16px;
+                  "
+                >
+              </div>
+              
+              <div style="display: flex; gap: 10px;">
+                <button 
+                  id="btnRestablecerPassword"
+                  style="
+                    flex: 1;
+                    padding: 12px;
+                    background: linear-gradient(45deg, #f9dc5e, #ffd700);
+                    color: #000;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    cursor: pointer;
+                  "
+                >
+                  Restablecer contraseña
+                </button>
+                <button 
+                  id="btnVolverPaso1"
+                  style="
+                    flex: 1;
+                    padding: 12px;
+                    background: #333;
+                    color: white;
+                    border: 1px solid #555;
+                    border-radius: 8px;
+                    cursor: pointer;
+                  "
+                >
+                  Volver
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      
+      // Event listeners del modal
+      document.getElementById('btnCancelarRecuperacion').addEventListener('click', cerrarModalRecuperacion);
+      document.getElementById('btnEnviarCodigo').addEventListener('click', enviarCodigoRecuperacion);
+      document.getElementById('btnVolverPaso1').addEventListener('click', () => {
+        document.getElementById('paso2').style.display = 'none';
+        document.getElementById('paso1').style.display = 'block';
+      });
+      document.getElementById('btnRestablecerPassword').addEventListener('click', restablecerPassword);
+    }
+    
+    async function enviarCodigoRecuperacion() {
+      const email = document.getElementById('recoveryEmail').value.trim();
+      const btn = document.getElementById('btnEnviarCodigo');
+      
+      if (!email) {
+        mostrarMensajeRecovery('Por favor ingresa tu email', 'error');
+        return;
+      }
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        mostrarMensajeRecovery('Por favor ingresa un email válido', 'error');
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      
+      try {
+        await authAPI.requestPasswordReset(email);
+        
+        mostrarMensajeRecovery('✅ Si el email existe, recibirás un código de recuperación', 'success');
+        
+        setTimeout(() => {
+          document.getElementById('paso1').style.display = 'none';
+          document.getElementById('paso2').style.display = 'block';
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        mostrarMensajeRecovery(error.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar código';
+      }
+    }
+    
+    async function restablecerPassword() {
+      const code = document.getElementById('resetCode').value.trim();
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('newPasswordConfirm').value;
+      const btn = document.getElementById('btnRestablecerPassword');
+      
+      if (!code || !newPassword || !confirmPassword) {
+        mostrarMensajeReset('Por favor completa todos los campos', 'error');
+        return;
+      }
+      
+      if (newPassword.length < 6) {
+        mostrarMensajeReset('La contraseña debe tener al menos 6 caracteres', 'error');
+        return;
+      }
+      
+      if (newPassword !== confirmPassword) {
+        mostrarMensajeReset('Las contraseñas no coinciden', 'error');
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = 'Restableciendo...';
+      
+      try {
+        await authAPI.resetPassword(code, newPassword);
+        
+        mostrarMensajeReset('✅ Contraseña restablecida exitosamente', 'success');
+        
+        setTimeout(() => {
+          cerrarModalRecuperacion();
+          showMessage('Contraseña actualizada. Ya puedes iniciar sesión', 'success');
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        mostrarMensajeReset(error.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Restablecer contraseña';
+      }
+    }
+    
+    function cerrarModalRecuperacion() {
+      const modal = document.getElementById('modalRecuperacion');
+      if (modal) {
+        modal.remove();
+      }
+    }
+    
+    function mostrarMensajeRecovery(text, type) {
+      const messageBox = document.getElementById('recoveryMessage');
+      messageBox.textContent = text;
+      messageBox.style.display = 'block';
+      messageBox.style.background = type === 'success' ? '#4CAF50' : '#f44336';
+      messageBox.style.color = 'white';
+    }
+    
+    function mostrarMensajeReset(text, type) {
+      const messageBox = document.getElementById('resetMessage');
+      messageBox.textContent = text;
+      messageBox.style.display = 'block';
+      messageBox.style.background = type === 'success' ? '#4CAF50' : '#f44336';
+      messageBox.style.color = 'white';
     }
   </script>
 </body>

@@ -1,5 +1,5 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from typing import List
 from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel
@@ -14,6 +14,7 @@ from auth import (
     create_access_token,
     decode_access_token
 )
+from email_service import send_verification_email, send_password_reset_email
 
 router = APIRouter(prefix="/auth")
 
@@ -29,11 +30,12 @@ class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str
 
-class RequestEmailChangeRequest(BaseModel):
-    new_email: str
+class RequestPasswordResetRequest(BaseModel):
+    email: str
 
-class ConfirmEmailChangeRequest(BaseModel):
+class ResetPasswordRequest(BaseModel):
     code: str
+    new_password: str
 
 class VerifyEmailCodeRequest(BaseModel):
     code: str
@@ -112,6 +114,18 @@ async def register_user(user_data: UsuarioCreate, request: Request):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Error al crear usuario"
             )
+        
+        # 🔥 ENVIAR EMAIL DE VERIFICACIÓN
+        try:
+            send_verification_email(
+                to_email=new_user["email"],
+                nombre=new_user["nombre"],
+                code=verification_code
+            )
+            print(f"✅ Email de verificación enviado a {new_user['email']}")
+        except Exception as email_error:
+            print(f"⚠️ Error enviando email de verificación: {email_error}")
+            # No fallar el registro si el email falla
         
         # Crear token
         access_token = create_access_token(data={"sub": str(new_user["id"])})
@@ -194,10 +208,7 @@ async def logout_endpoint(request: Request):
 
 @router.get("/me")
 async def get_current_user_profile(request: Request):
-    """
-    🔥 CORREGIDO: Obtiene el perfil del usuario actual
-    SIEMPRE desde la base de datos (datos frescos)
-    """
+    """Obtiene el perfil del usuario actual"""
     
     # Primero intentar obtener desde sesión o token
     user_session = request.session.get("user")
@@ -222,7 +233,7 @@ async def get_current_user_profile(request: Request):
             detail="No autenticado"
         )
     
-    # 🔥 IMPORTANTE: SIEMPRE obtener datos frescos desde Supabase
+    # Obtener datos frescos desde Supabase
     user = supabase.get_user_by_id(user_id)
     
     if not user:
@@ -231,10 +242,10 @@ async def get_current_user_profile(request: Request):
             detail="Usuario no encontrado"
         )
     
-    # 🔥 Actualizar sesión con datos frescos
+    # Actualizar sesión con datos frescos
     request.session["user"] = create_user_session_data(user)
     
-    print(f"✅ Perfil obtenido (fresco desde DB): {user['email']}")
+    print(f"✅ Perfil obtenido: {user['email']}")
     
     return user
 
@@ -278,7 +289,7 @@ async def change_password(request_data: ChangePasswordRequest, request: Request)
             detail="No autenticado"
         )
     
-    # 🔥 Obtener datos frescos de la DB
+    # Obtener datos frescos de la DB
     user = supabase.get_user_by_id(user_session["id"])
     if not user:
         raise HTTPException(
@@ -318,7 +329,7 @@ async def verify_email_with_code(request_data: VerifyEmailCodeRequest, request: 
             detail="No autenticado"
         )
     
-    # 🔥 Obtener datos frescos de la DB
+    # Obtener datos frescos de la DB
     user = supabase.get_user_by_id(user_session["id"])
     if not user:
         raise HTTPException(
@@ -359,12 +370,153 @@ async def verify_email_with_code(request_data: VerifyEmailCodeRequest, request: 
         "verification_expires": None
     })
     
-    # 🔥 Actualizar sesión con datos frescos
+    # Actualizar sesión con datos frescos
     request.session["user"] = create_user_session_data(updated_user)
     
     print(f"✅ Email verificado: {updated_user['email']}")
     
     return {"message": "Email verificado exitosamente"}
+
+# 🔥 NUEVO: Reenviar código de verificación
+@router.post("/resend-verification")
+async def resend_verification(request: Request):
+    """Reenvía el código de verificación por email"""
+    
+    user_session = request.session.get("user")
+    if not user_session:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No autenticado"
+        )
+    
+    # Obtener datos frescos de la DB
+    user = supabase.get_user_by_id(user_session["id"])
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+    
+    if user.get("email_verified"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El email ya está verificado"
+        )
+    
+    # Generar nuevo código
+    new_code = secrets.token_urlsafe(32)
+    new_expires = (utc_now() + timedelta(hours=24)).isoformat()
+    
+    # Actualizar usuario con nuevo código
+    supabase.update_user(user["id"], {
+        "verification_code": new_code,
+        "verification_expires": new_expires
+    })
+    
+    # Enviar email
+    try:
+        send_verification_email(
+            to_email=user["email"],
+            nombre=user["nombre"],
+            code=new_code
+        )
+        print(f"✅ Código de verificación reenviado a {user['email']}")
+        return {"message": "Código de verificación enviado a tu email"}
+    except Exception as e:
+        print(f"❌ Error enviando email: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al enviar el email"
+        )
+
+# 🔥 NUEVO: Solicitar recuperación de contraseña
+@router.post("/request-password-reset")
+async def request_password_reset(request_data: RequestPasswordResetRequest):
+    """Solicita un código para recuperar contraseña"""
+    
+    user = supabase.get_user_by_email(request_data.email)
+    
+    # Por seguridad, siempre responder OK aunque el email no exista
+    if not user:
+        print(f"⚠️ Intento de reset para email inexistente: {request_data.email}")
+        return {"message": "Si el email existe, recibirás un código de recuperación"}
+    
+    # Generar código de recuperación
+    reset_code = secrets.token_urlsafe(32)
+    reset_expires = (utc_now() + timedelta(hours=1)).isoformat()
+    
+    # Guardar código en el usuario
+    supabase.update_user(user["id"], {
+        "password_reset_code": reset_code,
+        "password_reset_expires": reset_expires
+    })
+    
+    # Enviar email
+    try:
+        send_password_reset_email(
+            to_email=user["email"],
+            nombre=user["nombre"],
+            code=reset_code
+        )
+        print(f"✅ Código de recuperación enviado a {user['email']}")
+    except Exception as e:
+        print(f"❌ Error enviando email de recuperación: {e}")
+    
+    return {"message": "Si el email existe, recibirás un código de recuperación"}
+
+# 🔥 NUEVO: Restablecer contraseña con código
+@router.post("/reset-password")
+async def reset_password(request_data: ResetPasswordRequest):
+    """Restablece la contraseña usando un código de recuperación"""
+    
+    if len(request_data.new_password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña debe tener al menos 6 caracteres"
+        )
+    
+    # Buscar usuario por código de recuperación
+    # Nota: Supabase REST API no permite filtrar por campos que no son id/email fácilmente
+    # Necesitaremos obtener todos los usuarios y buscar (no ideal, pero funcional)
+    all_users = supabase.get_all_users()
+    
+    user = None
+    for u in all_users:
+        if u.get("password_reset_code") == request_data.code:
+            user = u
+            break
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Código inválido o expirado"
+        )
+    
+    # Verificar expiración
+    if user.get("password_reset_expires"):
+        expires = datetime.fromisoformat(user["password_reset_expires"].replace('Z', '+00:00'))
+        if utc_now() > expires:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El código ha expirado"
+            )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Código inválido"
+        )
+    
+    # Actualizar contraseña y limpiar código
+    new_hash = hash_password(request_data.new_password)
+    supabase.update_user(user["id"], {
+        "password_hash": new_hash,
+        "password_reset_code": None,
+        "password_reset_expires": None
+    })
+    
+    print(f"✅ Contraseña restablecida para: {user['email']}")
+    
+    return {"message": "Contraseña restablecida exitosamente"}
 
 # ========== ADMIN ==========
 
@@ -382,6 +534,7 @@ async def list_users(skip: int = 0, limit: int = 100, request: Request = None):
     users = supabase.get_all_users(skip, limit)
     return users
 
+# 🔥 CORREGIDO: Eliminar cuenta
 @router.delete("/delete-account")
 async def delete_account(request: Request):
     """Elimina la cuenta del usuario actual"""
@@ -393,6 +546,9 @@ async def delete_account(request: Request):
             detail="No autenticado"
         )
     
+    user_id = user_session["id"]
+    
+    # Verificar si es admin
     if user_session.get("rol") == "admin":
         # Verificar que no sea el último admin
         all_users = supabase.get_all_users()
@@ -404,13 +560,26 @@ async def delete_account(request: Request):
                 detail="No puedes eliminar la última cuenta de administrador"
             )
     
-    success = supabase.delete_user(user_session["id"])
-    
-    if not success:
+    # Eliminar usuario
+    try:
+        success = supabase.delete_user(user_id)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error al eliminar cuenta"
+            )
+        
+        # Limpiar sesión
+        request.session.clear()
+        
+        print(f"✅ Cuenta eliminada: {user_session['email']}")
+        
+        return {"message": "Cuenta eliminada exitosamente"}
+        
+    except Exception as e:
+        print(f"❌ Error eliminando cuenta: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error al eliminar cuenta"
         )
-    
-    request.session.clear()
-    return {"message": "Cuenta eliminada exitosamente"}
