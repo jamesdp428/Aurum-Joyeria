@@ -1,0 +1,327 @@
+/* ===== SISTEMA DE PAGINACIÓN ===== */
+
+.paginacion-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 50px;
+  padding: 30px 20px;
+  grid-column: 1 / -1;
+}
+
+.paginacion-info {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin-right: 20px;
+  white-space: nowrap;
+}
+
+.paginacion-info strong {
+  color: #f9dc5e;
+  font-weight: 600;
+}
+
+.paginacion-controles {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.paginacion-btn {
+  background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+  color: #f9dc5e;
+  border: 1px solid rgba(249, 220, 94, 0.2);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paginacion-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(249, 220, 94, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.paginacion-btn:hover::before {
+  left: 100%;
+}
+
+.paginacion-btn:hover {
+  background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+  border-color: rgba(249, 220, 94, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(249, 220, 94, 0.2);
+}
+
+.paginacion-btn:active {
+  transform: translateY(0);
+}
+
+.paginacion-btn.active {
+  background: linear-gradient(45deg, #f9dc5e, #ffd700);
+  color: #000;
+  border-color: #f9dc5e;
+  font-weight: 700;
+  box-shadow: 0 5px 15px rgba(249, 220, 94, 0.3);
+}
+
+.paginacion-btn.active:hover {
+  background: linear-gradient(45deg, #ffd700, #f9dc5e);
+}
+
+.paginacion-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.paginacion-btn.ellipsis {
+  pointer-events: none;
+  background: transparent;
+  border: none;
+  color: #666;
+  padding: 10px 8px;
+  min-width: auto;
+}
+
+.paginacion-btn.ellipsis:hover {
+  transform: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.paginacion-arrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+}
+
+.paginacion-arrow svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* ===== SELECTOR DE ITEMS POR PÁGINA ===== */
+.items-per-page-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 20px;
+  padding-left: 20px;
+  border-left: 1px solid rgba(249, 220, 94, 0.2);
+}
+
+.items-per-page-container label {
+  color: #aaa;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.items-per-page-select {
+  background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+  color: #f9dc5e;
+  border: 1px solid rgba(249, 220, 94, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23f9dc5e' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.items-per-page-select:hover {
+  background-color: #2a2a2a;
+  border-color: rgba(249, 220, 94, 0.4);
+}
+
+.items-per-page-select:focus {
+  outline: none;
+  border-color: #f9dc5e;
+  box-shadow: 0 0 0 2px rgba(249, 220, 94, 0.2);
+}
+
+/* ===== ESTADOS DE CARGA Y TRANSICIÓN ===== */
+.productos-grid.loading {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.productos-grid.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(249, 220, 94, 0.2);
+  border-top-color: #f9dc5e;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .paginacion-container {
+    flex-direction: column;
+    gap: 20px;
+    padding: 25px 15px;
+  }
+  
+  .paginacion-info {
+    margin-right: 0;
+    text-align: center;
+  }
+  
+  .paginacion-controles {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .paginacion-btn {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    min-width: 40px;
+  }
+  
+  .paginacion-arrow {
+    padding: 10px 16px;
+  }
+  
+  .items-per-page-container {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid rgba(249, 220, 94, 0.2);
+    padding-top: 15px;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .paginacion-container {
+    padding: 20px 10px;
+    gap: 15px;
+  }
+  
+  .paginacion-info {
+    font-size: 0.85rem;
+  }
+  
+  .paginacion-btn {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    min-width: 36px;
+  }
+  
+  .paginacion-arrow {
+    padding: 8px 14px;
+  }
+  
+  .paginacion-arrow span {
+    display: none;
+  }
+  
+  .items-per-page-select {
+    padding: 7px 28px 7px 10px;
+    font-size: 0.85rem;
+  }
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.paginacion-container {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* ===== TEMA OSCURO MEJORADO ===== */
+@media (prefers-color-scheme: dark) {
+  .paginacion-btn {
+    background: linear-gradient(145deg, #1a1a1a, #252525);
+  }
+  
+  .paginacion-btn:hover {
+    background: linear-gradient(145deg, #252525, #1a1a1a);
+  }
+}
+
+/* ===== ACCESIBILIDAD ===== */
+.paginacion-btn:focus-visible {
+  outline: 2px solid #f9dc5e;
+  outline-offset: 2px;
+}
+
+.items-per-page-select:focus-visible {
+  outline: 2px solid #f9dc5e;
+  outline-offset: 2px;
+}
+
+/* ===== MEJORAS VISUALES ===== */
+.paginacion-separador {
+  width: 1px;
+  height: 24px;
+  background: linear-gradient(180deg, transparent, rgba(249, 220, 94, 0.3), transparent);
+  margin: 0 8px;
+}
+
+/* Efecto de brillo en hover para botones activos */
+.paginacion-btn.active::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.paginacion-btn.active:hover::after {
+  opacity: 1;
+}
