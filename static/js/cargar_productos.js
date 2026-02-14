@@ -35,19 +35,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       'aretes': 'Aretes'
     };
 
-    // Si la categoría es "otros" o "more-products", traer productos de varias categorías (ahora = Combos)
-    if (categoriaActual === 'otros' || categoriaActual === 'more-products') {
-      // Traer todos los productos y filtrar las categorías principales
-      const todosProductos = await productosAPI.getAll({ activo: true });
-      const categoriasExcluidas = ['anillos', 'aretes', 'pulseras', 'cadenas', 'tobilleras'];
-      productosFiltrados = todosProductos.filter(p => !categoriasExcluidas.includes(p.categoria));
-    } else if (categoriaActual === 'tobilleras') {
-      // Dijes y Herrajes: traer productos con categoría tobilleras
-      productosFiltrados = await productosAPI.getByCategoria('tobilleras');
-    } else {
-      // Traer productos de la categoría específica
-      productosFiltrados = await productosAPI.getByCategoria(categoriaActual);
-    }
+    // Traer productos de la categoría específica (tobilleras = Dijes y Herrajes, otros = Combos)
+    productosFiltrados = await productosAPI.getByCategoria(categoriaActual);
     
     console.log(`Productos encontrados en categoría '${categoriaActual}': ${productosFiltrados.length}`);
 

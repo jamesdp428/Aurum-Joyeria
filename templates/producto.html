@@ -69,7 +69,7 @@
             <div class="cantidad-control">
                 <label for="cantidad">Cantidad:</label>
                 <div class="cantidad-input-group">
-                    <button type="button" onclick="cambiarCantidad(-1)" class="btn-cantidad" aria-label="Disminuir cantidad">
+                    <button type="button" id="btnMenos" class="btn-cantidad" aria-label="Disminuir cantidad">
                         -
                     </button>
                     <input 
@@ -80,7 +80,7 @@
                         max="10"
                         aria-label="Cantidad de productos" 
                     />
-                    <button type="button" onclick="cambiarCantidad(1)" class="btn-cantidad" aria-label="Aumentar cantidad">
+                    <button type="button" id="btnMas" class="btn-cantidad" aria-label="Aumentar cantidad">
                         +
                     </button>
                 </div>

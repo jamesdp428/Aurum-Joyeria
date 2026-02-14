@@ -216,6 +216,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 100);
     });
   });
+
+  // Conectar botones + y - por ID (evita problema con defer y onclick)
+  const btnMenos = document.getElementById('btnMenos');
+  const btnMas = document.getElementById('btnMas');
+
+  if (btnMenos) btnMenos.addEventListener('click', () => cambiarCantidad(-1));
+  if (btnMas) btnMas.addEventListener('click', () => cambiarCantidad(1));
 });
 
 // ========================================
