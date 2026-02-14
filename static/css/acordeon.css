@@ -1,0 +1,336 @@
+/* ========================================
+   ACORDEONES DE INFORMACIÓN DEL PRODUCTO
+   ======================================== */
+
+.producto-informacion-adicional {
+  margin-top: 50px;
+  width: 100%;
+}
+
+.acordeon-titulo-seccion {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 25px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(249, 220, 94, 0.2);
+}
+
+.acordeon-titulo-seccion svg {
+  width: 28px;
+  height: 28px;
+  stroke: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.acordeon-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* --- Item del acordeón --- */
+.acordeon-item {
+  background: linear-gradient(145deg, #1a1a1a, #252525);
+  border: 1px solid rgba(249, 220, 94, 0.15);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.acordeon-item:hover {
+  border-color: rgba(249, 220, 94, 0.3);
+  box-shadow: 0 4px 15px rgba(249, 220, 94, 0.1);
+}
+
+.acordeon-item.active {
+  border-color: rgba(249, 220, 94, 0.4);
+  box-shadow: 0 6px 20px rgba(249, 220, 94, 0.15);
+  background: linear-gradient(145deg, #252525, #1a1a1a);
+}
+
+/* --- Encabezado del acordeón --- */
+.acordeon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+  background: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.acordeon-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(249, 220, 94, 0.05), transparent);
+  transition: left 0.5s ease;
+}
+
+.acordeon-item:hover .acordeon-header::before {
+  left: 100%;
+}
+
+.acordeon-header:hover {
+  background: rgba(249, 220, 94, 0.03);
+}
+
+.acordeon-titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+  flex: 1;
+}
+
+.acordeon-titulo svg {
+  width: 22px;
+  height: 22px;
+  stroke: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.acordeon-icono {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.acordeon-item.active .acordeon-icono {
+  transform: rotate(180deg);
+}
+
+.acordeon-icono svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  stroke-width: 2.5;
+}
+
+/* --- Contenido del acordeón --- */
+.acordeon-contenido {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.4s ease;
+  padding: 0 24px;
+}
+
+.acordeon-item.active .acordeon-contenido {
+  max-height: 1000px;
+  padding: 0 24px 24px 24px;
+}
+
+.acordeon-contenido-inner {
+  padding-top: 8px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+
+.acordeon-contenido-inner h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin: 20px 0 12px 0;
+}
+
+.acordeon-contenido-inner h4:first-child {
+  margin-top: 0;
+}
+
+.acordeon-contenido-inner ul {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+
+.acordeon-contenido-inner ul li {
+  padding: 8px 0 8px 28px;
+  position: relative;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.acordeon-contenido-inner ul li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.acordeon-contenido-inner ul.list-warning li::before {
+  content: '⚠';
+  font-size: 1rem;
+}
+
+.acordeon-contenido-inner ul.list-info li::before {
+  content: '•';
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.acordeon-contenido-inner p {
+  margin: 12px 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.acordeon-contenido-inner strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Destacados especiales */
+.acordeon-highlight {
+  background: rgba(249, 220, 94, 0.08);
+  border-left: 3px solid var(--color-primary);
+  padding: 15px 18px;
+  margin: 15px 0;
+  border-radius: 8px;
+}
+
+.acordeon-highlight p {
+  margin: 0;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+/* Separador */
+.acordeon-separador {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(249, 220, 94, 0.2), transparent);
+  margin: 20px 0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .producto-informacion-adicional {
+    margin-top: 40px;
+  }
+
+  .acordeon-titulo-seccion {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+
+  .acordeon-titulo-seccion svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .acordeon-header {
+    padding: 16px 18px;
+  }
+
+  .acordeon-titulo {
+    font-size: 0.95rem;
+    gap: 10px;
+  }
+
+  .acordeon-titulo svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .acordeon-icono {
+    width: 20px;
+    height: 20px;
+  }
+
+  .acordeon-contenido {
+    padding: 0 18px;
+  }
+
+  .acordeon-item.active .acordeon-contenido {
+    padding: 0 18px 18px 18px;
+  }
+
+  .acordeon-contenido-inner {
+    font-size: 0.9rem;
+  }
+
+  .acordeon-contenido-inner ul li {
+    padding: 6px 0 6px 24px;
+    font-size: 0.88rem;
+  }
+
+  .acordeon-contenido-inner h4 {
+    font-size: 0.95rem;
+    margin: 16px 0 10px 0;
+  }
+
+  .acordeon-highlight {
+    padding: 12px 15px;
+    margin: 12px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .acordeon-titulo-seccion {
+    font-size: 1.1rem;
+    gap: 10px;
+  }
+
+  .acordeon-header {
+    padding: 14px 16px;
+  }
+
+  .acordeon-titulo {
+    font-size: 0.9rem;
+  }
+
+  .acordeon-contenido {
+    padding: 0 16px;
+  }
+
+  .acordeon-item.active .acordeon-contenido {
+    padding: 0 16px 16px 16px;
+  }
+
+  .acordeon-contenido-inner ul li {
+    padding: 5px 0 5px 22px;
+    font-size: 0.85rem;
+  }
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes acordeonFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.acordeon-item {
+  animation: acordeonFadeIn 0.3s ease;
+}
+
+/* Efecto al abrir */
+.acordeon-item.active .acordeon-contenido-inner {
+  animation: acordeonFadeIn 0.4s ease 0.1s both;
+}

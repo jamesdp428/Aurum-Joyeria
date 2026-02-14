@@ -2,11 +2,13 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', path='css/producto.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', path='css/acordeon.css') }}" />
 {% endblock %}
 
 {% block extra_js %}
 <script defer src="{{ url_for('static', path='js/detalle_producto.js') }}"></script>
 <script defer src="{{ url_for('static', path='js/cantidad.js') }}"></script>
+<script defer src="{{ url_for('static', path='js/acordeon.js') }}"></script>
 {% endblock %}
 
 {% block title %}Producto | Aurum Joyería{% endblock %}
@@ -138,6 +140,202 @@
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                     </svg>
                     <span>Atención personalizada</span>
+                </div>
+            </div>
+
+            <!-- ========== ACORDEONES DE INFORMACIÓN ========== -->
+            <div class="producto-informacion-adicional">
+                <h3 class="acordeon-titulo-seccion">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4M12 8h.01"/>
+                    </svg>
+                    Información Importante
+                </h3>
+
+                <div class="acordeon-container">
+                    
+                    <!-- 1. ¿Qué es el Oro Laminado? -->
+                    <div class="acordeon-item">
+                        <div class="acordeon-header">
+                            <div class="acordeon-titulo">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                                </svg>
+                                ¿Qué es el Oro Laminado?
+                            </div>
+                            <div class="acordeon-icono">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="acordeon-contenido">
+                            <div class="acordeon-contenido-inner">
+                                <p>Las joyas en <strong>Oro Laminado</strong> están fabricadas a base de dos metales de alta calidad:</p>
+                                
+                                <ul class="list-info">
+                                    <li><strong>Tombak:</strong> Metal libre de níquel (químico que puede provocar reacción alérgica en la piel)</li>
+                                    <li><strong>Paladio:</strong> Especial para la adherencia perfecta del oro 18K</li>
+                                </ul>
+
+                                <div class="acordeon-separador"></div>
+
+                                <h4>Ventajas del Oro Laminado de 18K</h4>
+                                <ul>
+                                    <li>Mayor durabilidad que los baños o enchapes en oro</li>
+                                    <li>Resistentes al uso diario</li>
+                                    <li>Resistentes al mar, piscina y sudoración</li>
+                                    <li>Compatibles con perfumes</li>
+                                </ul>
+
+                                <div class="acordeon-highlight">
+                                    <p>✨ Nuestras joyas mantienen su brillo y color por mucho más tiempo gracias a la tecnología de laminado de oro 18K.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Cuidados del Oro Laminado -->
+                    <div class="acordeon-item">
+                        <div class="acordeon-header">
+                            <div class="acordeon-titulo">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                                </svg>
+                                Cuidados del Oro Laminado
+                            </div>
+                            <div class="acordeon-icono">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="acordeon-contenido">
+                            <div class="acordeon-contenido-inner">
+                                <p>Sigue estos consejos para mantener tus joyas en perfecto estado:</p>
+
+                                <h4>Después de contacto con agua</h4>
+                                <ul>
+                                    <li>Después de ingresar al mar, piscinas o lagos, lava tu joya con abundante agua tibia</li>
+                                    <li>Seca suavemente con un paño suave</li>
+                                </ul>
+
+                                <h4>Después de actividad física</h4>
+                                <ul>
+                                    <li>Limpia tu joya con nuestros paños lustradores después de cualquier actividad que genere sudoración</li>
+                                    <li>Esto evita la acumulación de residuos</li>
+                                </ul>
+
+                                <h4>Limpieza regular</h4>
+                                <ul>
+                                    <li>Limpia constantemente con abundante agua y jabón neutro</li>
+                                    <li>Evita productos químicos agresivos o abrasivos</li>
+                                </ul>
+
+                                <div class="acordeon-highlight">
+                                    <p>💎 Siguiendo estos tips, tus joyas siempre lucirán como nuevas y en perfecto estado.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Políticas de Garantía -->
+                    <div class="acordeon-item">
+                        <div class="acordeon-header">
+                            <div class="acordeon-titulo">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                </svg>
+                                Políticas de Garantía
+                            </div>
+                            <div class="acordeon-icono">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="acordeon-contenido">
+                            <div class="acordeon-contenido-inner">
+                                <div class="acordeon-highlight">
+                                    <p>🛡️ La garantía es durante <strong>12 meses</strong> por cambio de color o reacción alérgica al material.</p>
+                                </div>
+
+                                <h4>La garantía cubre:</h4>
+                                <ul>
+                                    <li>Cambio de color del oro laminado</li>
+                                    <li>Reacción alérgica al material (siempre que se use correctamente)</li>
+                                </ul>
+
+                                <h4>La garantía NO cubre:</h4>
+                                <ul class="list-warning">
+                                    <li>Joyas dañadas, reventadas o estropeadas por mal uso</li>
+                                    <li>Exposición a ácidos (como pruebas para verificar si es oro)</li>
+                                    <li>Malos usos o cuidados inadecuados</li>
+                                    <li>Desgaste normal por uso excesivo</li>
+                                </ul>
+
+                                <div class="acordeon-separador"></div>
+
+                                <h4>Requisitos para hacer efectiva la garantía:</h4>
+                                <ul>
+                                    <li>Debes contar con la <strong>tarjeta de certificación</strong></li>
+                                    <li>Presentar la <strong>factura de compra</strong></li>
+                                    <li>Contactarnos dentro del período de garantía</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Políticas de Cambio -->
+                    <div class="acordeon-item">
+                        <div class="acordeon-header">
+                            <div class="acordeon-titulo">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <polyline points="23 4 23 10 17 10"/>
+                                    <polyline points="1 20 1 14 7 14"/>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                </svg>
+                                Políticas de Cambio
+                            </div>
+                            <div class="acordeon-icono">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="acordeon-contenido">
+                            <div class="acordeon-contenido-inner">
+                                <h4>Condiciones para cambios:</h4>
+                                <ul>
+                                    <li>Solo aceptamos cambios <strong>24 horas</strong> después de haber recibido tu pedido</li>
+                                    <li>La prenda debe estar en <strong>perfecto estado y sin uso</strong></li>
+                                    <li>Debe incluir todos los empaques y accesorios originales</li>
+                                </ul>
+
+                                <h4>Si encuentras algún defecto:</h4>
+                                <ul>
+                                    <li>Debes reportarlo por alguno de nuestros medios de contacto</li>
+                                    <li>Plazo máximo: <strong>2 días</strong> después de recibir tu pedido</li>
+                                    <li>Envía fotos claras del defecto encontrado</li>
+                                </ul>
+
+                                <div class="acordeon-separador"></div>
+
+                                <h4>Requisitos para la devolución:</h4>
+                                <ul>
+                                    <li>Tarjeta de certificación original</li>
+                                    <li>Factura de compra</li>
+                                    <li>Producto en condiciones originales</li>
+                                </ul>
+
+                                <div class="acordeon-highlight">
+                                    <p>📦 Queremos que estés 100% satisfecho con tu compra. Contáctanos si tienes alguna duda.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
