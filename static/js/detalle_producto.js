@@ -255,12 +255,31 @@ function configurarCantidad(producto) {
   cantidadInput.max = Math.max(1, producto.stock);
   cantidadInput.value = 1;
   
+  // Conectar botones + y - directamente aquí (evita problema de orden con defer)
+  const btnMenos = document.getElementById('btnMenos');
+  const btnMas = document.getElementById('btnMas');
+  
+  if (btnMenos) {
+    btnMenos.onclick = () => {
+      const val = parseInt(cantidadInput.value) || 1;
+      const min = parseInt(cantidadInput.min) || 1;
+      if (val > min) cantidadInput.value = val - 1;
+    };
+  }
+  
+  if (btnMas) {
+    btnMas.onclick = () => {
+      const val = parseInt(cantidadInput.value) || 1;
+      const max = parseInt(cantidadInput.max) || 99;
+      if (val < max) cantidadInput.value = val + 1;
+    };
+  }
+  
   // Deshabilitar si no hay stock
   if (producto.stock === 0) {
     cantidadInput.disabled = true;
     cantidadInput.value = 0;
     
-    // Deshabilitar también los botones de cantidad
     const botonesCantidad = document.querySelectorAll('.btn-cantidad');
     botonesCantidad.forEach(btn => {
       btn.disabled = true;

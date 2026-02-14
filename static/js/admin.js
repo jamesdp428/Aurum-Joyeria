@@ -191,6 +191,16 @@ function crearFilaProducto(producto) {
     
     const precio = producto.precio ? `$${Number(producto.precio).toLocaleString('es-CO')}` : 'Consultar';
     
+    const nombreCategoria = {
+        'tobilleras': 'Combos',
+        'otros': 'Dijes y Herrajes',
+        'anillos': 'Anillos',
+        'pulseras': 'Pulseras',
+        'cadenas': 'Cadenas',
+        'aretes': 'Aretes'
+    };
+    const categoriaMostrar = nombreCategoria[producto.categoria] || producto.categoria;
+    
     // Crear celda de imagen con placeholder
     const imagenCell = document.createElement('td');
     const img = document.createElement('img');
@@ -216,7 +226,7 @@ function crearFilaProducto(producto) {
     // Resto de las celdas
     tr.innerHTML += `
         <td>${producto.nombre}</td>
-        <td style="text-transform: capitalize;">${producto.categoria}</td>
+        <td>${categoriaMostrar}</td>
         <td>${precio}</td>
         <td>${producto.stock}</td>
         <td>

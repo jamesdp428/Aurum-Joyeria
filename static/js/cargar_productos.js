@@ -27,8 +27,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Mapeo de categorías DB a nombre visible
     const nombreCategoria = {
-      'tobilleras': 'Dijes y Herrajes',
-      'otros': 'Combos',
+      'tobilleras': 'Combos',
+      'otros': 'Dijes y Herrajes',
       'anillos': 'Anillos',
       'pulseras': 'Pulseras',
       'cadenas': 'Cadenas',
