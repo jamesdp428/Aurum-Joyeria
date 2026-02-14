@@ -98,7 +98,16 @@ function renderizarProducto(producto) {
   // CATEGORÍA
   const categoriaProducto = document.getElementById('categoriaProducto');
   if (categoriaProducto) {
-    categoriaProducto.textContent = capitalizar(producto.categoria);
+    // Mapeo de categorías DB a nombre visible
+    const categoriasNombres = {
+      'tobilleras': 'Dijes y Herrajes',
+      'otros': 'Combos',
+      'anillos': 'Anillos',
+      'pulseras': 'Pulseras',
+      'cadenas': 'Cadenas',
+      'aretes': 'Aretes'
+    };
+    categoriaProducto.textContent = categoriasNombres[producto.categoria] || capitalizar(producto.categoria);
   }
   
   // DESCRIPCIÓN
@@ -136,9 +145,24 @@ function actualizarBreadcrumb(producto) {
   const categoriaBreadcrumb = document.getElementById('categoriaBreadcrumb');
   const nombreBreadcrumb = document.getElementById('nombreBreadcrumb');
   
+  // Mapeo de categorías DB a nombre visible y URL
+  const categoriasMap = {
+    'tobilleras': { nombre: 'Dijes y Herrajes', url: '/dijes' },
+    'otros': { nombre: 'Combos', url: '/combos' },
+    'anillos': { nombre: 'Anillos', url: '/anillos' },
+    'pulseras': { nombre: 'Pulseras', url: '/pulseras' },
+    'cadenas': { nombre: 'Cadenas', url: '/cadenas' },
+    'aretes': { nombre: 'Aretes', url: '/aretes' }
+  };
+  
+  const categoriaInfo = categoriasMap[producto.categoria] || { 
+    nombre: capitalizar(producto.categoria), 
+    url: `/${producto.categoria}` 
+  };
+  
   if (categoriaBreadcrumb) {
-    categoriaBreadcrumb.textContent = capitalizar(producto.categoria);
-    categoriaBreadcrumb.href = `/${producto.categoria}`;
+    categoriaBreadcrumb.textContent = categoriaInfo.nombre;
+    categoriaBreadcrumb.href = categoriaInfo.url;
   }
   
   if (nombreBreadcrumb) {
@@ -387,9 +411,21 @@ function configurarWhatsApp(producto) {
   
   if (!btnWhatsApp) return;
   
+  // Mapeo de categorías para mensaje
+  const categoriasNombres = {
+    'tobilleras': 'Dijes y Herrajes',
+    'otros': 'Combos',
+    'anillos': 'Anillos',
+    'pulseras': 'Pulseras',
+    'cadenas': 'Cadenas',
+    'aretes': 'Aretes'
+  };
+  
+  const nombreCategoria = categoriasNombres[producto.categoria] || capitalizar(producto.categoria);
+  
   const telefono = '573217798612'; // Número de WhatsApp
   const mensaje = `¡Hola! Estoy interesado en el producto: *${producto.nombre}*\n\n` +
-                  `Categoría: ${capitalizar(producto.categoria)}\n` +
+                  `Categoría: ${nombreCategoria}\n` +
                   (producto.precio ? `Precio: $${Number(producto.precio).toLocaleString('es-CO')}\n` : '') +
                   `\n¿Podrías darme más información?`;
   
