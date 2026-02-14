@@ -25,12 +25,10 @@ function inicializarAdmin() {
     configurarTabs();
     configurarModales();
     cargarProductos();
-    cargarCarrusel();
     
     // Event listeners
     document.getElementById('logoutBtn').addEventListener('click', logoutFromPanel);
     document.getElementById('btnNuevoProducto').addEventListener('click', () => abrirModalProducto());
-    document.getElementById('btnNuevoCarrusel').addEventListener('click', () => abrirModalCarrusel());
     document.getElementById('filterCategoria').addEventListener('change', cargarProductos);
     document.getElementById('filterDestacado').addEventListener('change', cargarProductos);
 }
@@ -66,13 +64,7 @@ function configurarModales() {
     btnCancelarProducto.addEventListener('click', () => cerrarModal(modalProducto));
     formProducto.addEventListener('submit', guardarProducto);
     
-    // Modal Carrusel
-    const modalCarrusel = document.getElementById('modalCarrusel');
-    const btnCancelarCarrusel = document.getElementById('btnCancelarCarrusel');
-    const formCarrusel = document.getElementById('formCarrusel');
     
-    btnCancelarCarrusel.addEventListener('click', () => cerrarModal(modalCarrusel));
-    formCarrusel.addEventListener('submit', guardarCarrusel);
     
     // Cerrar con X
     document.querySelectorAll('.modal-close').forEach(btn => {
@@ -93,10 +85,6 @@ function configurarModales() {
     // Preview de imágenes - SOPORTE MÚLTIPLE
     document.getElementById('productoImagen').addEventListener('change', (e) => {
         previewImagenesMultiples(e.target, 'imagenPreview');
-    });
-    
-    document.getElementById('carruselImagen').addEventListener('change', (e) => {
-        previewImagen(e.target, 'carruselImagenPreview');
     });
 }
 
@@ -385,179 +373,5 @@ async function eliminarProducto(id) {
     } catch (error) {
         console.error('Error eliminando producto:', error);
         alert('❌ Error al eliminar el producto: ' + error.message);
-    }
-}
-
-// ========== CARRUSEL ==========
-
-async function cargarCarrusel() {
-    const grid = document.getElementById('carruselGrid');
-    grid.innerHTML = '<div class="loading">Cargando carrusel...</div>';
-    
-    try {
-        const items = await carruselAPI.getAll(undefined);
-        
-        if (items.length === 0) {
-            grid.innerHTML = '<div class="empty-state">No hay imágenes en el carrusel</div>';
-            return;
-        }
-        
-        grid.innerHTML = '';
-        
-        items.forEach(item => {
-            const card = crearCardCarrusel(item);
-            grid.appendChild(card);
-        });
-        
-    } catch (error) {
-        console.error('Error cargando carrusel:', error);
-        grid.innerHTML = '<div class="error-message">Error al cargar el carrusel</div>';
-    }
-}
-
-function crearCardCarrusel(item) {
-    const card = document.createElement('div');
-    card.className = 'carrusel-item';
-    
-    const img = document.createElement('img');
-    img.alt = item.titulo || 'Carrusel';
-    
-    if (item.imagen_url) {
-        img.src = item.imagen_url;
-        img.onerror = function() {
-            this.src = 'https://via.placeholder.com/300x200/1a1a1a/f9dc5e?text=Sin+Imagen';
-        };
-    } else {
-        img.src = 'https://via.placeholder.com/300x200/1a1a1a/f9dc5e?text=Sin+Imagen';
-    }
-    
-    card.appendChild(img);
-    
-    const content = document.createElement('div');
-    content.className = 'carrusel-item-content';
-    content.innerHTML = `
-        <h3>${item.titulo || 'Sin título'}</h3>
-        <p>${item.descripcion || 'Sin descripción'}</p>
-        <div class="carrusel-item-info">
-            <span>Orden: ${item.orden}</span>
-            <span class="status-badge ${item.activo ? 'active' : 'inactive'}">
-                ${item.activo ? 'Activo' : 'Inactivo'}
-            </span>
-        </div>
-        <div class="carrusel-item-actions">
-            <button class="btn-primary btn-small btn-edit" onclick="editarCarrusel('${item.id}')">
-                Editar
-            </button>
-            <button class="btn-primary btn-small btn-delete" onclick="eliminarCarrusel('${item.id}')">
-                Eliminar
-            </button>
-        </div>
-    `;
-    
-    card.appendChild(content);
-    return card;
-}
-
-function abrirModalCarrusel(item = null) {
-    const modal = document.getElementById('modalCarrusel');
-    const titulo = document.getElementById('modalCarruselTitulo');
-    const form = document.getElementById('formCarrusel');
-    
-    form.reset();
-    document.getElementById('carruselImagenPreview').classList.remove('show');
-    document.getElementById('carruselImagenPreview').innerHTML = '';
-    
-    if (item) {
-        titulo.textContent = 'Editar Imagen del Carrusel';
-        document.getElementById('carruselId').value = item.id;
-        document.getElementById('carruselTitulo').value = item.titulo || '';
-        document.getElementById('carruselDescripcion').value = item.descripcion || '';
-        document.getElementById('carruselOrden').value = item.orden;
-        document.getElementById('carruselActivo').checked = item.activo;
-        document.getElementById('carruselImagen').removeAttribute('required');
-        
-        if (item.imagen_url) {
-            const preview = document.getElementById('carruselImagenPreview');
-            preview.innerHTML = `<img src="${item.imagen_url}" alt="Preview" onerror="this.src='https://via.placeholder.com/300x200/1a1a1a/f9dc5e?text=Sin+Imagen'">`;
-            preview.classList.add('show');
-        }
-    } else {
-        titulo.textContent = 'Nueva Imagen del Carrusel';
-        document.getElementById('carruselActivo').checked = true;
-        document.getElementById('carruselImagen').setAttribute('required', 'required');
-    }
-    
-    abrirModal(modal);
-}
-
-async function editarCarrusel(id) {
-    try {
-        const item = await carruselAPI.getById(id);
-        abrirModalCarrusel(item);
-    } catch (error) {
-        console.error('Error cargando item del carrusel:', error);
-        alert('Error al cargar el item del carrusel');
-    }
-}
-
-async function guardarCarrusel(e) {
-    e.preventDefault();
-    
-    const id = document.getElementById('carruselId').value;
-    const titulo = document.getElementById('carruselTitulo').value;
-    const descripcion = document.getElementById('carruselDescripcion').value;
-    const orden = document.getElementById('carruselOrden').value;
-    const activo = document.getElementById('carruselActivo').checked;
-    const imagenInput = document.getElementById('carruselImagen');
-    
-    const carruselData = {
-        titulo: titulo || null,
-        descripcion: descripcion || null,
-        orden: parseInt(orden),
-        activo
-    };
-    
-    const imagenFile = imagenInput.files[0] || null;
-    
-    if (!id && !imagenFile) {
-        alert('Debes seleccionar una imagen');
-        return;
-    }
-    
-    try {
-        if (id) {
-            await carruselAPI.update(id, carruselData, imagenFile);
-            alert('✅ Carrusel actualizado exitosamente');
-        } else {
-            await carruselAPI.create(carruselData, imagenFile);
-            alert('✅ Imagen agregada al carrusel exitosamente');
-        }
-        
-        cerrarModal(document.getElementById('modalCarrusel'));
-        await cargarCarrusel();
-        
-    } catch (error) {
-        console.error('Error guardando carrusel:', error);
-        alert('❌ Error al guardar el carrusel: ' + error.message);
-    }
-}
-
-// ✅ CORREGIDO: Manejo robusto de DELETE
-async function eliminarCarrusel(id) {
-    if (!confirm('¿Estás seguro de eliminar esta imagen del carrusel? Esta acción no se puede deshacer.')) {
-        return;
-    }
-    
-    try {
-        const response = await carruselAPI.delete(id);
-        
-        console.log('Respuesta de eliminación:', response);
-        
-        alert('✅ Imagen eliminada exitosamente');
-        await cargarCarrusel();
-        
-    } catch (error) {
-        console.error('Error eliminando carrusel:', error);
-        alert('❌ Error al eliminar la imagen: ' + error.message);
     }
 }

@@ -27,22 +27,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Mapeo de categorías DB a nombre visible
     const nombreCategoria = {
-      'tobilleras': 'Combos',
-      'otros': 'Dijes y Herrajes',
+      'tobilleras': 'Dijes y Herrajes',
+      'otros': 'Combos',
       'anillos': 'Anillos',
       'pulseras': 'Pulseras',
       'cadenas': 'Cadenas',
       'aretes': 'Aretes'
     };
 
-    // Si la categoría es "otros" o "more-products", traer productos de varias categorías
+    // Si la categoría es "otros" o "more-products", traer productos de varias categorías (ahora = Combos)
     if (categoriaActual === 'otros' || categoriaActual === 'more-products') {
       // Traer todos los productos y filtrar las categorías principales
       const todosProductos = await productosAPI.getAll({ activo: true });
       const categoriasExcluidas = ['anillos', 'aretes', 'pulseras', 'cadenas', 'tobilleras'];
       productosFiltrados = todosProductos.filter(p => !categoriasExcluidas.includes(p.categoria));
     } else if (categoriaActual === 'tobilleras') {
-      // Combos: traer productos con categoría tobilleras
+      // Dijes y Herrajes: traer productos con categoría tobilleras
       productosFiltrados = await productosAPI.getByCategoria('tobilleras');
     } else {
       // Traer productos de la categoría específica

@@ -344,78 +344,10 @@ const productosAPI = {
   }
 };
 
-// ========== API DE CARRUSEL ==========
-
-const carruselAPI = {
-  async getAll(activoFilter = true) {
-    const params = new URLSearchParams();
-    if (activoFilter !== undefined) {
-      params.append('activo', activoFilter);
-    }
-    const query = params.toString() ? `?${params.toString()}` : '';
-    return await fetchAPI(`/carrusel${query}`);
-  },
-  
-  async getById(id) {
-    return await fetchAPI(`/carrusel/${id}`);
-  },
-  
-  async create(carruselData, imagenFile) {
-    const formData = new FormData();
-    
-    if (!imagenFile) {
-      throw new Error('La imagen es requerida');
-    }
-    
-    formData.append('imagen', imagenFile);
-    formData.append('orden', carruselData.orden || 0);
-    formData.append('activo', carruselData.activo !== undefined ? carruselData.activo : true);
-    
-    if (carruselData.titulo) {
-      formData.append('titulo', carruselData.titulo);
-    }
-    
-    if (carruselData.descripcion) {
-      formData.append('descripcion', carruselData.descripcion);
-    }
-    
-    return await fetchAPI('/carrusel', {
-      method: 'POST',
-      body: formData
-    });
-  },
-  
-  async update(id, carruselData, imagenFile = null) {
-    const formData = new FormData();
-    
-    if (carruselData.titulo !== undefined) formData.append('titulo', carruselData.titulo);
-    if (carruselData.descripcion !== undefined) formData.append('descripcion', carruselData.descripcion);
-    if (carruselData.orden !== undefined) formData.append('orden', carruselData.orden);
-    if (carruselData.activo !== undefined) formData.append('activo', carruselData.activo);
-    if (imagenFile) formData.append('imagen', imagenFile);
-    
-    return await fetchAPI(`/carrusel/${id}`, {
-      method: 'PUT',
-      body: formData
-    });
-  },
-  
-  // ✅ DELETE corregido
-  async delete(id) {
-    console.log('🗑️ Eliminando carrusel:', id);
-    const response = await fetchAPI(`/carrusel/${id}`, {
-      method: 'DELETE'
-    });
-    console.log('✅ Carrusel eliminado:', response);
-    return response;
-  }
-};
-
 // ========== EXPORTAR PARA USO GLOBAL ==========
 if (typeof window !== 'undefined') {
   window.authAPI = authAPI;
   window.productosAPI = productosAPI;
-  window.carruselAPI = carruselAPI;
   window.getToken = getToken;
   window.getCurrentUser = getCurrentUser;
   window.isAdmin = isAdmin;

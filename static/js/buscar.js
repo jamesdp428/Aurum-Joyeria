@@ -45,8 +45,8 @@ function mostrarResultados(resultados) {
     'pulseras': '/pulseras',
     'cadenas': '/cadenas',
     'aretes': '/aretes',
-    'tobilleras': '/combos',
-    'otros': '/dijes'
+    'tobilleras': '/dijes',
+    'otros': '/combos'
   };
 
   let html = '';

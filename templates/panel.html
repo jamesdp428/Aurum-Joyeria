@@ -30,7 +30,6 @@
         <!-- Tabs de navegación -->
         <div class="admin-tabs">
             <button class="tab-btn active" data-tab="productos">Productos</button>
-            <button class="tab-btn" data-tab="carrusel">Carrusel</button>
         </div>
 
         <!-- ========== TAB DE PRODUCTOS ========== -->
@@ -49,8 +48,8 @@
                     <option value="pulseras">Pulseras</option>
                     <option value="cadenas">Cadenas</option>
                     <option value="aretes">Aretes</option>
-                    <option value="tobilleras">Combos</option>
-                    <option value="otros">Dijes y Herrajes</option>
+                    <option value="tobilleras">Dijes y Herrajes</option>
+                    <option value="otros">Combos</option>
                 </select>
                 
                 <label>
@@ -80,20 +79,6 @@
             </div>
         </div>
 
-        <!-- ========== TAB DE CARRUSEL ========== -->
-        <div class="tab-content" id="carrusel-tab">
-            
-            <div class="admin-header">
-                <h2>Gestión del Carrusel</h2>
-                <button class="btn-primary" id="btnNuevoCarrusel">+ Nueva Imagen</button>
-            </div>
-
-            <!-- Grid de carrusel -->
-            <div class="carrusel-grid" id="carruselGrid">
-                <!-- Los items del carrusel se cargan aquí -->
-            </div>
-        </div>
-
     </main>
 
     <!-- ========== MODAL PRODUCTO ========== -->
@@ -118,8 +103,8 @@
                         <option value="pulseras">Pulseras</option>
                         <option value="cadenas">Cadenas</option>
                         <option value="aretes">Aretes</option>
-                        <option value="tobilleras">Combos</option>
-                        <option value="otros">Dijes y Herrajes</option>
+                        <option value="tobilleras">Dijes y Herrajes</option>
+                        <option value="otros">Combos</option>
                     </select>
                 </div>
                 
@@ -171,52 +156,6 @@
         </div>
     </div>
 
-    <!-- ========== MODAL CARRUSEL ========== -->
-    <div class="modal" id="modalCarrusel">
-        <div class="modal-content">
-            <span class="modal-close">&times;</span>
-            <h2 id="modalCarruselTitulo">Nueva Imagen del Carrusel</h2>
-            
-            <form id="formCarrusel" enctype="multipart/form-data">
-                <input type="hidden" id="carruselId">
-                
-                <div class="form-group">
-                    <label for="carruselTitulo">Título (opcional)</label>
-                    <input type="text" id="carruselTitulo">
-                </div>
-                
-                <div class="form-group">
-                    <label for="carruselDescripcion">Descripción (opcional)</label>
-                    <textarea id="carruselDescripcion" rows="3"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="carruselOrden">Orden</label>
-                    <input type="number" id="carruselOrden" value="0" min="0">
-                    <small>Número más bajo aparece primero</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="carruselImagen">Imagen *</label>
-                    <input type="file" id="carruselImagen" accept="image/*" required>
-                    <div id="carruselImagenPreview" class="imagen-preview"></div>
-                    <small>Recomendado: 1920x1080px o similar ratio 16:9</small>
-                </div>
-                
-                <div class="form-checkboxes">
-                    <label>
-                        <input type="checkbox" id="carruselActivo" checked>
-                        Activo
-                    </label>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" id="btnCancelarCarrusel">Cancelar</button>
-                    <button type="submit" class="btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
 <!-- Scripts -->
 <script src="{{ url_for('static', path='js/api.js') }}"></script>

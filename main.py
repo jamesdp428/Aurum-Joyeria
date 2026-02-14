@@ -242,7 +242,7 @@ async def combos(request: Request):
     user = safe_get_user(request)
     return templates.TemplateResponse(
         "base_categoria.html", 
-        {"request": request, "user": user, "categoria": "tobilleras", "categoria_nombre": "Combos"}
+        {"request": request, "user": user, "categoria": "otros", "categoria_nombre": "Dijes y Herrajes"}
     )
 
 @app.get("/dijes", response_class=HTMLResponse, name="dijes")
@@ -250,7 +250,7 @@ async def dijes(request: Request):
     user = safe_get_user(request)
     return templates.TemplateResponse(
         "base_categoria.html", 
-        {"request": request, "user": user, "categoria": "otros", "categoria_nombre": "Dijes y Herrajes"}
+        {"request": request, "user": user, "categoria": "tobilleras", "categoria_nombre": "Combos"}
     )
 
 

@@ -61,28 +61,3 @@ class ProductoResponse(ProductoBase):
     
     class Config:
         from_attributes = True
-
-# ========== SCHEMAS DE CARRUSEL ==========
-
-class CarruselBase(BaseModel):
-    titulo: Optional[str] = Field(None, max_length=255)
-    descripcion: Optional[str] = None
-    orden: int = Field(default=0, ge=0)
-    activo: bool = True
-
-class CarruselCreate(CarruselBase):
-    pass
-
-class CarruselUpdate(BaseModel):
-    titulo: Optional[str] = None
-    descripcion: Optional[str] = None
-    orden: Optional[int] = Field(None, ge=0)
-    activo: Optional[bool] = None
-
-class CarruselResponse(CarruselBase):
-    id: uuid.UUID
-    imagen_url: str
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True

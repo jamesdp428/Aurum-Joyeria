@@ -55,15 +55,15 @@
             </div>
 
             <div class="icons">
-                <!-- Ícono de usuario/login -->
-                <a href="/login" id="userIcon" title="Iniciar sesión">
+                <!-- Icono de usuario/login -->
+                <a href="/login" id="userIcon" title="Iniciar sesion">
                     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                         <circle cx="12" cy="7" r="4"/>
                     </svg>
                 </a>
                 
-                <!-- Ícono de carrito -->
+                <!-- Icono de carrito -->
                 <a href="/carrito">
                     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24">
                         <circle cx="9" cy="21" r="1"/>
@@ -75,27 +75,27 @@
         </div> 
     </div>
 
-    <!-- Menú móvil -->
+    <!-- Menu movil -->
     <nav class="menu-mobile" id="menuMobile">
         <ul>
             <li><a href="/anillos">Anillos</a></li>
             <li><a href="/pulseras">Pulseras</a></li>
             <li><a href="/cadenas">Cadenas</a></li>
             <li><a href="/aretes">Aretes</a></li>
-            <li><a href="/combos">Combos</a></li>
-            <li><a href="/dijes">Dijes y Herrajes</a></li>
+            <li><a href="/combos">Dijes y Herrajes</a></li>
+            <li><a href="/dijes">Combos</a></li>
         </ul>
     </nav>
 
-    <!-- Menú categorías (desktop) -->
+    <!-- Menu categorias (desktop) -->
     <nav class="menu-categorias">
         <ul>
             <li><a href="/anillos">Anillos</a></li>
             <li><a href="/pulseras">Pulseras</a></li>
             <li><a href="/cadenas">Cadenas</a></li>
             <li><a href="/aretes">Aretes</a></li>
-            <li><a href="/combos">Combos</a></li>
-            <li><a href="/dijes">Dijes y Herrajes</a></li>
+            <li><a href="/combos">Dijes y Herrajes</a></li>
+            <li><a href="/dijes">Combos</a></li>
         </ul>
     </nav>
 </header>
@@ -107,7 +107,7 @@
 <footer class="footer">
     <div class="footer-container">
         <div class="footer-section logo-section">
-            <img src="{{ url_for('static', path='img/logo.svg') }}" class="logo-img" alt="Aurum Joyería" />
+            <img src="{{ url_for('static', path='img/logo.svg') }}" class="logo-img" alt="Aurum Joyeria" />
         </div>
 
         <div class="footer-section">
@@ -124,14 +124,14 @@
         <div class="footer-section">
             <h4>Contacto</h4>
             <ul>
-                <li><span>📍 Medellín, Colombia</span></li>
-                <li><span>📞 +57 321 779 8612</span></li>
-                <li><span>✉️ aurumjoyeriak@gmail.com</span></li>
+                <li><span>&#128205; Medellin, Colombia</span></li>
+                <li><span>&#128222; +57 321 779 8612</span></li>
+                <li><span>&#9993; aurumjoyeriak@gmail.com</span></li>
             </ul>
         </div>
 
         <div class="footer-section">
-            <h4>Síguenos</h4>
+            <h4>Siguenos</h4>
             <div class="footer-socials">
                 <a href="https://www.instagram.com/aurum.18k_joyeria/" target="_blank" rel="noopener noreferrer">
                     <img src="{{ url_for('static', path='img/instagram.svg') }}" alt="Instagram">
@@ -141,19 +141,18 @@
     </div>
 
     <div class="footer-bottom">
-        <p>&copy; 2025 Aurum Joyería. Todos los derechos reservados.</p>
+        <p>&copy; 2025 Aurum Joyeria. Todos los derechos reservados.</p>
     </div>
 </footer>
 
-<!-- BOTÓN FLOTANTE WHATSAPP -->
+<!-- BOTON FLOTANTE WHATSAPP -->
 <a href="https://wa.me/573217798612" class="whatsapp-float" target="_blank" aria-label="Chat en WhatsApp" rel="noopener noreferrer">
     <img src="{{ url_for('static', path='img/whatsapp-svgrepo-com.svg') }}" alt="WhatsApp" />
 </a>
 
-<!-- Script para actualizar ícono de usuario dinámicamente -->
+<!-- Script para actualizar icono de usuario dinamicamente -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // Esperar a que api.js se cargue
     const checkAPILoaded = setInterval(() => {
         if (typeof getCurrentUser === 'function') {
             clearInterval(checkAPILoaded);
@@ -169,15 +168,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = getCurrentUser();
             
             if (user) {
-                // Usuario logueado - redirigir a perfil
                 userIcon.href = '/perfil';
-                userIcon.title = `Mi perfil (${user.nombre})`;
-                console.log('✅ Usuario detectado:', user.nombre);
+                userIcon.title = 'Mi perfil (' + user.nombre + ')';
+                console.log('Usuario detectado:', user.nombre);
             } else {
-                // Usuario NO logueado - redirigir a login
                 userIcon.href = '/login';
-                userIcon.title = 'Iniciar sesión';
-                console.log('ℹ️ No hay usuario logueado');
+                userIcon.title = 'Iniciar sesion';
+                console.log('No hay usuario logueado');
             }
         } catch (error) {
             console.error('Error al actualizar icono de usuario:', error);
@@ -187,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- Botón de admin (solo para administradores) -->
+<!-- Boton de admin (solo para administradores) -->
 <script defer src="{{ url_for('static', path='js/admin-panel-button.js') }}"></script>
 
 {% block extra_scripts %}{% endblock %}
