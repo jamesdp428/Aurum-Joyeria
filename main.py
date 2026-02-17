@@ -120,6 +120,7 @@ def custom_url_for(name: str, **path_params):
             'aretes': '/aretes',
             'combos': '/combos',
             'dijes': '/dijes',
+            'balineria': '/balineria',
             'admin': '/admin',
         }
         return route_map.get(name, '/')
@@ -253,7 +254,13 @@ async def dijes(request: Request):
         {"request": request, "user": user, "categoria": "tobilleras", "categoria_nombre": "Dijes y Herrajes"}
     )
 
-
+@app.get("/balineria", response_class=HTMLResponse, name="balineria")
+async def balineria(request: Request):
+    user = safe_get_user(request)
+    return templates.TemplateResponse(
+        "base_categoria.html", 
+        {"request": request, "user": user, "categoria": "balineria", "categoria_nombre": "Balinería"}
+    )
 
 # ========================================
 # RUTAS DE PRODUCTO
@@ -345,13 +352,11 @@ async def api_test():
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
     """Manejo de errores 404"""
-    # Si es una petición API, devolver JSON
     if request.url.path.startswith("/api/"):
         return JSONResponse(
             status_code=404,
             content={"detail": "Endpoint no encontrado"}
         )
-    # Si es una página HTML, redirigir a inicio
     return RedirectResponse(url="/", status_code=303)
 
 @app.exception_handler(500)
@@ -359,13 +364,11 @@ async def server_error_handler(request: Request, exc):
     """Manejo de errores 500"""
     print(f"❌ Error 500: {exc}")
     
-    # Si es una petición API, devolver JSON
     if request.url.path.startswith("/api/"):
         return JSONResponse(
             status_code=500,
             content={"detail": "Error interno del servidor"}
         )
-    # Si es una página HTML, mostrar página de error
     user = None
     try:
         user = safe_get_user(request)

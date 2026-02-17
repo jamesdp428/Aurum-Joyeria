@@ -197,7 +197,8 @@ function crearFilaProducto(producto) {
         'anillos': 'Anillos',
         'pulseras': 'Pulseras',
         'cadenas': 'Cadenas',
-        'aretes': 'Aretes'
+        'aretes': 'Aretes',
+        'balineria': 'Balinería'
     };
     const categoriaMostrar = nombreCategoria[producto.categoria] || producto.categoria;
     

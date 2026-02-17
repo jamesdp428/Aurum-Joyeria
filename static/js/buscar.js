@@ -46,7 +46,8 @@ function mostrarResultados(resultados) {
     'cadenas': '/cadenas',
     'aretes': '/aretes',
     'tobilleras': '/dijes',
-    'otros': '/combos'
+    'otros': '/combos',
+    'balineria': '/balineria'
   };
 
   let html = '';
