@@ -132,7 +132,7 @@ async def register_user(user_data: UsuarioCreate, request: Request):
             detail="El email ya está registrado",
         )
 
-    verification_code = secrets.token_urlsafe(32)
+    verification_code = secrets.token_urlsafe(8)
 
     new_user_data = {
         "id":                   str(uuid.uuid4()),
@@ -344,7 +344,7 @@ async def resend_verification(request: Request):
     if user.get("email_verified"):
         raise HTTPException(status_code=400, detail="El email ya está verificado")
 
-    new_code    = secrets.token_urlsafe(32)
+    new_code    = secrets.token_urlsafe(8)
     new_expires = (utc_now() + timedelta(hours=24)).isoformat()
 
     supabase.update_user(user["id"], {
@@ -374,7 +374,7 @@ async def request_password_reset(body: RequestPasswordResetRequest):
         print(f"⚠️ Reset solicitado para email inexistente: {body.email}")
         return {"message": "Si el email existe, recibirás un código de recuperación"}
 
-    reset_code    = secrets.token_urlsafe(32)
+    reset_code    = secrets.token_urlsafe(8)
     reset_expires = (utc_now() + timedelta(hours=1)).isoformat()
 
     supabase.update_user(user["id"], {
@@ -431,7 +431,7 @@ async def request_email_change(body: RequestEmailChangeRequest, request: Request
     if supabase.get_user_by_email(body.new_email):
         raise HTTPException(status_code=400, detail="Ese email ya está registrado")
 
-    code    = secrets.token_urlsafe(32)
+    code    = secrets.token_urlsafe(8)
     expires = (utc_now() + timedelta(hours=1)).isoformat()
 
     supabase.update_user(user_session["id"], {
