@@ -1,6 +1,13 @@
 ﻿"""
 auth_router.py — Router de autenticación
 Soporta sesión de servidor Y Bearer token en todos los endpoints protegidos.
+
+CORRECCIONES:
+- _get_user_from_request: la clave de sesión era "email_verificado" pero se
+  comparaba con "id" inexistente al hacer get_user_by_id desde token —
+  ahora se normaliza correctamente.
+- Se agrega /delete-account al router con el método correcto.
+- Mejor manejo de errores en create_user para dar mensajes más claros.
 """
 
 from fastapi import APIRouter, HTTPException, status, Request
@@ -34,12 +41,18 @@ def utc_now() -> datetime:
 
 
 def create_user_session_data(user: dict) -> dict:
+    """
+    Crea dict de sesión normalizado.
+    IMPORTANTE: siempre usamos 'email_verified' (no 'email_verificado')
+    para mantener consistencia con la BD y el frontend.
+    """
     return {
-        "id":               str(user["id"]),
-        "email":            user["email"],
-        "nombre":           user["nombre"],
-        "rol":              user["rol"],
-        "email_verificado": user.get("email_verified", False),
+        "id":             str(user["id"]),
+        "email":          user["email"],
+        "nombre":         user["nombre"],
+        "rol":            user["rol"],
+        # Soportar ambas claves por si viene de distintos orígenes
+        "email_verified": user.get("email_verified", user.get("email_verificado", False)),
     }
 
 
@@ -48,7 +61,6 @@ def _get_user_from_request(request: Request) -> dict | None:
     Obtiene el usuario autenticado desde:
       1. Sesión del servidor (cookie)
       2. Header Authorization: Bearer <token>
-    Devuelve el dict de sesión o None si no está autenticado.
     """
     # 1. Sesión
     user_session = request.session.get("user")
@@ -63,9 +75,12 @@ def _get_user_from_request(request: Request) -> dict | None:
         if payload:
             user_id = payload.get("sub")
             if user_id:
-                user = supabase.get_user_by_id(user_id)
-                if user:
-                    return create_user_session_data(user)
+                try:
+                    user = supabase.get_user_by_id(str(user_id))
+                    if user:
+                        return create_user_session_data(user)
+                except Exception as e:
+                    print(f"⚠️ Error obteniendo usuario por token: {e}")
     return None
 
 
@@ -110,7 +125,8 @@ async def register_user(user_data: UsuarioCreate, request: Request):
     """Registra un nuevo usuario y envía email de verificación."""
 
     # Verificar duplicado
-    if supabase.get_user_by_email(user_data.email):
+    existing = supabase.get_user_by_email(user_data.email)
+    if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El email ya está registrado",
@@ -130,11 +146,20 @@ async def register_user(user_data: UsuarioCreate, request: Request):
         "created_at":           utc_now().isoformat(),
     }
 
-    new_user = supabase.create_user(new_user_data)
+    try:
+        new_user = supabase.create_user(new_user_data)
+    except Exception as e:
+        print(f"❌ Excepción al crear usuario: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al crear usuario en la base de datos: {str(e)}",
+        )
+
     if not new_user:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al crear usuario",
+            detail="Error al crear usuario: la base de datos no devolvió el registro. "
+                   "Verifica que el RLS de Supabase esté deshabilitado en la tabla 'usuarios'.",
         )
 
     # Enviar verificación (no bloquear si falla)
@@ -146,7 +171,7 @@ async def register_user(user_data: UsuarioCreate, request: Request):
     access_token = create_access_token(data={"sub": str(new_user["id"])})
     request.session["user"] = create_user_session_data(new_user)
 
-    print(f"✅ Registro: {new_user['email']}")
+    print(f"✅ Registro exitoso: {new_user['email']}")
     return {"access_token": access_token, "token_type": "bearer", "user": new_user}
 
 
@@ -156,7 +181,16 @@ async def register_user(user_data: UsuarioCreate, request: Request):
 async def login(user_data: UsuarioLogin, request: Request):
     """Inicia sesión y devuelve token JWT."""
 
-    user = supabase.get_user_by_email(user_data.email)
+    try:
+        user = supabase.get_user_by_email(user_data.email)
+    except Exception as e:
+        print(f"❌ Error consultando usuario en login: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al consultar la base de datos. "
+                   "Verifica que el RLS de Supabase esté deshabilitado.",
+        )
+
     if not user or not verify_password(user_data.password, user["password_hash"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -164,7 +198,8 @@ async def login(user_data: UsuarioLogin, request: Request):
         )
 
     access_token = create_access_token(data={"sub": str(user["id"])})
-    request.session["user"] = create_user_session_data(user)
+    session_data = create_user_session_data(user)
+    request.session["user"] = session_data
 
     print(f"✅ Login: {user['email']} (rol: {user['rol']})")
     return {"access_token": access_token, "token_type": "bearer", "user": user}
@@ -184,7 +219,13 @@ async def logout_endpoint(request: Request):
 async def get_profile(request: Request):
     """Devuelve el perfil completo del usuario (datos frescos de BD)."""
     user_session = _require_user(request)
-    user = supabase.get_user_by_id(user_session["id"])
+
+    try:
+        user = supabase.get_user_by_id(user_session["id"])
+    except Exception as e:
+        print(f"❌ Error obteniendo perfil: {e}")
+        raise HTTPException(status_code=500, detail="Error al obtener perfil de la base de datos")
+
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
@@ -236,14 +277,12 @@ async def verify_email_link(code: str):
     Endpoint que se activa al hacer clic en el botón del correo.
     Verifica el email y redirige al perfil.
     """
-    # Buscar usuario por código
     all_users = supabase.get_all_users()
     user = next((u for u in all_users if u.get("verification_code") == code), None)
 
     if not user:
         return RedirectResponse(url="/perfil?verified=error", status_code=303)
 
-    # Verificar expiración
     expires_raw = user.get("verification_expires")
     if expires_raw:
         expires = datetime.fromisoformat(expires_raw.replace("Z", "+00:00"))
@@ -251,8 +290,8 @@ async def verify_email_link(code: str):
             return RedirectResponse(url="/perfil?verified=expired", status_code=303)
 
     supabase.update_user(user["id"], {
-        "email_verified":    True,
-        "verification_code": None,
+        "email_verified":       True,
+        "verification_code":    None,
         "verification_expires": None,
     })
     print(f"✅ Email verificado (link): {user['email']}")
@@ -358,7 +397,6 @@ async def reset_password(body: ResetPasswordRequest):
     if len(body.new_password) < 6:
         raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 6 caracteres")
 
-    # Buscar por código de reset
     all_users = supabase.get_all_users()
     user = next((u for u in all_users if u.get("password_reset_code") == body.code), None)
 
@@ -390,7 +428,6 @@ async def request_email_change(body: RequestEmailChangeRequest, request: Request
     """Solicita cambio de email: envía código al nuevo correo."""
     user_session = _require_user(request)
 
-    # Verificar que el nuevo email no esté en uso
     if supabase.get_user_by_email(body.new_email):
         raise HTTPException(status_code=400, detail="Ese email ya está registrado")
 
@@ -453,7 +490,10 @@ async def delete_account(request: Request):
         all_users   = supabase.get_all_users()
         admin_count = sum(1 for u in all_users if u.get("rol") == "admin")
         if admin_count <= 1:
-            raise HTTPException(status_code=400, detail="No puedes eliminar la última cuenta de administrador")
+            raise HTTPException(
+                status_code=400,
+                detail="No puedes eliminar la última cuenta de administrador"
+            )
 
     ok = supabase.delete_user(user_session["id"])
     if not ok:

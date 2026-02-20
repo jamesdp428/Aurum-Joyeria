@@ -1,42 +1,35 @@
 // ========== BANNER DE VERIFICACIÓN DE EMAIL ==========
 
-/**
- * Muestra un banner si el usuario no ha verificado su email
- * Agregar este script a todas las páginas que requieren usuario logueado
- */
-
 document.addEventListener('DOMContentLoaded', async () => {
   const user = getCurrentUser();
-  
-  // Solo verificar si hay usuario logueado
+
   if (!user) return;
-  
+
   try {
-    // Obtener perfil actualizado del servidor
     const perfil = await authAPI.getProfile();
-    
-    // Actualizar localStorage con datos frescos
+
     const currentUser = getCurrentUser();
-    currentUser.email_verified = perfil.email_verified;
-    localStorage.setItem('user', JSON.stringify(currentUser));
-    
-    // Si no está verificado, mostrar banner
+    if (currentUser) {
+      currentUser.email_verified = perfil.email_verified;
+      localStorage.setItem('user', JSON.stringify(currentUser));
+    }
+
     if (!perfil.email_verified) {
       mostrarBannerVerificacion();
     }
-    
+
   } catch (error) {
+    // Si hay error de autenticación (401) el fetchAPI ya redirige al login.
+    // Para otros errores, no mostramos el banner para no interrumpir la UX.
     console.error('Error verificando estado de usuario:', error);
   }
 });
 
 function mostrarBannerVerificacion() {
-  // Verificar si el banner ya existe
   if (document.getElementById('verificationBanner')) {
     return;
   }
-  
-  // Crear banner
+
   const banner = document.createElement('div');
   banner.id = 'verificationBanner';
   banner.style.cssText = `
@@ -56,13 +49,13 @@ function mostrarBannerVerificacion() {
     gap: 15px;
     flex-wrap: wrap;
   `;
-  
+
   banner.innerHTML = `
     <span style="font-weight: 600;">
       ⚠️ Tu email no ha sido verificado. Por favor verifica tu correo para acceder a todas las funciones.
     </span>
-    <button 
-      id="btnReenviarBanner" 
+    <button
+      id="btnReenviarBanner"
       style="
         background: white;
         color: #ff5722;
@@ -78,8 +71,8 @@ function mostrarBannerVerificacion() {
     >
       Reenviar código
     </button>
-    <a 
-      href="/html/perfil.html" 
+    <a
+      href="/perfil"
       style="
         background: rgba(255,255,255,0.2);
         color: white;
@@ -92,8 +85,8 @@ function mostrarBannerVerificacion() {
     >
       Ir a mi perfil
     </a>
-    <button 
-      id="btnCerrarBanner" 
+    <button
+      id="btnCerrarBanner"
       style="
         background: transparent;
         color: white;
@@ -108,16 +101,13 @@ function mostrarBannerVerificacion() {
       ×
     </button>
   `;
-  
-  // Insertar al inicio del body
+
   document.body.insertBefore(banner, document.body.firstChild);
-  
-  // Ajustar padding del contenido para que no quede detrás del banner
+
   if (document.body.style.paddingTop === '') {
     document.body.style.paddingTop = '70px';
   }
-  
-  // Event listeners
+
   document.getElementById('btnReenviarBanner').addEventListener('click', reenviarCodigoBanner);
   document.getElementById('btnCerrarBanner').addEventListener('click', cerrarBanner);
 }
@@ -125,31 +115,31 @@ function mostrarBannerVerificacion() {
 async function reenviarCodigoBanner() {
   const btn = document.getElementById('btnReenviarBanner');
   const originalText = btn.textContent;
-  
+
   btn.disabled = true;
   btn.textContent = 'Enviando...';
-  
+
   try {
     await authAPI.resendVerification();
-    
+
     btn.style.background = '#4CAF50';
     btn.style.color = 'white';
     btn.textContent = '✓ Código enviado';
-    
+
     setTimeout(() => {
       btn.style.background = 'white';
       btn.style.color = '#ff5722';
       btn.textContent = originalText;
       btn.disabled = false;
     }, 3000);
-    
+
   } catch (error) {
     console.error('Error reenviando código:', error);
-    
+
     btn.style.background = '#f44336';
     btn.style.color = 'white';
     btn.textContent = '✗ Error';
-    
+
     setTimeout(() => {
       btn.style.background = 'white';
       btn.style.color = '#ff5722';
@@ -165,7 +155,7 @@ function cerrarBanner() {
     banner.style.transition = 'opacity 0.3s, transform 0.3s';
     banner.style.opacity = '0';
     banner.style.transform = 'translateY(-100%)';
-    
+
     setTimeout(() => {
       banner.remove();
       document.body.style.paddingTop = '0';
@@ -173,7 +163,6 @@ function cerrarBanner() {
   }
 }
 
-// Exportar funciones
 if (typeof window !== 'undefined') {
   window.mostrarBannerVerificacion = mostrarBannerVerificacion;
   window.cerrarBanner = cerrarBanner;

@@ -2,23 +2,20 @@
 
 function getApiBaseUrl() {
   const hostname = window.location.hostname;
-  
+
   console.log('🌐 Hostname detectado:', hostname);
   console.log('🌐 Origin completo:', window.location.origin);
-  
-  // Desarrollo local
+
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     console.log('✅ Modo: DESARROLLO LOCAL');
     return 'http://127.0.0.1:8000/api';
   }
-  
-  // Producción - Vercel (mismo dominio)
+
   console.log('✅ Modo: PRODUCCIÓN (Vercel)');
   return window.location.origin + '/api';
 }
 
 const API_BASE_URL = getApiBaseUrl();
-
 console.log('🔗 API Base URL configurada:', API_BASE_URL);
 
 // ========== UTILIDADES DE TOKEN ==========
@@ -52,7 +49,6 @@ async function logout() {
   } catch (error) {
     console.error('Error al cerrar sesión en el servidor:', error);
   }
-  
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   window.location.href = '/';
@@ -63,9 +59,9 @@ async function logout() {
 async function fetchAPI(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = getToken();
-  
+
   console.log(`📡 ${options.method || 'GET'} ${url}`);
-  
+
   const config = {
     ...options,
     headers: {
@@ -73,36 +69,32 @@ async function fetchAPI(endpoint, options = {}) {
     },
     credentials: 'include'
   };
-  
+
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
-  
+
   // Solo agregar Content-Type si NO es FormData
   if (options.body && !(options.body instanceof FormData)) {
     config.headers['Content-Type'] = 'application/json';
   }
-  
+
   try {
     const response = await fetch(url, config);
-    
+
     console.log(`📥 Response: ${response.status} ${response.statusText}`);
-    
-    // 🔥 CRÍTICO: Primero verificar si la respuesta está OK
-    const isSuccess = response.ok; // status 200-299
-    
-    // Intentar leer el cuerpo
+
+    const isSuccess = response.ok;
+
     let data = null;
     const contentType = response.headers.get('content-type');
-    
-    // Si hay content-type JSON, intentar parsear
+
     if (contentType && contentType.includes('application/json')) {
       try {
         const text = await response.text();
         if (text && text.trim().length > 0) {
           data = JSON.parse(text);
         } else {
-          // Respuesta vacía pero exitosa
           data = { success: true, message: 'Operación exitosa' };
         }
       } catch (parseError) {
@@ -110,48 +102,39 @@ async function fetchAPI(endpoint, options = {}) {
         data = { success: true, message: 'Operación exitosa' };
       }
     } else {
-      // No es JSON, leer como texto
       const text = await response.text();
-      
       if (text && text.trim().length > 0) {
-        // Intentar parsear como JSON de todas formas
         try {
           data = JSON.parse(text);
         } catch {
-          // No es JSON, crear objeto de éxito
           data = { success: true, message: 'Operación exitosa' };
         }
       } else {
-        // Sin contenido, asumir éxito si status OK
         data = { success: true, message: 'Operación exitosa' };
       }
     }
-    
-    // Ahora verificar si fue exitoso
+
     if (!isSuccess) {
-      // Error HTTP
       if (response.status === 401) {
         console.warn('⚠️ Sesión expirada, limpiando datos...');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        
-        if (!window.location.pathname.includes('/login') && 
+
+        if (!window.location.pathname.includes('/login') &&
             !window.location.pathname.includes('/register')) {
           window.location.href = '/login';
         }
-        
+
         throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
       }
-      
-      // Otros errores
+
       const errorMessage = data?.detail || data?.message || `Error ${response.status}`;
       throw new Error(errorMessage);
     }
-    
-    // ✅ Respuesta exitosa
+
     console.log('✅ Respuesta exitosa:', data);
     return data;
-    
+
   } catch (error) {
     console.error('❌ Error en fetchAPI:', error);
     throw error;
@@ -167,43 +150,43 @@ const authAPI = {
       method: 'POST',
       body: JSON.stringify({ email, nombre, password })
     });
-    
     console.log('✅ Registro exitoso:', response);
     saveAuthData(response.access_token, response.user);
     return response;
   },
-  
+
   async login(email, password) {
     console.log('🔐 Iniciando login...');
     const response = await fetchAPI('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password })
     });
-    
     console.log('✅ Login exitoso:', response);
     saveAuthData(response.access_token, response.user);
     return response;
   },
-  
+
   async getProfile() {
     return await fetchAPI('/auth/me');
   },
-  
+
   async updateProfile(data) {
     const params = new URLSearchParams();
     if (data.nombre) params.append('nombre', data.nombre);
-    
+
     const response = await fetchAPI(`/auth/me?${params.toString()}`, {
       method: 'PUT'
     });
-    
+
     const user = getCurrentUser();
-    if (data.nombre) user.nombre = data.nombre;
-    localStorage.setItem('user', JSON.stringify(user));
-    
+    if (user && data.nombre) {
+      user.nombre = data.nombre;
+      localStorage.setItem('user', JSON.stringify(user));
+    }
+
     return response;
   },
-  
+
   async changePassword(currentPassword, newPassword) {
     return await fetchAPI('/auth/change-password', {
       method: 'POST',
@@ -213,44 +196,41 @@ const authAPI = {
       })
     });
   },
-  
+
   async verifyEmailWithCode(code) {
     const response = await fetchAPI('/auth/verify-email-code', {
       method: 'POST',
       body: JSON.stringify({ code })
     });
-    
+
     const user = getCurrentUser();
     if (user) {
       user.email_verified = true;
       localStorage.setItem('user', JSON.stringify(user));
     }
-    
+
     return response;
   },
-  
+
   async deleteAccount() {
     return await fetchAPI('/auth/delete-account', {
       method: 'DELETE'
     });
   },
-  
-  // 🔥 NUEVO: Reenviar código de verificación
+
   async resendVerification() {
     return await fetchAPI('/auth/resend-verification', {
       method: 'POST'
     });
   },
-  
-  // 🔥 NUEVO: Solicitar recuperación de contraseña
+
   async requestPasswordReset(email) {
     return await fetchAPI('/auth/request-password-reset', {
       method: 'POST',
       body: JSON.stringify({ email })
     });
   },
-  
-  // 🔥 NUEVO: Restablecer contraseña con código
+
   async resetPassword(code, newPassword) {
     return await fetchAPI('/auth/reset-password', {
       method: 'POST',
@@ -258,6 +238,21 @@ const authAPI = {
         code: code,
         new_password: newPassword
       })
+    });
+  },
+
+  // ✅ CORREGIDO: método faltante que causaba error en perfil.js
+  async requestEmailChange(newEmail) {
+    return await fetchAPI('/auth/request-email-change', {
+      method: 'POST',
+      body: JSON.stringify({ new_email: newEmail })
+    });
+  },
+
+  async verifyEmailChange(code) {
+    return await fetchAPI('/auth/verify-email-change', {
+      method: 'POST',
+      body: JSON.stringify({ code })
     });
   }
 };
@@ -267,65 +262,60 @@ const authAPI = {
 const productosAPI = {
   async getAll(filters = {}) {
     const params = new URLSearchParams();
-    
+
     if (filters.categoria) params.append('categoria', filters.categoria);
     if (filters.destacado !== undefined) params.append('destacado', filters.destacado);
     if (filters.activo !== undefined) params.append('activo', filters.activo);
     if (filters.skip) params.append('skip', filters.skip);
     if (filters.limit) params.append('limit', filters.limit);
-    
+
     const query = params.toString() ? `?${params.toString()}` : '';
     return await fetchAPI(`/productos${query}`);
   },
-  
+
   async getById(id) {
     return await fetchAPI(`/productos/${id}`);
   },
-  
+
   async getByCategoria(categoria) {
     return await fetchAPI(`/productos?categoria=${categoria}&activo=true`);
   },
-  
-  // 🔥 NUEVO: Soporte para múltiples imágenes
+
   async create(productoData, imagenesFiles = null) {
     const formData = new FormData();
-    
+
     formData.append('nombre', productoData.nombre);
     formData.append('categoria', productoData.categoria);
     formData.append('stock', productoData.stock || 0);
     formData.append('destacado', productoData.destacado || false);
     formData.append('activo', productoData.activo !== undefined ? productoData.activo : true);
-    
+
     if (productoData.descripcion) {
       formData.append('descripcion', productoData.descripcion);
     }
-    
+
     if (productoData.precio !== null && productoData.precio !== undefined && productoData.precio !== '') {
       formData.append('precio', productoData.precio);
     }
-    
-    // 🔥 MÚLTIPLES IMÁGENES
+
     if (imagenesFiles) {
-      // Puede ser un solo File o un array de Files
       const files = Array.isArray(imagenesFiles) ? imagenesFiles : [imagenesFiles];
-      
       files.forEach(file => {
         if (file && file instanceof File) {
           formData.append('imagenes', file);
         }
       });
     }
-    
+
     return await fetchAPI('/productos', {
       method: 'POST',
       body: formData
     });
   },
-  
-  // 🔥 ACTUALIZADO: Soporte para múltiples imágenes
+
   async update(id, productoData, imagenesFiles = null, mantenerImagenes = true) {
     const formData = new FormData();
-    
+
     if (productoData.nombre !== undefined) formData.append('nombre', productoData.nombre);
     if (productoData.descripcion !== undefined) formData.append('descripcion', productoData.descripcion);
     if (productoData.precio !== undefined && productoData.precio !== null && productoData.precio !== '') {
@@ -335,27 +325,24 @@ const productosAPI = {
     if (productoData.stock !== undefined) formData.append('stock', productoData.stock);
     if (productoData.destacado !== undefined) formData.append('destacado', productoData.destacado);
     if (productoData.activo !== undefined) formData.append('activo', productoData.activo);
-    
+
     formData.append('mantener_imagenes', mantenerImagenes);
-    
-    // 🔥 MÚLTIPLES IMÁGENES
+
     if (imagenesFiles) {
       const files = Array.isArray(imagenesFiles) ? imagenesFiles : [imagenesFiles];
-      
       files.forEach(file => {
         if (file && file instanceof File) {
           formData.append('imagenes', file);
         }
       });
     }
-    
+
     return await fetchAPI(`/productos/${id}`, {
       method: 'PUT',
       body: formData
     });
   },
-  
-  // ✅ DELETE corregido
+
   async delete(id) {
     console.log('🗑️ Eliminando producto:', id);
     const response = await fetchAPI(`/productos/${id}`, {
@@ -364,7 +351,7 @@ const productosAPI = {
     console.log('✅ Producto eliminado:', response);
     return response;
   },
-  
+
   async getCategorias() {
     return await fetchAPI('/productos/categorias/list');
   }
@@ -379,7 +366,7 @@ if (typeof window !== 'undefined') {
   window.isAdmin = isAdmin;
   window.logout = logout;
   window.saveAuthData = saveAuthData;
-  
+
   window.API_LOADED = true;
   console.log('✅ API de Aurum Joyería cargada correctamente');
 }
